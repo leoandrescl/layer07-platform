@@ -1,6 +1,6 @@
-"use client";
 import { motion } from "framer-motion";
 import { Code2, Cpu, Globe, Zap } from "lucide-react";
+import { RecursiveReveal } from "@/components/ui/RecursiveReveal";
 
 const SPECS = [
   {
@@ -31,38 +31,40 @@ export const TechBoard = () => {
           
           {/* Header de la sección */}
           <div className="lg:col-span-1">
-            <h2 className="text-5xl font-medium tracking-tighter mb-6 leading-tight">
-              System <br /> <span className="text-zinc-700 italic">Specifications</span>
-            </h2>
-            <p className="text-zinc-500 font-mono text-xs uppercase tracking-widest leading-relaxed">
-              No construimos sitios web convencionales. Diseñamos sistemas de software optimizados para la conversión y la escala, utilizando el stack más avanzado disponible en 2026.
-            </p>
+            <RecursiveReveal>
+              <h2 className="text-5xl font-medium tracking-tighter mb-6 leading-tight">
+                System <br /> <span className="text-zinc-700 italic">Specifications</span>
+              </h2>
+            </RecursiveReveal>
+            <RecursiveReveal delay={0.2}>
+              <p className="text-zinc-500 font-mono text-xs uppercase tracking-widest leading-relaxed">
+                No construimos sitios web convencionales. Diseñamos sistemas de software optimizados para la conversión y la escala, utilizando el stack más avanzado disponible en 2026.
+              </p>
+            </RecursiveReveal>
           </div>
 
           {/* Board de Specs */}
           <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-px bg-zinc-900 border border-zinc-900">
             {SPECS.map((spec, i) => (
-              <motion.div 
-                key={i}
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
-                className="bg-black p-8 group hover:bg-zinc-950 transition-colors pointer-events-auto"
-              >
-                <div className="flex justify-between items-start mb-12">
-                  <span className="text-[10px] font-mono text-zinc-600 uppercase tracking-[0.3em]">{spec.category}</span>
-                  {spec.icon}
+              <RecursiveReveal key={i} delay={i * 0.1} className="h-full">
+                <div 
+                  className="bg-black p-8 group hover:bg-zinc-950 transition-colors pointer-events-auto border border-zinc-900 h-full"
+                >
+                  <div className="flex justify-between items-start mb-12">
+                    <span className="text-[10px] font-mono text-zinc-600 uppercase tracking-[0.3em]">{spec.category}</span>
+                    {spec.icon}
+                  </div>
+                  <h3 className="text-2xl font-medium mb-4 tracking-tight">{spec.title}</h3>
+                  <ul className="space-y-2">
+                    {spec.details.map((detail, index) => (
+                      <li key={index} className="flex items-center gap-2 text-[11px] font-mono text-zinc-500 uppercase tracking-tighter">
+                        <span className="w-1 h-1 bg-zinc-800 rounded-full" />
+                        {detail}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-                <h3 className="text-2xl font-medium mb-4 tracking-tight">{spec.title}</h3>
-                <ul className="space-y-2">
-                  {spec.details.map((detail, index) => (
-                    <li key={index} className="flex items-center gap-2 text-[11px] font-mono text-zinc-500 uppercase tracking-tighter">
-                      <span className="w-1 h-1 bg-zinc-800 rounded-full" />
-                      {detail}
-                    </li>
-                  ))}
-                </ul>
-              </motion.div>
+              </RecursiveReveal>
             ))}
             
             {/* CTA / Availability Box */}

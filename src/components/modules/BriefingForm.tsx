@@ -3,6 +3,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, ChevronLeft } from "lucide-react";
 import { sendBriefing } from "@/app/actions";
+import { RecursiveReveal } from "@/components/ui/RecursiveReveal";
 
 const STEPS = [
   {
@@ -44,10 +45,14 @@ export const BriefingForm = () => {
   return (
     <section id="contact" className="py-32 px-8 max-w-4xl mx-auto">
       <div className="mb-16 border-l-2 border-zinc-800 pl-8">
-        <span className="text-zinc-600 font-mono text-[10px] uppercase tracking-[0.4em]">
-          {currentStep > STEPS.length ? "Complete" : `Step ${currentStep + 1} of 3`}
-        </span>
-        <h2 className="text-4xl font-medium tracking-tighter mt-2">Project Briefing</h2>
+        <RecursiveReveal>
+          <span className="text-zinc-600 font-mono text-[10px] uppercase tracking-[0.4em]">
+            {currentStep > STEPS.length ? "Complete" : `Step ${currentStep + 1} of 3`}
+          </span>
+        </RecursiveReveal>
+        <RecursiveReveal delay={0.1}>
+          <h2 className="text-4xl font-medium tracking-tighter mt-2">Project Briefing</h2>
+        </RecursiveReveal>
       </div>
 
       <form action={clientAction} className="bg-zinc-900/30 border border-zinc-800 p-8 md:p-12 min-h-[400px] flex flex-col justify-between">
@@ -97,9 +102,15 @@ export const BriefingForm = () => {
 
                   {currentStep === STEPS.length && (
                     <div className="col-span-2 space-y-6">
-                      <input required name="name" type="text" placeholder="NOMBRE / EMPRESA" className="w-full bg-transparent border-b border-zinc-800 py-4 outline-none focus:border-white transition-colors font-mono text-sm text-white" />
-                      <input required name="email" type="email" placeholder="EMAIL CORPORATIVO" className="w-full bg-transparent border-b border-zinc-800 py-4 outline-none focus:border-white transition-colors font-mono text-sm text-white" />
-                      <textarea required name="message" placeholder="DETALLES ADICIONALES" className="w-full bg-transparent border-b border-zinc-800 py-4 outline-none focus:border-white transition-colors font-mono text-sm h-32 resize-none text-white" />
+                      <RecursiveReveal delay={0.1}>
+                        <input required name="name" type="text" placeholder="NOMBRE / EMPRESA" className="w-full bg-transparent border-b border-zinc-800 py-4 outline-none focus:border-white transition-colors font-mono text-sm text-white" />
+                      </RecursiveReveal>
+                      <RecursiveReveal delay={0.2}>
+                        <input required name="email" type="email" placeholder="EMAIL CORPORATIVO" className="w-full bg-transparent border-b border-zinc-800 py-4 outline-none focus:border-white transition-colors font-mono text-sm text-white" />
+                      </RecursiveReveal>
+                      <RecursiveReveal delay={0.3}>
+                        <textarea required name="message" placeholder="DETALLES ADICIONALES" className="w-full bg-transparent border-b border-zinc-800 py-4 outline-none focus:border-white transition-colors font-mono text-sm h-32 resize-none text-white" />
+                      </RecursiveReveal>
                     </div>
                   )}
                 </div>

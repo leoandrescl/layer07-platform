@@ -4,14 +4,36 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { PROJECTS, Project } from "@/constants/projects";
 
-const ProjectCard = ({ project, index }: { project: Project; index: number }) => {
+const containerVariants = {
+  initial: {},
+  whileInView: {
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const cardVariants = {
+  initial: { opacity: 0, y: 30 },
+  whileInView: { 
+    opacity: 1, 
+    y: 0,
+    transition: {
+      duration: 0.7,
+      ease: [0.22, 1, 0.36, 1] as any,
+    },
+  },
+};
+
+const ProjectCard = ({ project }: { project: Project }) => {
   return (
-    <Link href={`/work/${project.slug}`} aria-label={`View Case Study: ${project.title}`} className="block w-full">
+    <Link 
+      href={`/work/${project.slug}`} 
+      aria-label={`View Case Study: ${project.title}`} 
+      className="block w-full will-change-transform"
+    >
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, delay: index * 0.1, ease: [0.22, 1, 0.36, 1] }}
-        viewport={{ once: true }}
+        variants={cardVariants}
         className="group relative flex flex-col justify-end w-full aspect-[16/10] overflow-hidden bg-black border border-neutral-800 transition-all cursor-pointer"
       >
         {/* Visual Placeholder for Image */}
@@ -37,9 +59,9 @@ const ProjectCard = ({ project, index }: { project: Project; index: number }) =>
           {/* Bottom Content Area */}
           <div className="flex flex-col items-start w-full translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
              <div className="flex gap-2 mb-4">
-               <span className="text-[10px] font-mono text-emerald-400 font-bold bg-emerald-400/5 px-2 py-1 border border-emerald-400/20">
-                 {project.performanceScore}% SCORE
-               </span>
+                <span className="text-[10px] font-mono text-emerald-400 font-bold bg-emerald-400/5 px-2 py-1 border border-emerald-400/20">
+                  {project.performanceScore}% SCORE
+                </span>
              </div>
              
              <h3 className="text-3xl md:text-4xl font-medium tracking-tighter text-white mb-3">
@@ -58,12 +80,18 @@ const ProjectCard = ({ project, index }: { project: Project; index: number }) =>
 
 export const ProjectGrid = () => {
   return (
-    <section id="work" className="w-full py-24 md:py-32 relative z-10">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-7xl mx-auto px-6 md:px-8">
-        {PROJECTS.map((project, idx) => (
-          <ProjectCard key={project.id} project={project} index={idx} />
+    <section id="work" className="w-full pb-24 md:pb-32 relative z-10">
+      <motion.div 
+        variants={containerVariants}
+        initial="initial"
+        whileInView="whileInView"
+        viewport={{ once: false, amount: 0.1 }}
+        className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-7xl mx-auto px-6 md:px-8"
+      >
+        {PROJECTS.map((project) => (
+          <ProjectCard key={project.id} project={project} />
         ))}
-      </div>
+      </motion.div>
     </section>
   );
 };

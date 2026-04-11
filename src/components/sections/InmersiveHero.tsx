@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, useScroll, useTransform, useSpring, useMotionValueEvent } from "framer-motion";
 import { TunnelGrid } from "@/components/ui/TunnelGrid";
+import { RecursiveReveal } from "@/components/ui/RecursiveReveal";
 
 const FRAME_COUNT = 90;
 
@@ -124,34 +125,46 @@ export const InmersiveHero = () => {
         <div className="z-10 text-center px-6 mix-blend-difference">
           
           <motion.div style={{ opacity: t1Opacity, y: t1Y }} className="absolute inset-0 flex flex-col items-center justify-center">
-            <h1 className="text-[12vw] font-medium tracking-tighter leading-none text-white">
-               VELOCITY
-            </h1>
-            <p className="text-zinc-500 font-mono text-xs uppercase tracking-[0.4em] mt-8">
-              NO ES SUERTE, ES INGENIERÍA.
-            </p>
+            <RecursiveReveal>
+              <h1 className="text-[12vw] font-medium tracking-tighter leading-none text-white">
+                 VELOCITY
+              </h1>
+            </RecursiveReveal>
+            <RecursiveReveal delay={0.1}>
+              <p className="text-zinc-500 font-mono text-xs uppercase tracking-[0.4em] mt-8">
+                NO ES SUERTE, ES INGENIERÍA.
+              </p>
+            </RecursiveReveal>
           </motion.div>
 
           <motion.div style={{ opacity: t2Opacity, y: t2Y }} className="absolute inset-0 flex flex-col items-center justify-center">
-            <h2 className="text-[10vw] font-medium tracking-tighter leading-none text-white">
-              DECOUPLED
-            </h2>
-            <p className="text-zinc-500 font-mono text-xs uppercase tracking-[0.4em] mt-8">
-              ABSTRACCIÓN TOTAL DEL DOM.
-            </p>
+            <RecursiveReveal>
+              <h2 className="text-[10vw] font-medium tracking-tighter leading-none text-white">
+                DECOUPLED
+              </h2>
+            </RecursiveReveal>
+            <RecursiveReveal delay={0.1}>
+              <p className="text-zinc-500 font-mono text-xs uppercase tracking-[0.4em] mt-8">
+                ABSTRACCIÓN TOTAL DEL DOM.
+              </p>
+            </RecursiveReveal>
           </motion.div>
 
           <motion.div style={{ opacity: t3Opacity, y: t3Y }} className="absolute inset-0 flex flex-col items-center justify-center">
             <div className="flex flex-col items-center gap-12">
-               <h3 className="text-[8vw] font-medium tracking-tighter leading-none text-white">
-                 HEADLESS
-               </h3>
-               <div className="flex items-center gap-4 bg-emerald-400/5 border border-emerald-400/20 px-8 py-4 backdrop-blur-xl">
-                  <div className="w-2 h-2 bg-emerald-400 animate-pulse" />
-                  <span className="text-emerald-400 font-mono text-sm tracking-widest uppercase">
-                    LCP &lt; 0.8<span className="text-[10px] ml-1 opacity-60 italic">s</span>
-                  </span>
-               </div>
+               <RecursiveReveal>
+                 <h3 className="text-[8vw] font-medium tracking-tighter leading-none text-white">
+                   HEADLESS
+                 </h3>
+               </RecursiveReveal>
+               <RecursiveReveal delay={0.2}>
+                 <div className="flex items-center gap-4 bg-emerald-400/5 border border-emerald-400/20 px-8 py-4 backdrop-blur-xl">
+                    <div className="w-2 h-2 bg-emerald-400 animate-pulse" />
+                    <span className="text-emerald-400 font-mono text-sm tracking-widest uppercase">
+                      LCP &lt; 0.8<span className="text-[10px] ml-1 opacity-60 italic">s</span>
+                    </span>
+                 </div>
+               </RecursiveReveal>
             </div>
           </motion.div>
 

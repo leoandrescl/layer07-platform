@@ -1,5 +1,6 @@
 import { Navbar } from "@/components/layout/Navbar";
 import { ProjectGrid } from "@/components/sections/ProjectGrid";
+import { ProjectHeader } from "@/components/sections/ProjectHeader";
 import { TechBoard } from "@/components/modules/TechBoard";
 import { BriefingForm } from "@/components/modules/BriefingForm";
 import { WhatsAppButton } from "@/components/ui/WhatsAppButton";
@@ -15,6 +16,7 @@ export default function Home() {
         <InmersiveHero />
 
         {/* Work Section */}
+        <ProjectHeader />
         <ProjectGrid />
         
         {/* Tech Specifications Section */}
