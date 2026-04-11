@@ -1,7 +1,7 @@
 import { Navbar } from "@/components/layout/Navbar";
 import { ProjectGrid } from "@/components/sections/ProjectGrid";
 import { ProjectHeader } from "@/components/sections/ProjectHeader";
-import { TechBoard } from "@/components/modules/TechBoard";
+import { Services } from "@/components/sections/Services";
 import { BriefingForm } from "@/components/modules/BriefingForm";
 import { WhatsAppButton } from "@/components/ui/WhatsAppButton";
 import { InmersiveHero } from "@/components/sections/InmersiveHero";
@@ -20,7 +20,7 @@ export default function Home() {
         <ProjectGrid />
         
         {/* Tech Specifications Section */}
-        <TechBoard />
+        <Services />
         
         {/* Project Briefing Section */}
         <BriefingForm />
