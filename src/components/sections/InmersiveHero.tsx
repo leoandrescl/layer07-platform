@@ -152,47 +152,29 @@ export const InmersiveHero = () => {
 
           <motion.div style={{ opacity: t3Opacity, y: t3Y }} className="absolute inset-0 flex flex-col items-center justify-center">
             <div className="flex flex-col items-center gap-12">
-               <motion.h3 
-                 initial="initial"
-                 whileInView="whileInView"
+               <motion.h1 
+                 initial={{ opacity: 0, y: 20 }}
+                 whileInView={{ opacity: 1, y: 0 }}
                  viewport={{ once: false, amount: 0.5 }}
-                 variants={{
-                   initial: {},
-                   whileInView: {
-                     transition: {
-                       staggerChildren: 0.03,
-                       delayChildren: 0.1,
-                     }
-                   }
-                 }}
-                 className="text-[8vw] font-bold tracking-tighter leading-none text-white uppercase flex flex-nowrap"
+                 transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                 className="text-[8vw] font-bold tracking-tighter leading-none text-white uppercase"
                >
-                 {"LAYER07 // STUDIO".split("").map((char, i) => (
-                   <motion.span
-                     key={i}
-                     variants={{
-                       initial: { opacity: 0, y: 15 },
-                       whileInView: { 
-                         opacity: 1, 
-                         y: 0,
-                         transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] }
-                       }
-                     }}
-                     className={char === " " ? "mr-[0.25em]" : ""}
-                   >
-                     {char}
-                   </motion.span>
-                 ))}
-               </motion.h3>
+                 LAYER07 // STUDIO
+               </motion.h1>
 
-               <RecursiveReveal delay={0.7}>
+               <motion.div
+                 initial={{ opacity: 0, y: 10 }}
+                 whileInView={{ opacity: 1, y: 0 }}
+                 viewport={{ once: false, amount: 0.5 }}
+                 transition={{ delay: 0.2, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+               >
                  <div className="flex items-center gap-4 bg-emerald-400/5 border border-emerald-400/20 px-8 py-4 backdrop-blur-xl">
                     <div className="w-2 h-2 bg-emerald-400 animate-pulse" />
                     <span className="text-emerald-400 font-mono text-sm tracking-widest uppercase">
                       LCP &lt; 1s <span className="text-[10px] ml-1 opacity-60 italic whitespace-nowrap">AS A STANDARD</span>
                     </span>
                  </div>
-               </RecursiveReveal>
+               </motion.div>
             </div>
           </motion.div>
 
