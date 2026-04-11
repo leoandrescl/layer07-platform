@@ -1,5 +1,5 @@
 import { Navbar } from "@/components/layout/Navbar";
-import { ProjectGrid } from "@/components/modules/ProjectGrid";
+import { ProjectGrid } from "@/components/sections/ProjectGrid";
 import { TechBoard } from "@/components/modules/TechBoard";
 import { BriefingForm } from "@/components/modules/BriefingForm";
 import { WhatsAppButton } from "@/components/ui/WhatsAppButton";

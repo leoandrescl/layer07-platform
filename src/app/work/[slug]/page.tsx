@@ -1,104 +1,84 @@
 import { notFound } from "next/navigation";
 import Image from "next/image";
-import { getAllProjectSlugs, getProjectBySlug } from "@/lib/graphql";
-import { Metadata } from "next";
-import { ShieldCheck, Gauge } from "lucide-react";
+import Link from "next/link";
+import { PROJECTS } from "@/constants/projects";
+import { StaggerReveal, ImageReveal } from "@/components/ui/RevealWrappers";
+import { KpiScore } from "@/components/ui/KPI";
+import { ArrowLeft } from "lucide-react";
 
 export async function generateStaticParams() {
-  try {
-    const slugs = await getAllProjectSlugs();
-    return slugs.map((slug) => ({ slug }));
-  } catch {
-    return [];
-  }
+  return PROJECTS.map((project) => ({ slug: project.slug }));
 }
 
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+export default async function ProjectCaseStudy({ params }: { params: { slug: string } }) {
   const { slug } = await params;
-  try {
-    const project = await getProjectBySlug(slug);
+  const project = PROJECTS.find((p) => p.slug === slug);
 
-    if (!project) return { title: "Project Not Found" };
-
-    return {
-      title: `${project.title} - Layer07 Architecture`,
-      description: project.projectFields?.techStack.join(", "),
-      openGraph: {
-        images: project.featuredImage?.node?.sourceUrl ? [project.featuredImage.node.sourceUrl] : [],
-      },
-    };
-  } catch {
-    return { title: "Loading..." };
-  }
-}
-
-import { StaggerReveal, ImageReveal } from "@/components/ui/RevealWrappers";
-
-export default async function ProjectPage({ params }: { params: { slug: string } }) {
-  const { slug } = await params;
-  
-  let project = null;
-  try {
-    project = await getProjectBySlug(slug);
-  } catch (err) {
-    // Failsafe during network blockages
-  }
-
-  if (!project) {
-    notFound();
-  }
-
-  const img = project.featuredImage?.node;
-  const fields = project.projectFields;
+  if (!project) notFound();
 
   return (
     <StaggerReveal>
-      <div className="relative aspect-[21/9] w-full overflow-hidden bg-zinc-900 border border-zinc-800 mb-16">
-        {img?.sourceUrl && (
+      <main className="w-full bg-black min-h-screen pb-32">
+        
+        {/* Boutique Navigation */}
+        <nav className="fixed top-0 left-0 w-full z-50 p-6 flex justify-between items-center mix-blend-difference text-white">
+          <Link href="/#work" className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.3em] hover:opacity-50 transition-opacity">
+            <ArrowLeft size={12} /> Back
+          </Link>
+          <span className="text-[10px] font-mono uppercase tracking-[0.3em] opacity-50">Case Study</span>
+        </nav>
+
+        {/* Hero Section */}
+        <section className="pt-40 px-6 md:px-16 max-w-7xl mx-auto flex flex-col gap-8 mb-24">
+           <h1 className="text-5xl md:text-8xl font-medium tracking-tighter text-white">{project.title}</h1>
+           <p className="max-w-2xl text-xl md:text-2xl font-light text-zinc-400 leading-relaxed border-l-2 border-zinc-800 pl-6">
+             {project.description}
+           </p>
+        </section>
+
+        {/* Main Image Viewport Reveal */}
+        <section className="relative w-full aspect-[16/10] md:aspect-[21/9] bg-zinc-900 border-y border-zinc-800 my-16 overflow-hidden">
           <ImageReveal>
             <Image 
-              src={img.sourceUrl}
-              alt={img.altText || project.title}
+              src={project.coverImage}
+              alt={project.title}
               fill
               priority
               sizes="100vw"
-              className="object-cover opacity-80"
+              className="object-cover opacity-60 mix-blend-luminosity hover:mix-blend-normal transition-all duration-1000"
             />
           </ImageReveal>
-        )}
-      </div>
+        </section>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-16">
-        <div className="md:col-span-2">
-          <h1 className="text-6xl md:text-8xl font-medium tracking-tighter mb-8 text-white">{project.title}</h1>
-          
-          <div className="flex gap-4 mb-16">
-            {fields?.techStack?.map(tech => (
-              <span key={tech} className="text-xs border border-zinc-700 px-3 py-1 text-zinc-400 font-mono uppercase tracking-widest">
-                {tech}
-              </span>
-            ))}
+        {/* Stack & Metrics Ledger */}
+        <section className="max-w-7xl mx-auto px-6 md:px-16 grid grid-cols-1 md:grid-cols-2 gap-24 mt-32">
+          {/* Engineering KPI */}
+          <div>
+             <h3 className="text-zinc-600 font-mono text-[10px] uppercase tracking-[0.4em] mb-12">Performance KPI</h3>
+             <KpiScore score={project.performanceScore} />
           </div>
-          
-          <div className="prose prose-invert max-w-none">
-            <p className="text-zinc-500 font-mono italic">Architecture analysis and technical documentation pipeline fully established...</p>
-          </div>
-        </div>
 
-        <div className="pt-4 border-t border-zinc-800 md:border-t-0 md:pl-8 md:border-l">
-           <span className="text-[10px] font-mono text-zinc-600 uppercase tracking-[0.3em] block mb-6">Live Metrics</span>
-           <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <Gauge size={16} className="text-green-400" />
-                <span className="text-sm font-mono font-bold text-zinc-300">{fields?.performanceScore} LCP</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <ShieldCheck size={16} className="text-blue-400" />
-                <span className="text-sm font-mono font-bold text-zinc-300">STABLE CLS</span>
-              </div>
-           </div>
-        </div>
-      </div>
+          {/* Value Tech Stack */}
+          <div className="flex flex-col gap-10 border-t md:border-t-0 md:border-l border-zinc-800 pt-12 md:pt-0 md:pl-16">
+             <h3 className="text-zinc-600 font-mono text-[10px] uppercase tracking-[0.4em]">Stack Diagnostics</h3>
+             <div className="flex flex-col gap-8">
+                {project.techStack.map(tech => (
+                  <div key={tech} className="border-b border-zinc-800 pb-6 group">
+                     <span className="text-3xl text-zinc-300 group-hover:text-white transition-colors font-medium tracking-tight block">{tech}</span>
+                  </div>
+                ))}
+             </div>
+          </div>
+        </section>
+
+        {/* Footer Traversal Nav */}
+        <section className="max-w-7xl mx-auto px-6 md:px-16 mt-40 flex justify-center">
+           <Link href="/#work" className="bg-white text-black font-mono text-[10px] uppercase tracking-[0.4em] font-bold px-12 py-6 hover:bg-zinc-200 transition-colors">
+              Return to Grid
+           </Link>
+        </section>
+
+      </main>
     </StaggerReveal>
   );
 }
