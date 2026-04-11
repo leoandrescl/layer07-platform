@@ -30,6 +30,6 @@ export async function sendBriefing(formData: FormData): Promise<{ success: boole
     });
     return { success: true };
   } catch (error) {
-    return { success: false, error };
+    return { success: false, error: String(error) };
   }
 }
