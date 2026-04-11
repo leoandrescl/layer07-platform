@@ -1,15 +1,44 @@
 "use client";
+import { useEffect, useRef, useState } from "react";
+import { useScroll, useVelocity, useSpring, useTransform, useMotionValueEvent } from "framer-motion";
 
-import { useEffect, useRef } from "react";
-import { useScroll, useVelocity, useSpring, useTransform } from "framer-motion";
+const CODE_FRAGMENTS = [
+  "import { NextConfig } from 'next';",
+  "const nextConfig: NextConfig = { ... }",
+  "export default nextConfig;",
+  "const hash = (p: vec2) => fract(sin(dot(p, ...)))",
+  "fn drawLayer(uv: vec2, scale: f32) -> vec3",
+  "export type Layer = { id: string, version: string }",
+  "struct Uniforms { time: f32, scroll: f32 }",
+  "COMPOSABLE ARQ",
+  "HEADLESS BOUTIQUE",
+  "ISR REVALIDATION",
+  "NEXT.JS 16 CORE",
+  "LCP < 1.0s PERFORMANCE",
+  "instance.render(data_nebula)",
+  "const gl = canvas.getContext('webgl2')",
+  "whileInView: { opacity: 1, y: 0 }",
+  "ease: [0.22, 1, 0.36, 1]"
+];
 
 export const AmbientShader = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  
-  // Motion integration
-  const { scrollY } = useScroll();
+  const { scrollY, scrollYProgress } = useScroll();
   const scrollVelocity = useVelocity(scrollY);
   const smoothVelocity = useSpring(scrollVelocity, { damping: 50, stiffness: 400 });
+  
+  // Custom Focus logic: 0 -> 0.5 via scroll, 0.5 -> 1.0 via event (interaction)
+  const [interactionFocus, setInteractionFocus] = useState(0);
+  
+  // Converge nebula as we reach the end of the page (Briefing section)
+  const scrollFocus = useTransform(scrollYProgress, [0.7, 1.0], [0, 0.5]);
+  const smoothFocus = useSpring(scrollFocus, { stiffness: 50, damping: 20 });
+
+  useEffect(() => {
+    const handleFocus = (e: any) => setInteractionFocus(e.detail.focus ? 0.5 : 0);
+    window.addEventListener("nebula-focus", handleFocus);
+    return () => window.removeEventListener("nebula-focus", handleFocus);
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -19,9 +48,44 @@ export const AmbientShader = () => {
     let program: WebGLProgram | null = null;
     let animationFrame: number;
 
-    // --- SHARED SHADER LOGIC (PRO procedural starfield) ---
-    // This GLSL code will be used for WebGL fallback. 
-    // WebGPU WGSL will follow a similar logic.
+    // --- TEXTURE ATLAS GENERATION (4x4 Grid) ---
+    const createCodeTexture = (gl: WebGL2RenderingContext) => {
+      const texSize = 1024;
+      const offscreen = document.createElement('canvas');
+      offscreen.width = texSize;
+      offscreen.height = texSize;
+      const ctx = offscreen.getContext('2d');
+      if (!ctx) return null;
+
+      ctx.fillStyle = 'black';
+      ctx.fillRect(0, 0, texSize, texSize);
+      ctx.font = 'bold 32px monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      const gridSize = 4;
+      const cellSize = texSize / gridSize;
+
+      CODE_FRAGMENTS.slice(0, 16).forEach((text, i) => {
+        const x = (i % gridSize) * cellSize + cellSize / 2;
+        const y = Math.floor(i / gridSize) * cellSize + cellSize / 2;
+        
+        ctx.shadowColor = '#10b981';
+        ctx.shadowBlur = 10;
+        ctx.fillStyle = i % 3 === 0 ? '#10b981' : '#047857';
+        ctx.fillText(text, x, y);
+      });
+
+      const texture = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, texture);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, offscreen);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.generateMipmap(gl.TEXTURE_2D);
+      return texture;
+    };
 
     const vsSource = `#version 300 es
       in vec2 position;
@@ -37,75 +101,94 @@ export const AmbientShader = () => {
       uniform float uTime;
       uniform float uScroll;
       uniform float uVelocity;
+      uniform float uFocus;
       uniform vec2 uResolution;
+      uniform sampler2D uCodeTex;
       out vec4 fragColor;
 
       float hash(vec2 p) {
-        p = fract(p * vec2(123.34, 456.21));
-        p += dot(p, p + 45.32);
-        return fract(p.x * p.y);
+        return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453123);
       }
 
-      vec3 drawLayer(vec2 uv, float scale, float speed, float scroll, float velocity) {
-        vec2 p = uv * scale;
-        
-        // Cinematic Sway (X-axis) - Extremely subtle cam float
-        p.x += sin(uTime * 0.4 + scale) * 0.01;
-        
-        // Forward Drift + Scroll (Y-axis)
-        float drift = uTime * 0.2 * speed;
-        p.y += (scroll * speed * 0.001) + drift;
-        
-        vec2 id = floor(p);
+      float noise(vec2 p) {
+        vec2 i = floor(p);
         vec2 f = fract(p);
-        
-        float h = hash(id);
-        if(h < 0.98) return vec3(0.0); // Density control
-        
-        vec2 offset = vec2(hash(id + 11.5), hash(id + 22.3)) - 0.5;
-        vec2 pos = 0.5 + 0.4 * offset;
-        
-        // Twinkle
-        float twinkle = sin(uTime * 2.0 + h * 6.28) * 0.5 + 0.5;
-        
-        // Motion Blur (React to combined velocity: drift + scroll)
-        float totalVelocity = abs(velocity * 0.02) + (speed * 0.05);
-        float d = length((f - pos) * vec2(1.0, 1.0 / (1.0 + totalVelocity)));
-        
-        // Glow / Soft edge
-        float mask = smoothstep(0.04, 0.0, d);
-        mask *= (0.2 + 0.8 * twinkle);
-        
-        // Emerald tactical star chance
-        vec3 color = (hash(id * 1.5) > 0.95) ? vec3(0.06, 0.73, 0.51) * 0.4 : vec3(1.0);
-        
-        return color * mask;
+        float a = hash(i);
+        float b = hash(i + vec2(1.0, 0.0));
+        float c = hash(i + vec2(0.0, 1.0));
+        float d = hash(i + vec2(1.0, 1.0));
+        vec2 u = f * f * (3.0 - 2.0 * f);
+        return mix(a, b, u.x) + (c - a) * u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
+      }
+
+      float fbm(vec2 p) {
+        float v = 0.0;
+        float a = 0.5;
+        for (int i = 0; i < 5; i++) {
+          v += a * noise(p);
+          p *= 2.0;
+          a *= 0.5;
+        }
+        return v;
       }
 
       void main() {
-        vec2 uv = (gl_FragCoord.xy * 2.0 - uResolution) / min(uResolution.x, uResolution.y);
+        vec2 uv = gl_FragCoord.xy / uResolution;
+        vec2 p = (gl_FragCoord.xy * 2.0 - uResolution) / min(uResolution.x, uResolution.y);
         
-        vec3 color = vec3(0.0);
+        // --- 1. DIGITAL NEBULA (FBM) ---
+        // Focus effect: nebula converges to a central filament
+        float focusScale = mix(1.0, 4.0, uFocus);
+        vec2 nebulaP = p * focusScale * 0.5 + uTime * 0.02;
+        float n = fbm(nebulaP + fbm(nebulaP + uTime * 0.05));
         
-        // Parallax Layers
-        color += drawLayer(uv, 4.0, 0.2, uScroll, uVelocity);  // Far
-        color += drawLayer(uv, 8.0, 0.5, uScroll, uVelocity);  // Med
-        color += drawLayer(uv, 12.0, 1.2, uScroll, uVelocity); // Near (Faster)
+        // Deep emerald palette: #000505 to #001a1a
+        vec3 colLow = vec3(0.0, 0.02, 0.02);
+        vec3 colMid = vec3(0.0, 0.08, 0.06);
+        vec3 nebulaColor = mix(colLow, colMid, n);
         
-        // Atmospheric haze / fade at edges
-        float edge = smoothstep(1.5, 0.0, length(uv));
-        color *= edge;
+        // Lens focus brightening center
+        nebulaColor += mix(0.0, 0.05, uFocus) * exp(-length(p)*2.0);
+        nebulaColor *= smoothstep(1.5, 0.2, length(p)); // Edge fade
 
-        fragColor = vec4(color * 0.6, 1.0); // Final exposure
+        // --- 2. CODE TUNNEL ---
+        vec3 codeColor = vec3(0.0);
+        float scroll = uScroll * 0.002;
+        
+        for(int i = 1; i <= 3; i++) {
+          float fi = float(i);
+          float z = fract(0.08 * uTime * 0.2 * fi + fi * 0.33);
+          float scale = mix(8.0, 0.5, z);
+          float fade = smoothstep(0.0, 0.3, z) * smoothstep(1.0, 0.7, z);
+          
+          // Focus interaction: pull fragments towards the center
+          vec2 focusOffset = p * uFocus * 0.5;
+          vec2 codeUv = (p - focusOffset) * scale + vec2(sin(uTime * 0.1 * fi), scroll * fi);
+          vec2 id = floor(codeUv);
+          
+          if(hash(id) > 0.85) {
+            vec2 f = fract(codeUv);
+            
+            // Motion Blur based on scroll velocity
+            float stretch = 1.0 / (1.0 + abs(uVelocity) * 0.08);
+            vec2 stretchUv = (f - 0.5) * vec2(1.0, stretch) + 0.5;
+            
+            // Sample 4x4 atlas
+            vec2 atlasId = vec2(floor(hash(id + 1.0)*4.0), floor(hash(id + 2.0)*4.0));
+            vec2 atlasUv = (stretchUv * 0.25) + (atlasId * 0.25);
+            
+            codeColor += texture(uCodeTex, atlasUv).rgb * fade * 0.6;
+          }
+        }
+
+        fragColor = vec4(nebulaColor + codeColor, 1.0);
       }
     `;
 
-    // --- WEBGL FALLBACK ---
     const initWebGL = () => {
       gl = canvas.getContext("webgl2");
       if (!gl) return;
-
-      console.log("GE_WEBGL: Deep Space Engine Active");
+      console.log("GE_WEBGL: Digital Nebula Engine Stabilized");
 
       const createShader = (gl: WebGL2RenderingContext, type: number, source: string) => {
         const shader = gl.createShader(type);
@@ -130,6 +213,11 @@ export const AmbientShader = () => {
       gl.linkProgram(program);
       gl.useProgram(program);
 
+      const codeTex = createCodeTexture(gl);
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, codeTex);
+      gl.uniform1i(gl.getUniformLocation(program, "uCodeTex"), 0);
+
       const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
       const buffer = gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
@@ -142,6 +230,7 @@ export const AmbientShader = () => {
       const timeLoc = gl.getUniformLocation(program, "uTime");
       const scrollLoc = gl.getUniformLocation(program, "uScroll");
       const velLoc = gl.getUniformLocation(program, "uVelocity");
+      const focusLoc = gl.getUniformLocation(program, "uFocus");
       const resLoc = gl.getUniformLocation(program, "uResolution");
 
       const render = (time: number) => {
@@ -149,11 +238,12 @@ export const AmbientShader = () => {
         gl.uniform1f(timeLoc, time * 0.001);
         gl.uniform1f(scrollLoc, scrollY.get());
         gl.uniform1f(velLoc, smoothVelocity.get());
+        gl.uniform1f(focusLoc, smoothFocus.get() + interactionFocus);
         gl.uniform2f(resLoc, canvas.width, canvas.height);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
         animationFrame = requestAnimationFrame(render);
       };
-      
+
       const resize = () => {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
@@ -164,176 +254,13 @@ export const AmbientShader = () => {
       animationFrame = requestAnimationFrame(render);
     };
 
-    // --- WEBGPU (Priority) ---
-    const initWebGPU = async () => {
-      const nav = navigator as any;
-      if (!nav.gpu) return false;
-      const adapter = await nav.gpu.requestAdapter();
-      if (!adapter) return false;
-      const device = await adapter.requestDevice();
-      const context = canvas.getContext("webgpu") as any;
-      if (!context) return false;
-
-      console.log("GE_WEBGPU: Deep Space Engine Active");
-
-      const format = nav.gpu.getPreferredCanvasFormat();
-      context.configure({ device, format, alphaMode: "premultiplied" });
-
-      const shaderCode = `
-        struct Uniforms {
-          time: f32,
-          scroll: f32,
-          velocity: f32,
-          resolution: vec2<f32>,
-        }
-        @group(0) @binding(0) var<uniform> uniforms: Uniforms;
-
-        struct VertexOutput {
-          @builtin(position) position: vec4<f32>,
-          @location(0) uv: vec2<f32>,
-        }
-
-        @vertex
-        fn vs_main(@builtin(vertex_index) vertexIndex: u32) -> VertexOutput {
-          var pos = array<vec2<f32>, 4>(
-            vec2<f32>(-1.0, -1.0), vec2<f32>(1.0, -1.0),
-            vec2<f32>(-1.0, 1.0), vec2<f32>(1.0, 1.0)
-          );
-          var output: VertexOutput;
-          output.position = vec4<f32>(pos[vertexIndex], 0.0, 1.0);
-          output.uv = pos[vertexIndex] * 0.5 + 0.5;
-          return output;
-        }
-
-        fn hash(p: vec2<f32>) -> f32 {
-          var p3 = fract(p.xyx * vec3<f32>(0.1031, 0.1030, 0.0973));
-          p3 = p3 + dot(p3, p3.yzx + 33.33);
-          return fract((p3.x + p3.y) * p3.z);
-        }
-
-        fn drawLayer(uv: vec2<f32>, scale: f32, speed: f32) -> vec3<f32> {
-          var p = uv * scale;
-          
-          // Cinematic Sway (X-axis)
-          p.x = p.x + sin(uniforms.time * 0.4 + scale) * 0.01;
-          
-          // Forward Drift + Scroll (Y-axis)
-          let drift = uniforms.time * 0.2 * speed;
-          p.y = p.y + (uniforms.scroll * speed * 0.001) + drift;
-          
-          let id = floor(p);
-          let f = fract(p);
-          
-          let h = hash(id);
-          if (h < 0.98) { return vec3<f32>(0.0); }
-          
-          let offset = vec2<f32>(hash(id + 11.5), hash(id + 22.3)) - 0.5;
-          let pos = 0.5 + 0.4 * offset;
-          
-          let twinkle = sin(uniforms.time * 2.0 + h * 6.28) * 0.5 + 0.5;
-          
-          // Motion Blur
-          let totalVelocity = abs(uniforms.velocity * 0.02) + (speed * 0.05);
-          let d = length((f - pos) * vec2<f32>(1.0, 1.0 / (1.0 + totalVelocity)));
-          
-          var mask = smoothstep(0.04, 0.0, d);
-          mask = mask * (0.2 + 0.8 * twinkle);
-          
-          var color = vec3<f32>(1.0);
-          if (hash(id * 1.5) > 0.95) {
-            color = vec3<f32>(0.06, 0.73, 0.51) * 0.4;
-          }
-          
-          return color * mask;
-        }
-
-        @fragment
-        fn fs_main(input: VertexOutput) -> @location(0) vec4<f32> {
-          let uv = (input.uv * 2.0 - 1.0) * (uniforms.resolution / min(uniforms.resolution.x, uniforms.resolution.y));
-          
-          var color = vec3<f32>(0.0);
-          color = color + drawLayer(uv, 4.0, 0.2);
-          color = color + drawLayer(uv, 8.0, 0.5);
-          color = color + drawLayer(uv, 12.0, 1.2);
-          
-          let edge = smoothstep(1.5, 0.0, length(uv));
-          return vec4<f32>(color * edge * 0.6, 1.0);
-        }
-      `;
-
-      const shaderModule = device.createShaderModule({ code: shaderCode });
-      const pipeline = device.createRenderPipeline({
-        layout: "auto",
-        vertex: { module: shaderModule, entryPoint: "vs_main" },
-        fragment: { module: shaderModule, entryPoint: "fs_main", targets: [{ format }] },
-        primitive: { topology: "triangle-strip" }
-      });
-
-      const uniformBuffer = device.createBuffer({ 
-        size: 32, 
-        usage: 0x01 | 0x08 // UNIFORM | COPY_DST
-      });
-
-      const bindGroup = device.createBindGroup({
-        layout: pipeline.getBindGroupLayout(0),
-        entries: [{ binding: 0, resource: { buffer: uniformBuffer } }]
-      });
-
-      const frame = (time: number) => {
-        const uniformData = new Float32Array([
-          time * 0.001, 
-          scrollY.get(), 
-          smoothVelocity.get(), 
-          0, // padding
-          canvas.width, 
-          canvas.height, 
-          0, 0 // padding
-        ]);
-        device.queue.writeBuffer(uniformBuffer, 0, uniformData);
-
-        const commandEncoder = device.createCommandEncoder();
-        const pass = commandEncoder.beginRenderPass({
-          colorAttachments: [{ 
-            view: context.getCurrentTexture().createView(), 
-            loadOp: "clear", 
-            clearValue: {r:0,g:0,b:0,a:1}, 
-            storeOp: "store" 
-          }]
-        });
-        pass.setPipeline(pipeline);
-        pass.setBindGroup(0, bindGroup);
-        pass.draw(4);
-        pass.end();
-        device.queue.submit([commandEncoder.finish()]);
-        animationFrame = requestAnimationFrame(frame);
-      };
-
-      const resize = () => {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-      };
-      window.addEventListener("resize", resize);
-      resize();
-      animationFrame = requestAnimationFrame(frame);
-      return true;
-    };
-
-    const start = async () => {
-      try {
-        const gpuSuccess = await initWebGPU();
-        if (!gpuSuccess) initWebGL();
-      } catch (e) {
-        initWebGL();
-      }
-    };
-
-    start();
+    initWebGL();
 
     return () => {
       cancelAnimationFrame(animationFrame);
       window.removeEventListener("resize", () => {});
     };
-  }, []); // Re-run if scroll dependencies change? No, we use .get() in render loop.
+  }, [smoothFocus, interactionFocus]);
 
   return (
     <canvas

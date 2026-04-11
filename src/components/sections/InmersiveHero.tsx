@@ -1,11 +1,59 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { motion, useScroll, useTransform, useSpring, useMotionValueEvent } from "framer-motion";
+import { motion, useScroll, useTransform, useSpring, useMotionValueEvent, AnimatePresence, useInView } from "framer-motion";
 import { TunnelGrid } from "@/components/ui/TunnelGrid";
 import { RecursiveReveal } from "@/components/ui/RecursiveReveal";
 
 const FRAME_COUNT = 90;
+const CHARS = "#@%&*0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+const DecryptedText = ({ text, isVisible }: { text: string, isVisible: boolean }) => {
+  const [displayText, setDisplayText] = useState("");
+  const hasAnimated = useRef(false);
+
+  useEffect(() => {
+    if (!isVisible || hasAnimated.current) return;
+    hasAnimated.current = true;
+
+    let iterations = 0;
+    const interval = setInterval(() => {
+      setDisplayText(
+        text
+          .split("")
+          .map((char, index) => {
+            if (index < iterations) {
+              return text[index];
+            }
+            if (char === " " || char === "/" ) return char;
+            return CHARS[Math.floor(Math.random() * CHARS.length)];
+          })
+          .join("")
+      );
+
+      if (iterations >= text.length) {
+        clearInterval(interval);
+      }
+
+      iterations += 1 / 3;
+    }, 30);
+
+    return () => clearInterval(interval);
+  }, [isVisible, text]);
+
+  return <span>{displayText || (hasAnimated.current ? text : "")}</span>;
+};
+
+const DecryptionTrigger = ({ text }: { text: string }) => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, amount: 0.5 });
+  
+  return (
+    <div ref={ref}>
+      <DecryptedText text={text} isVisible={isInView} />
+    </div>
+  );
+};
 
 export const InmersiveHero = () => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -152,15 +200,15 @@ export const InmersiveHero = () => {
 
           <motion.div style={{ opacity: t3Opacity, y: t3Y }} className="absolute inset-0 flex flex-col items-center justify-center">
             <div className="flex flex-col items-center gap-12">
-               <motion.h1 
-                 initial={{ opacity: 0, y: 20 }}
-                 whileInView={{ opacity: 1, y: 0 }}
-                 viewport={{ once: false, amount: 0.5 }}
-                 transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-                 className="text-[8vw] font-bold tracking-tighter leading-none text-white uppercase"
-               >
-                 LAYER07 // STUDIO
-               </motion.h1>
+                <motion.h1 
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: false, amount: 0.5 }}
+                  transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                  className="text-[8vw] font-bold tracking-tighter leading-none text-white uppercase min-h-[1.2em]"
+                >
+                  <DecryptionTrigger text="LAYER07 // STUDIO" />
+                </motion.h1>
 
                <motion.div
                  initial={{ opacity: 0, y: 10 }}
