@@ -34,7 +34,7 @@ const ProjectCard = ({ project }: { project: Project }) => {
     >
       <motion.div
         variants={cardVariants}
-        className="group relative flex flex-col justify-end w-full aspect-[16/10] overflow-hidden bg-black border border-neutral-800 transition-all cursor-pointer"
+        className="group relative flex flex-col justify-end w-full aspect-[16/10] overflow-hidden bg-black/40 border border-neutral-800 transition-all cursor-pointer"
       >
         {/* Visual Placeholder for Image */}
         <div className="absolute inset-x-0 inset-y-0 md:inset-x-6 md:inset-y-6 bg-neutral-900 border border-neutral-800 transition-transform duration-700 group-hover:scale-105 flex items-center justify-center">

@@ -55,7 +55,7 @@ const TechnicalBadge = ({ version }: { version: string }) => {
 
 export const Services = () => {
   return (
-    <section id="services" className="w-full py-32 px-6 md:px-8 bg-black relative z-10 border-t border-neutral-900">
+    <section id="services" className="w-full py-32 px-6 md:px-8 bg-transparent relative z-10 border-t border-neutral-900">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col gap-16">
           

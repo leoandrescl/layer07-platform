@@ -2,6 +2,7 @@ import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import { AmbientShader } from "@/components/ui/AmbientShader";
 
 import { Metadata } from "next";
 
@@ -43,12 +44,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={cn(
         GeistSans.variable, 
         GeistMono.variable, 
-        "min-h-screen bg-[#000] font-sans antialiased text-[#EDEDED]"
+        "min-h-screen bg-black font-sans antialiased text-[#EDEDED]"
       )}>
-        {/* Sutil textura de grano para look premium */}
-        <div className="fixed inset-0 z-[-1] opacity-[0.03] pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
+        <AmbientShader />
         
-        {children}
+        <div className="relative z-10 bg-transparent">
+          {children}
+        </div>
       </body>
     </html>
   );
