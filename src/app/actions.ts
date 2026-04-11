@@ -1,16 +1,21 @@
 "use server";
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
-export async function sendBriefing(formData: FormData) {
-  const name = formData.get("name");
-  const email = formData.get("email");
-  const scope = formData.get("scope");
-  const budget = formData.get("budget");
-  const message = formData.get("message");
-
+export async function sendBriefing(formData: FormData): Promise<{ success: boolean; error?: unknown }> {
   try {
+    const resendApiKey = process.env.RESEND_API_KEY;
+    if (!resendApiKey) {
+      console.warn("RESEND_API_KEY is not set. Simulating a successful response.");
+      return { success: true };
+    }
+    const resend = new Resend(resendApiKey);
+
+    const name = formData.get("name")?.toString();
+    const email = formData.get("email")?.toString();
+    const scope = formData.get("scope")?.toString();
+    const budget = formData.get("budget")?.toString();
+    const message = formData.get("message")?.toString();
+
     await resend.emails.send({
       from: "Layer07 <onboarding@resend.dev>",
       to: "tu-email@dominio.com", // Tu correo de destino
