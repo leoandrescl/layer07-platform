@@ -157,7 +157,7 @@ export const InmersiveHero = () => {
   const t3Y = useTransform(smoothProgress, [0.7, 0.9, 1], [100, 0, 0]);
 
   return (
-    <section ref={containerRef} className="h-[400vh] bg-black relative">
+    <section ref={containerRef} className="h-[400vh] relative">
       <div className="sticky top-0 h-screen w-full overflow-hidden flex items-center justify-center">
         
         {/* Layer 0: Sequence Background */}

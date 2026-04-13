@@ -44,7 +44,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={cn(
         GeistSans.variable, 
         GeistMono.variable, 
-        "min-h-screen bg-black font-sans antialiased text-[#EDEDED]"
+        "min-h-screen bg-transparent font-sans antialiased text-[#EDEDED]"
       )}>
         <AmbientShader />
         

@@ -2,96 +2,130 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 import { PROJECTS, Project } from "@/constants/projects";
 
-const containerVariants = {
-  initial: {},
-  whileInView: {
-    transition: {
-      staggerChildren: 0.1,
-    },
-  },
-};
-
 const cardVariants = {
-  initial: { opacity: 0, y: 30 },
+  initial: { opacity: 0, y: 50 },
   whileInView: { 
     opacity: 1, 
     y: 0,
     transition: {
-      duration: 0.7,
+      duration: 1,
       ease: [0.22, 1, 0.36, 1] as any,
     },
   },
 };
 
-const ProjectCard = ({ project }: { project: Project }) => {
+const ProjectShowcase = ({ project, index }: { project: Project, index: number }) => {
+  const isEven = index % 2 === 0;
+
   return (
-    <Link 
-      href={`/work/${project.slug}`} 
-      aria-label={`View Case Study: ${project.title}`} 
-      className="block w-full will-change-transform"
+    <motion.div
+      variants={cardVariants}
+      initial="initial"
+      whileInView="whileInView"
+      viewport={{ once: false, amount: 0.2 }}
+      className="w-full min-h-[70vh] flex flex-col items-center justify-center relative py-24"
     >
-      <motion.div
-        variants={cardVariants}
-        className="group relative flex flex-col justify-end w-full aspect-[16/10] overflow-hidden bg-black/40 border border-neutral-800 transition-all cursor-pointer"
-      >
-        {/* Visual Placeholder for Image */}
-        <div className="absolute inset-x-0 inset-y-0 md:inset-x-6 md:inset-y-6 bg-neutral-900 border border-neutral-800 transition-transform duration-700 group-hover:scale-105 flex items-center justify-center">
-          <span className="text-neutral-500 font-mono tracking-[0.2em] uppercase text-xs opacity-50">
-            /{project.slug}
-          </span>
-        </div>
-
-        {/* Overlay Gradient */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent pointer-events-none" />
-
-        {/* Content */}
-        <div className="relative z-10 p-6 md:p-10 flex flex-col justify-between h-full pointer-events-none">
-          
-          {/* Top Right "VIEW CASE STUDY" which appears on hover */}
-          <div className="flex justify-end w-full opacity-0 translate-y-3 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500">
-             <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-white bg-black/50 border border-neutral-700 px-3 py-1">
-               VIEW CASE STUDY ↗
-             </span>
+      <div className={`w-full max-w-7xl mx-auto px-6 md:px-8 flex flex-col ${isEven ? 'md:flex-row' : 'md:flex-row-reverse'} items-center gap-12 md:gap-24`}>
+        
+        {/* Text content - Authority Positioning */}
+        <div className="flex-1 space-y-8 z-10">
+          <div className="space-y-2">
+            <span className="text-emerald-500 font-mono text-[10px] uppercase tracking-[0.4em] block">
+              Project Specification 0{index + 1}
+            </span>
+            <h3 className="text-5xl md:text-7xl font-bold tracking-tighter text-white uppercase leading-none">
+              {project.title}
+            </h3>
+            <p className="text-zinc-500 font-mono text-xs uppercase tracking-widest mt-2">
+               {project.slug}.cl
+            </p>
           </div>
 
-          {/* Bottom Content Area */}
-          <div className="flex flex-col items-start w-full translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
-             <div className="flex gap-2 mb-4">
-                <span className="text-[10px] font-mono text-emerald-400 font-bold bg-emerald-400/5 px-2 py-1 border border-emerald-400/20">
-                  {project.performanceScore}% SCORE
+          <div className="border-l border-emerald-500/20 pl-6 space-y-6">
+            <p className="text-zinc-400 font-mono text-sm leading-relaxed uppercase tracking-tight max-w-md">
+              {project.description}
+            </p>
+            
+            <div className="flex flex-wrap gap-x-6 gap-y-2">
+              {project.techStack.map(tech => (
+                <span key={tech} className="text-[10px] font-mono text-zinc-600 uppercase tracking-widest">
+                  // {tech}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* Prominent KPIs */}
+          <div className="flex gap-12 pt-4">
+             <div className="flex flex-col">
+                <span className="text-emerald-400 font-mono text-4xl font-bold tracking-tighter">
+                  {project.performanceScore}%
+                </span>
+                <span className="text-zinc-700 font-mono text-[9px] uppercase tracking-[0.3em]">
+                  Performance Score
                 </span>
              </div>
-             
-             <h3 className="text-3xl md:text-4xl font-medium tracking-tighter text-white mb-3">
-               {project.title}
-             </h3>
-             
-             <p className="border-l border-neutral-700 pl-3 text-neutral-400 font-mono text-[10px] uppercase tracking-widest leading-relaxed">
-               {project.techStack.join(" / ")}
-             </p>
+             <div className="flex flex-col">
+                <span className="text-emerald-400 font-mono text-4xl font-bold tracking-tighter">
+                  &lt;0.8s
+                </span>
+                <span className="text-zinc-700 font-mono text-[9px] uppercase tracking-[0.3em]">
+                  LCP Standard
+                </span>
+             </div>
+          </div>
+
+          <div className="pt-8">
+            <Link 
+              href={`/work/${project.slug}`}
+              className="group flex items-center gap-4 text-white font-mono text-[10px] uppercase tracking-[0.4em] hover:text-emerald-400 transition-colors"
+            >
+              EXPLORE ARCHITECTURE <span className="group-hover:translate-x-1 transition-transform">→</span>
+            </Link>
           </div>
         </div>
-      </motion.div>
-    </Link>
+
+        {/* Visual Showcase - Holographic Station */}
+        <div className="flex-1 w-full relative">
+          <div className="relative aspect-video md:aspect-[4/3] w-full group">
+            {/* Holographic Border & Glow */}
+            <div className="absolute -inset-4 border border-emerald-900/40 bg-emerald-500/[0.01] backdrop-blur-3xl transition-all duration-700 group-hover:bg-emerald-500/[0.03] group-hover:border-emerald-500/20" />
+            
+            <div className="relative w-full h-full overflow-hidden border border-white/5 grayscale hover:grayscale-0 transition-all duration-1000 shadow-2xl">
+              <Image 
+                src={project.coverImage}
+                alt={project.title}
+                fill
+                className="object-cover transition-transform duration-1000 group-hover:scale-105"
+                priority={index === 0}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-80" />
+            </div>
+
+            {/* Corner Accents */}
+            <div className="absolute top-0 right-0 w-8 h-8 border-t border-r border-emerald-500/20 translate-x-1.5 -translate-y-1.5" />
+            <div className="absolute bottom-0 left-0 w-8 h-8 border-b border-l border-emerald-500/20 -translate-x-1.5 translate-y-1.5" />
+          </div>
+        </div>
+
+      </div>
+    </motion.div>
   );
 };
 
 export const ProjectGrid = () => {
   return (
-    <section id="work" className="w-full pb-24 md:pb-32 relative z-10">
-      <motion.div 
-        variants={containerVariants}
-        initial="initial"
-        whileInView="whileInView"
-        viewport={{ once: false, amount: 0.1 }}
-        className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-7xl mx-auto px-6 md:px-8"
-      >
-        {PROJECTS.map((project) => (
-          <ProjectCard key={project.id} project={project} />
-        ))}
-      </motion.div>
+    <section id="work" className="w-full relative z-10 flex flex-col">
+      {/* Depth Veil Overlay */}
+      <div className="absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-black to-transparent pointer-events-none z-20" />
+      <div className="absolute inset-x-0 bottom-0 h-64 bg-gradient-to-t from-black to-transparent pointer-events-none z-20" />
+      
+      {PROJECTS.map((project, i) => (
+        <ProjectShowcase key={project.id} project={project} index={i} />
+      ))}
     </section>
   );
 };

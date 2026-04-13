@@ -142,14 +142,14 @@ export const AmbientShader = () => {
         vec2 nebulaP = p * focusScale * 0.5 + uTime * 0.02;
         float n = fbm(nebulaP + fbm(nebulaP + uTime * 0.05));
         
-        // Deep emerald palette: #000505 to #001a1a
-        vec3 colLow = vec3(0.0, 0.02, 0.02);
-        vec3 colMid = vec3(0.0, 0.08, 0.06);
+        // Calibrated Palette: Slightly brighter than 'Void' but still dark
+        vec3 colLow = vec3(0.0); 
+        vec3 colMid = vec3(0.0, 0.18, 0.1); 
         vec3 nebulaColor = mix(colLow, colMid, n);
         
-        // Lens focus brightening center
-        nebulaColor += mix(0.0, 0.05, uFocus) * exp(-length(p)*2.0);
-        nebulaColor *= smoothstep(1.5, 0.2, length(p)); // Edge fade
+        // Enhanced lens focus
+        nebulaColor += mix(0.0, 0.04, uFocus) * exp(-length(p)*2.0);
+        nebulaColor *= smoothstep(1.5, 0.2, length(p)); 
 
         // --- 2. CODE TUNNEL ---
         vec3 codeColor = vec3(0.0);
@@ -161,23 +161,19 @@ export const AmbientShader = () => {
           float scale = mix(8.0, 0.5, z);
           float fade = smoothstep(0.0, 0.3, z) * smoothstep(1.0, 0.7, z);
           
-          // Focus interaction: pull fragments towards the center
           vec2 focusOffset = p * uFocus * 0.5;
           vec2 codeUv = (p - focusOffset) * scale + vec2(sin(uTime * 0.1 * fi), scroll * fi);
           vec2 id = floor(codeUv);
           
           if(hash(id) > 0.85) {
             vec2 f = fract(codeUv);
-            
-            // Motion Blur based on scroll velocity
             float stretch = 1.0 / (1.0 + abs(uVelocity) * 0.08);
             vec2 stretchUv = (f - 0.5) * vec2(1.0, stretch) + 0.5;
-            
-            // Sample 4x4 atlas
             vec2 atlasId = vec2(floor(hash(id + 1.0)*4.0), floor(hash(id + 2.0)*4.0));
             vec2 atlasUv = (stretchUv * 0.25) + (atlasId * 0.25);
             
-            codeColor += texture(uCodeTex, atlasUv).rgb * fade * 0.6;
+            // Brightness boost for visibility (0.08 multiplier)
+            codeColor += texture(uCodeTex, atlasUv).rgb * fade * 0.08;
           }
         }
 
@@ -188,7 +184,7 @@ export const AmbientShader = () => {
     const initWebGL = () => {
       gl = canvas.getContext("webgl2");
       if (!gl) return;
-      console.log("GE_WEBGL: Digital Nebula Engine Stabilized");
+      console.log("GE_ENGINE: Digital Nebula Engine Active");
 
       const createShader = (gl: WebGL2RenderingContext, type: number, source: string) => {
         const shader = gl.createShader(type);
@@ -252,20 +248,22 @@ export const AmbientShader = () => {
       window.addEventListener("resize", resize);
       resize();
       animationFrame = requestAnimationFrame(render);
+      
+      return resize; 
     };
 
-    initWebGL();
+    const cleanupResize = initWebGL();
 
     return () => {
       cancelAnimationFrame(animationFrame);
-      window.removeEventListener("resize", () => {});
+      if (cleanupResize) window.removeEventListener("resize", cleanupResize);
     };
   }, [smoothFocus, interactionFocus]);
 
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 w-full h-full pointer-events-none z-0 bg-black"
+      className="fixed inset-0 w-full h-full pointer-events-none z-[-1] bg-black"
     />
   );
 };
