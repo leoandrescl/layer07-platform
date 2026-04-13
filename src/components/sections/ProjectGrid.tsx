@@ -4,6 +4,7 @@ import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
 import { SOLUTIONS, Solution, KPI } from "@/constants/projects";
 import { GlitchTitle } from "@/components/ui/GlitchTitle";
+import { NumberTicker } from "@/components/ui/NumberTicker";
 
 // Animated KPI Hologram component
 const KPIHologram = ({ kpi, delay = 0 }: { kpi: KPI; delay?: number }) => {
@@ -28,7 +29,7 @@ const KPIHologram = ({ kpi, delay = 0 }: { kpi: KPI; delay?: number }) => {
           transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay }}
           className="text-emerald-400 font-mono text-3xl font-bold tracking-tighter leading-none"
         >
-          {kpi.value}
+          <NumberTicker value={kpi.value} delay={delay} />
         </motion.div>
 
         {/* Label */}
@@ -63,9 +64,9 @@ const ArchDiagram = ({ lines }: { lines: string[] }) => {
     >
       {/* Scanning line */}
       <motion.div
-        animate={{ y: ["-100%", "400%"] }}
+        animate={{ top: ["-5%", "105%"] }}
         transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
-        className="absolute inset-x-0 h-px bg-gradient-to-r from-transparent via-emerald-500/20 to-transparent pointer-events-none"
+        className="absolute inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-emerald-500/40 to-transparent pointer-events-none z-20 shadow-[0_0_15px_rgba(16,185,129,0.3)]"
       />
 
       {/* Corner markers */}

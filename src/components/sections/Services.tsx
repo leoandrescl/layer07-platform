@@ -4,6 +4,7 @@ import { motion, useInView } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { RecursiveReveal } from "@/components/ui/RecursiveReveal";
 import { GlitchTitle } from "@/components/ui/GlitchTitle";
+import { NumberTicker } from "@/components/ui/NumberTicker";
 import { BreathingContainer } from "@/components/ui/BreathingContainer";
 
 const SPECS = [
@@ -81,41 +82,11 @@ const GlitchText = ({ text }: { text: string }) => {
 };
 
 const KPICounter = ({ value, unit, label }: { value: string, unit: string, label: string }) => {
-  const [displayValue, setDisplayValue] = useState("0");
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true });
-
-  useEffect(() => {
-    if (!isInView) return;
-    
-    let start = 0;
-    const end = parseFloat(value);
-    const duration = 2000;
-    const startTime = performance.now();
-
-    const update = (now: number) => {
-      const elapsed = now - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      
-      // Easing function
-      const easeOutExpo = 1 - Math.pow(2, -10 * progress);
-      const current = (start + (end - start) * easeOutExpo).toFixed(value.includes('.') ? 2 : 0);
-      
-      setDisplayValue(current);
-
-      if (progress < 1) {
-        requestAnimationFrame(update);
-      }
-    };
-
-    requestAnimationFrame(update);
-  }, [isInView, value]);
-
   return (
-    <div ref={ref} className="flex items-center gap-1">
+    <div className="flex items-center gap-1">
       <span className="text-[11px] font-mono text-zinc-700 uppercase tracking-widest">{label}</span>
       <span className="text-emerald-400 font-mono text-sm font-bold tracking-widest">
-        {displayValue}{unit}
+        <NumberTicker value={value} />{unit}
       </span>
     </div>
   );
@@ -160,9 +131,14 @@ export const Services = () => {
                 <div className="bg-black/75 backdrop-blur-xl p-10 h-full flex flex-col justify-between group relative overflow-hidden transition-colors duration-700 hover:bg-black/60">
                   {/* Holographic scanning line effect */}
                   <motion.div 
-                    animate={{ y: ["-100%", "300%"] }}
-                    transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-                    className="absolute inset-x-0 h-px bg-gradient-to-r from-transparent via-emerald-500/10 to-transparent pointer-events-none"
+                    animate={{ top: ["-10%", "110%"] }}
+                    transition={{ duration: 4, repeat: Infinity, ease: "linear", repeatDelay: 1 }}
+                    className="absolute inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-emerald-500/40 to-transparent pointer-events-none z-20 shadow-[0_0_15px_rgba(16,185,129,0.3)]"
+                  />
+                  <motion.div 
+                    animate={{ top: ["-12%", "112%"] }}
+                    transition={{ duration: 4, repeat: Infinity, ease: "linear", repeatDelay: 1, delay: 0.05 }}
+                    className="absolute inset-x-0 h-px bg-emerald-400/10 pointer-events-none z-20"
                   />
                   
                   <div>
