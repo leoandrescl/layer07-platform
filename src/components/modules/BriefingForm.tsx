@@ -47,6 +47,8 @@ const ProgressBar = ({ current, total }: { current: number, total: number }) => 
   );
 };
 
+import { WiredTerminal } from "@/components/ui/WiredTerminal";
+
 export const BriefingForm = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState<Record<string, string>>({});
@@ -105,7 +107,35 @@ export const BriefingForm = () => {
   };
 
   return (
-    <section id="contact" className="py-32 px-8 max-w-5xl mx-auto relative z-10 transition-all duration-1000">
+    <section id="contact" className="py-32 px-8 max-w-5xl mx-auto relative z-10 transition-all duration-1000 overflow-hidden">
+      {/* The Wired - Final Deep Layers (Unstable) */}
+      <div className="absolute left-4 top-4 z-0 opacity-40">
+        <WiredTerminal 
+          text="Layer 11: Infornography"
+          delay={0.5}
+          speed={60}
+          unstable={true}
+          className="text-emerald-500/10 text-[10px] uppercase tracking-widest"
+        />
+      </div>
+      <div className="absolute right-4 bottom-4 z-0">
+        <WiredTerminal 
+          text="Layer 12: Landscape"
+          delay={1.2}
+          speed={60}
+          unstable={true}
+          className="text-emerald-500/5 text-[10px] uppercase tracking-widest"
+        />
+      </div>
+      <div className="absolute right-8 bottom-8 z-0">
+        <WiredTerminal 
+          text="Layer 13: Ego"
+          delay={2}
+          speed={100}
+          unstable={true}
+          className="text-white/10 text-xs italic tracking-[0.8em]"
+        />
+      </div>
       <style jsx global>{`
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

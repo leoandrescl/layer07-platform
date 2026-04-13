@@ -1,8 +1,15 @@
 import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
+import { VT323 } from 'next/font/google';
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { AmbientShader } from "@/components/ui/AmbientShader";
+
+const vt323 = VT323({
+  weight: '400',
+  subsets: ['latin'],
+  variable: '--font-vt323',
+});
 
 import { Metadata } from "next";
 
@@ -53,6 +60,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={cn(
         GeistSans.variable, 
         GeistMono.variable, 
+        vt323.variable,
         "min-h-screen bg-transparent font-sans antialiased text-[#EDEDED]"
       )}>
         <AmbientShader />

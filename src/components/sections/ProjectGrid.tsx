@@ -5,6 +5,7 @@ import { useRef } from "react";
 import { SOLUTIONS, Solution, KPI } from "@/constants/projects";
 import { GlitchTitle } from "@/components/ui/GlitchTitle";
 import { NumberTicker } from "@/components/ui/NumberTicker";
+import { WiredTerminal } from "@/components/ui/WiredTerminal";
 
 // Animated KPI Hologram component
 const KPIHologram = ({ kpi, delay = 0 }: { kpi: KPI; delay?: number }) => {
@@ -179,10 +180,24 @@ const SolutionShowcase = ({ solution, index }: { solution: Solution; index: numb
                 className="w-1.5 h-1.5 bg-emerald-500 rounded-full"
               />
             </div>
-            <ArchDiagram lines={solution.architectureDiagram} />
+            <div className="relative">
+              <ArchDiagram lines={solution.architectureDiagram} />
+            </div>
           </div>
         </div>
 
+      </div>
+
+      {/* The Wired - Margin Logs (Vertical Calibration) */}
+      <div className={`absolute top-0 bottom-0 ${isEven ? "left-1 md:left-4" : "right-1 md:right-4"} flex items-center z-0 opacity-30 pointer-events-none`}>
+        <div className="[writing-mode:vertical-lr] rotate-180">
+          <WiredTerminal 
+            text={`Layer 0${index + 4}: ${["Religion", "Distortion", "Kids", "Society"][index] || "Data"}`}
+            delay={0.5}
+            speed={80}
+            className="text-emerald-500/20 text-[10px] uppercase tracking-[1em]"
+          />
+        </div>
       </div>
     </motion.div>
   );

@@ -7,6 +7,7 @@ import { CyberNebula } from "@/components/ui/CyberNebula";
 import { RecursiveReveal } from "@/components/ui/RecursiveReveal";
 import { GlitchReveal } from "@/components/ui/GlitchReveal";
 import { NumberTicker } from "@/components/ui/NumberTicker";
+import { WiredTerminal } from "@/components/ui/WiredTerminal";
 
 const FRAME_COUNT = 90;
 const CHARS = "#@%&*0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -152,11 +153,15 @@ export const InmersiveHero = () => {
   const tunnelY = useTransform(mouseY, (y) => -y * 2.5);
   const sequenceX = useTransform(mouseX, (x) => -x * 0.8);
   const sequenceY = useTransform(mouseY, (y) => -y * 0.8);
+  
+  // Wired Parallax (Deep depth)
+  const wiredX = useTransform(mouseX, (x) => -x * 0.4);
+  const wiredY = useTransform(mouseY, (y) => -y * 0.4);
 
   return (
     <section 
       ref={containerRef} 
-      className="h-[400vh] relative cursor-crosshair"
+      className="h-[400vh] relative cursor-crosshair font-sans"
       onMouseMove={handleMouseMove}
     >
       <div className="sticky top-0 h-screen w-full overflow-hidden flex items-center justify-center">
@@ -176,6 +181,42 @@ export const InmersiveHero = () => {
         {/* Layer 1: Vector Tunnel */}
         <motion.div style={{ x: tunnelX, y: tunnelY }} className="absolute inset-0 z-0 pointer-events-none scale-110">
           <TunnelGrid progress={smoothProgress} />
+        </motion.div>
+
+        {/* Layer 1.5: The Wired (Lain Integration) */}
+        <motion.div 
+          style={{ x: wiredX, y: wiredY }}
+          className="absolute inset-0 z-[1] pointer-events-none"
+        >
+          {/* Layer 01: Weird (Top Left) */}
+          <div className="absolute left-8 top-32 [writing-mode:vertical-lr] rotate-180">
+            <WiredTerminal 
+              text="Layer 01: Weird" 
+              delay={0.5}
+              speed={100}
+              className="text-emerald-500/15 text-sm uppercase tracking-[0.8em]"
+            />
+          </div>
+
+          {/* Layer 02: Girls (Mid Right) */}
+          <div className="absolute right-12 top-1/3">
+            <WiredTerminal 
+              text="Layer 02: Girls" 
+              delay={1}
+              speed={80}
+              className="text-emerald-500/10 text-xs tracking-[0.5em]"
+            />
+          </div>
+
+          {/* Layer 03: Psyche (Near Bottom) */}
+          <div className="absolute bottom-32 left-1/4">
+            <WiredTerminal 
+              text="Layer 03: Psyche" 
+              delay={1.5}
+              speed={60}
+              className="text-emerald-500/10 text-[10px] uppercase tracking-widest"
+            />
+          </div>
         </motion.div>
 
         {/* Layer 2: Typography & HUD */}

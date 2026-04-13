@@ -100,6 +100,8 @@ const TechnicalBadge = ({ version }: { version: string }) => {
   );
 };
 
+import { WiredTerminal } from "@/components/ui/WiredTerminal";
+
 export const Services = () => {
   return (
     <section id="services" className="w-full py-32 px-6 md:px-8 bg-transparent relative z-10">
@@ -129,6 +131,16 @@ export const Services = () => {
             {SPECS.map((spec, i) => (
               <RecursiveReveal key={spec.id} delay={i * 0.1} className="h-full">
                 <div className="bg-black/75 backdrop-blur-xl p-10 h-full flex flex-col justify-between group relative overflow-hidden transition-colors duration-700 hover:bg-black/60">
+                  {/* The Wired - Sectional Logs */}
+                  <div className="absolute right-4 bottom-4">
+                    <WiredTerminal 
+                      text={`Layer 0${i + 8}: ${["Rumors", "Protocol", "Love"][i] || "Signal"}`}
+                      delay={1}
+                      speed={70}
+                      className="text-emerald-500/10 text-[8px] uppercase tracking-[0.6em]"
+                    />
+                  </div>
+
                   {/* Holographic scanning line effect */}
                   <motion.div 
                     animate={{ top: ["-10%", "110%"] }}

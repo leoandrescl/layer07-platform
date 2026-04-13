@@ -29,6 +29,16 @@
   animation: shimmer 8s linear infinite;
 }
 
+@keyframes wired-flicker {
+  0%, 100% { opacity: 0.05; }
+  50% { opacity: 0.15; }
+  80% { opacity: 0.08; }
+}
+
+.wired-static {
+  animation: wired-flicker 0.2s infinite;
+}
+
 :root {
   background-color: #000000;
   color: #EDEDED;
