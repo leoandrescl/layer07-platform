@@ -69,6 +69,7 @@ export const BriefingForm = () => {
 
   return (
     <section id="contact" className="py-32 px-8 max-w-4xl mx-auto relative z-10 transition-all duration-1000">
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-500/20 to-transparent" />
       <div className="mb-16 border-l border-emerald-500/20 pl-8">
         <RecursiveReveal>
           <span className="text-emerald-500/40 font-mono text-[10px] uppercase tracking-[0.4em]">

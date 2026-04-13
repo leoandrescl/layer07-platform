@@ -111,7 +111,9 @@ const SolutionShowcase = ({ solution, index }: { solution: Solution; index: numb
       className="w-full min-h-[80vh] flex flex-col items-center justify-center relative py-24"
     >
       {/* Subtle section divider */}
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-900/40 to-transparent" />
+      {index > 0 && (
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-500/20 to-transparent" />
+      )}
 
       <div className={`w-full max-w-7xl mx-auto px-6 md:px-8 flex flex-col ${isEven ? "md:flex-row" : "md:flex-row-reverse"} items-center gap-12 md:gap-24`}>
 

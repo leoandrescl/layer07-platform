@@ -5,60 +5,26 @@ import { motion, useScroll, useTransform, useSpring, useMotionValueEvent, Animat
 import { TunnelGrid } from "@/components/ui/TunnelGrid";
 import { CyberNebula } from "@/components/ui/CyberNebula";
 import { RecursiveReveal } from "@/components/ui/RecursiveReveal";
+import { GlitchReveal } from "@/components/ui/GlitchReveal";
 
 const FRAME_COUNT = 90;
 const CHARS = "#@%&*0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-const DecryptedText = ({ text, isVisible }: { text: string, isVisible: boolean }) => {
-  const [displayText, setDisplayText] = useState("");
-  const hasAnimated = useRef(false);
-
-  useEffect(() => {
-    if (!isVisible || hasAnimated.current) return;
-    hasAnimated.current = true;
-
-    let iterations = 0;
-    const interval = setInterval(() => {
-      setDisplayText(
-        text
-          .split("")
-          .map((char, index) => {
-            if (index < iterations) {
-              return text[index];
-            }
-            if (char === " " || char === "/" ) return char;
-            return CHARS[Math.floor(Math.random() * CHARS.length)];
-          })
-          .join("")
-      );
-
-      if (iterations >= text.length) {
-        clearInterval(interval);
-      }
-
-      iterations += 1 / 3;
-    }, 30);
-
-    return () => clearInterval(interval);
-  }, [isVisible, text]);
-
-  return <span>{displayText || (hasAnimated.current ? text : "")}</span>;
-};
-
-const DecryptionTrigger = ({ text }: { text: string }) => {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, amount: 0.5 });
-  
-  return (
-    <div ref={ref}>
-      <DecryptedText text={text} isVisible={isInView} />
-    </div>
-  );
-};
 
 export const InmersiveHero = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  const RevealWrapper = ({ text }: { text: string }) => {
+    const ref = useRef(null);
+    const isInView = useInView(ref, { once: false, amount: 0.5 });
+    return (
+      <div ref={ref}>
+        <GlitchReveal text={text} isVisible={isInView} duration={2500} />
+      </div>
+    );
+  };
+
   const [images, setImages] = useState<HTMLImageElement[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -209,9 +175,9 @@ export const InmersiveHero = () => {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: false, amount: 0.5 }}
                   transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-                  className="text-[8vw] font-bold tracking-tighter leading-none text-white uppercase min-h-[1.2em]"
+                  className="text-[8vw] font-bold tracking-tighter leading-none text-white uppercase min-h-[1.2em] flex items-center justify-center"
                 >
-                  <DecryptionTrigger text="LAYER07 // STUDIO" />
+                  <RevealWrapper text="LAYER07 // STUDIO" />
                 </motion.h1>
 
                <motion.div
