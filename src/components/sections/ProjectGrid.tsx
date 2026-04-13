@@ -189,13 +189,19 @@ const SolutionShowcase = ({ solution, index }: { solution: Solution; index: numb
       </div>
 
       {/* The Wired - Margin Logs (Vertical Calibration) */}
-      <div className={`absolute top-0 bottom-0 ${isEven ? "left-1 md:left-4" : "right-1 md:right-4"} flex items-center z-0 opacity-30 pointer-events-none`}>
-        <div className="[writing-mode:vertical-lr] rotate-180">
+      <div className={`absolute top-0 bottom-0 ${isEven ? "left-2 md:left-8" : "right-2 md:right-8"} flex items-center z-0 opacity-60 pointer-events-none`}>
+        <div className="flex flex-col gap-32 [writing-mode:vertical-lr] rotate-180">
           <WiredTerminal 
-            text={`Layer 0${index + 4}: ${["Religion", "Distortion", "Kids", "Society"][index] || "Data"}`}
+            text={`Layer 0${(index * 2) + 4}: ${["Religion", "Distortion", "Kids", "Society"][index * 2] || "Data"}`}
             delay={0.5}
             speed={80}
             className="text-emerald-500/20 text-[10px] uppercase tracking-[1em]"
+          />
+          <WiredTerminal 
+            text={`Layer 0${(index * 2) + 5}: ${["Religion", "Distortion", "Kids", "Society"][index * 2 + 1] || "Signal"}`}
+            delay={1.2}
+            speed={80}
+            className="text-emerald-500/10 text-[9px] uppercase tracking-[0.8em]"
           />
         </div>
       </div>

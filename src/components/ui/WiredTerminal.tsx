@@ -25,7 +25,7 @@ export const WiredTerminal = ({
   const [displayText, setDisplayText] = useState("");
   const [isComplete, setIsComplete] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const isInView = useInView(containerRef, { once: false, amount: 0.2 });
+  const isInView = useInView(containerRef, { once: false, amount: 0.05 });
 
   // Typewriter + Initial Glitch
   useEffect(() => {

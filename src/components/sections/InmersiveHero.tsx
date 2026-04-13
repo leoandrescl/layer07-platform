@@ -1,41 +1,32 @@
 "use client";
 
-import { useEffect, useRef, useState, useMemo } from "react";
-import { motion, useScroll, useTransform, useSpring, useMotionValueEvent, useMotionValue, useInView } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+import { motion, useScroll, useTransform, useSpring, useMotionValue, useInView } from "framer-motion";
 import { TunnelGrid } from "@/components/ui/TunnelGrid";
 import { CyberNebula } from "@/components/ui/CyberNebula";
-import { RecursiveReveal } from "@/components/ui/RecursiveReveal";
 import { GlitchReveal } from "@/components/ui/GlitchReveal";
 import { NumberTicker } from "@/components/ui/NumberTicker";
 import { WiredTerminal } from "@/components/ui/WiredTerminal";
 
-const FRAME_COUNT = 90;
-const CHARS = "#@%&*0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
 // Holographic Hero Text with Shimmer
 const HoloHeadline = ({ children, className = "" }: { children: React.ReactNode, className?: string }) => (
-  <span className={`relative inline-block bg-clip-text text-transparent bg-gradient-to-r from-white via-emerald-200/50 to-white bg-[length:200%_auto] animate-shimmer ${className}`}>
+  <span className={`relative inline-block bg-clip-text text-transparent bg-gradient-to-r from-white via-emerald-200/50 to-white bg-[length:200%_auto] animate-shimmer whitespace-nowrap ${className}`}>
     {children}
   </span>
 );
 
-
 export const InmersiveHero = () => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const RevealWrapper = ({ text }: { text: string }) => {
+  const RevealWrapper = ({ text, className = "" }: { text: string, className?: string }) => {
     const ref = useRef(null);
     const isInView = useInView(ref, { once: false, amount: 0.5 });
     return (
-      <div ref={ref}>
+      <div ref={ref} className={className}>
         <GlitchReveal text={text} isVisible={isInView} duration={2500} />
       </div>
     );
   };
-
-  const [images, setImages] = useState<HTMLImageElement[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -49,77 +40,6 @@ export const InmersiveHero = () => {
     restDelta: 0.001 
   });
 
-  // ---------------- IMAGE PRELOADER ----------------
-  useEffect(() => {
-    let loaded = 0;
-    const items: HTMLImageElement[] = [];
-    for (let i = 1; i <= FRAME_COUNT; i++) {
-      const img = new Image();
-      img.src = `/hero/f-${i.toString().padStart(3, '0')}.webp`;
-      img.onload = () => {
-        loaded++;
-        if (loaded === FRAME_COUNT) setIsLoaded(true);
-      };
-      items.push(img);
-    }
-    setImages(items);
-  }, []);
-
-  // ---------------- CANVAS RENDERER ----------------
-  const render = (progress: number) => {
-    const canvas = canvasRef.current;
-    if (!canvas || images.length === 0) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    const idx = Math.min(FRAME_COUNT - 1, Math.floor(progress * FRAME_COUNT));
-    const img = images[idx];
-    if (!img) return;
-
-    const dpr = window.devicePixelRatio || 1;
-    const w = canvas.width / dpr;
-    const h = canvas.height / dpr;
-
-    // Center crop / object-fit cover logic
-    const imgRatio = img.width / img.height;
-    const canvasRatio = w / h;
-    let dw, dh, dx, dy;
-
-    if (canvasRatio > imgRatio) {
-      dw = w;
-      dh = w / imgRatio;
-      dx = 0;
-      dy = (h - dh) / 2;
-    } else {
-      dw = h * imgRatio;
-      dh = h;
-      dx = (w - dw) / 2;
-      dy = 0;
-    }
-
-    ctx.clearRect(0, 0, w, h);
-    ctx.globalAlpha = 1;
-    ctx.drawImage(img, dx, dy, dw, dh);
-  };
-
-  useMotionValueEvent(smoothProgress, "change", render);
-
-  useEffect(() => {
-    const resize = () => {
-      if (!canvasRef.current) return;
-      const dpr = window.devicePixelRatio || 1;
-      canvasRef.current.width = window.innerWidth * dpr;
-      canvasRef.current.height = window.innerHeight * dpr;
-      const ctx = canvasRef.current.getContext("2d");
-      if (ctx) ctx.scale(dpr, dpr);
-      render(smoothProgress.get());
-    };
-    window.addEventListener("resize", resize);
-    resize();
-    return () => window.removeEventListener("resize", resize);
-  }, [isLoaded]);
-
-  // ---------------- MOUSE PARALLAX ----------------
   // ---------------- MOUSE PARALLAX ----------------
   const mouseX = useSpring(useMotionValue<number>(0), { damping: 50, stiffness: 400 });
   const mouseY = useSpring(useMotionValue<number>(0), { damping: 50, stiffness: 400 });
@@ -134,15 +54,10 @@ export const InmersiveHero = () => {
   };
 
   // ---------------- TEXT TRANSFORMS (Scroll Based) ----------------
-  // TEXT 1: 0 -> 0.3
   const t1Opacity = useTransform(smoothProgress, [0, 0.2, 0.3], [1, 1, 0]);
   const t1Y = useTransform(smoothProgress, [0, 0.3], [0, -100]);
-
-  // TEXT 2: 0.3 -> 0.7
   const t2Opacity = useTransform(smoothProgress, [0.35, 0.45, 0.6, 0.7], [0, 1, 1, 0]);
   const t2Y = useTransform(smoothProgress, [0.3, 0.5, 0.7], [100, 0, -100]);
-
-  // TEXT 3: 0.7 -> 1.0
   const t3Opacity = useTransform(smoothProgress, [0.75, 0.85, 1], [0, 1, 1]);
   const t3Y = useTransform(smoothProgress, [0.7, 0.9, 1], [100, 0, 0]);
 
@@ -151,10 +66,6 @@ export const InmersiveHero = () => {
   const nebulaY = useTransform(mouseY, (y) => -y * 1.5);
   const tunnelX = useTransform(mouseX, (x) => -x * 2.5);
   const tunnelY = useTransform(mouseY, (y) => -y * 2.5);
-  const sequenceX = useTransform(mouseX, (x) => -x * 0.8);
-  const sequenceY = useTransform(mouseY, (y) => -y * 0.8);
-  
-  // Wired Parallax (Deep depth)
   const wiredX = useTransform(mouseX, (x) => -x * 0.4);
   const wiredY = useTransform(mouseY, (y) => -y * 0.4);
 
@@ -166,14 +77,7 @@ export const InmersiveHero = () => {
     >
       <div className="sticky top-0 h-screen w-full overflow-hidden flex items-center justify-center">
         
-        {/* Layer 0: Sequence Background (Subtle Parallax) */}
-        <motion.canvas 
-          ref={canvasRef} 
-          style={{ x: sequenceX, y: sequenceY }}
-          className="absolute inset-0 z-0 pointer-events-none opacity-35 mix-blend-screen scale-110" 
-        />
-
-        {/* Layer 0.5: Cybernetic Nebula (WebGL) */}
+        {/* Layer 0: Cybernetic Nebula (WebGL) */}
         <motion.div style={{ x: nebulaX, y: nebulaY }} className="absolute inset-0 z-0 pointer-events-none scale-110">
           <CyberNebula progress={smoothProgress} />
         </motion.div>
@@ -208,7 +112,7 @@ export const InmersiveHero = () => {
             />
           </div>
 
-          {/* Layer 03: Psyche (Near Bottom) */}
+          {/* Layer 02.5: Psyche (Near Bottom) */}
           <div className="absolute bottom-32 left-1/4">
             <WiredTerminal 
               text="Layer 03: Psyche" 
@@ -219,61 +123,61 @@ export const InmersiveHero = () => {
           </div>
         </motion.div>
 
-        {/* Layer 2: Typography & HUD */}
-        <div className="z-10 text-center px-6">
+        {/* Layer 2: Typography & HUD - Final Refinement for Cinematic Legibility */}
+        <div className="relative z-10 text-center px-4 w-full overflow-visible">
           
-          <motion.div style={{ opacity: t1Opacity, y: t1Y }} className="absolute inset-0 flex flex-col items-center justify-center">
-            <RecursiveReveal>
-              <h1 className="text-[9vw] font-bold tracking-tighter leading-none text-white uppercase drop-shadow-[0_0_30px_rgba(255,255,255,0.1)]">
-                <HoloHeadline>DETERMINISTIC</HoloHeadline><br/>
-                <HoloHeadline>PERFORMANCE</HoloHeadline>
-              </h1>
-            </RecursiveReveal>
-            <RecursiveReveal delay={0.1}>
-              <p className="text-zinc-500 font-mono text-[10px] uppercase tracking-[0.5em] mt-8 bg-black/40 backdrop-blur-sm px-4 py-1 border border-zinc-800/50">
+          <motion.div style={{ opacity: t1Opacity, y: t1Y }} className="absolute inset-0 flex flex-col items-center justify-center w-full px-10">
+            <h1 className="text-[5.5vw] font-bold tracking-tight leading-none text-white uppercase drop-shadow-[0_0_40px_rgba(255,255,255,0.15)] whitespace-nowrap">
+              <HoloHeadline>DETERMINISTIC PERFORMANCE</HoloHeadline>
+            </h1>
+            <div className="mt-10 bg-black/40 backdrop-blur-md px-8 py-2 border border-emerald-500/20 relative group overflow-visible">
+               <div className="absolute -top-1 -left-1 w-2 h-2 border-t border-l border-emerald-400 group-hover:scale-125 transition-transform" />
+               <div className="absolute -bottom-1 -right-1 w-2 h-2 border-b border-r border-emerald-400 group-hover:scale-125 transition-transform" />
+               <p className="text-zinc-400 font-mono text-[12px] uppercase tracking-[0.4em] whitespace-nowrap leading-none">
                 CORE WEB VITALS OPTIMIZATION
-              </p>
-            </RecursiveReveal>
+               </p>
+            </div>
           </motion.div>
 
-          <motion.div style={{ opacity: t2Opacity, y: t2Y }} className="absolute inset-0 flex flex-col items-center justify-center">
-            <RecursiveReveal>
-              <h2 className="text-[8vw] font-bold tracking-tighter leading-none text-white uppercase drop-shadow-[0_0_30px_rgba(255,255,255,0.1)]">
-                <HoloHeadline>DECOUPLED</HoloHeadline><br/>
-                <HoloHeadline>ARCHITECTURE</HoloHeadline>
-              </h2>
-            </RecursiveReveal>
-            <RecursiveReveal delay={0.1}>
-              <p className="text-zinc-500 font-mono text-[10px] uppercase tracking-[0.5em] mt-8 bg-black/40 backdrop-blur-sm px-4 py-1 border border-zinc-800/50">
+          <motion.div style={{ opacity: t2Opacity, y: t2Y }} className="absolute inset-0 flex flex-col items-center justify-center w-full px-10">
+            <h2 className="text-[6.2vw] font-bold tracking-tight leading-none text-white uppercase drop-shadow-[0_0_40px_rgba(255,255,255,0.15)] whitespace-nowrap">
+              <HoloHeadline>DECOUPLED ARCHITECTURE</HoloHeadline>
+            </h2>
+            <div className="mt-10 bg-black/40 backdrop-blur-md px-8 py-2 border border-emerald-500/20 relative group overflow-visible">
+               <div className="absolute -top-1 -left-1 w-2 h-2 border-t border-l border-emerald-400 group-hover:scale-125 transition-transform" />
+               <div className="absolute -bottom-1 -right-1 w-2 h-2 border-b border-r border-emerald-400 group-hover:scale-125 transition-transform" />
+               <p className="text-zinc-400 font-mono text-[12px] uppercase tracking-[0.4em] whitespace-nowrap leading-none">
                 COMPOSABLE COMMERCE SOLUTIONS
-              </p>
-            </RecursiveReveal>
+               </p>
+            </div>
           </motion.div>
 
-          <motion.div style={{ opacity: t3Opacity, y: t3Y }} className="absolute inset-0 flex flex-col items-center justify-center">
-            <div className="flex flex-col items-center gap-12">
+          <motion.div style={{ opacity: t3Opacity, y: t3Y }} className="absolute inset-0 flex flex-col items-center justify-center w-full px-10">
+            <div className="flex flex-col items-center gap-14 w-full">
                 <motion.h1 
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: false, amount: 0.5 }}
-                  transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-                  className="text-[7vw] font-bold tracking-tighter leading-none text-white uppercase min-h-[1.2em] flex items-center justify-center"
+                  transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+                  className="text-[6.8vw] font-bold tracking-tight leading-none text-white uppercase min-h-[1.2em] flex items-center justify-center w-full whitespace-nowrap"
                 >
                   <HoloHeadline>
-                    <RevealWrapper text="LAYER07 // STUDIO" />
+                    <RevealWrapper text="LAYER07 // STUDIO" className="inline-block" />
                   </HoloHeadline>
                 </motion.h1>
 
                <motion.div
-                 initial={{ opacity: 0, y: 10 }}
-                 whileInView={{ opacity: 1, y: 0 }}
+                 initial={{ opacity: 0, scale: 0.95 }}
+                 whileInView={{ opacity: 1, scale: 1 }}
                  viewport={{ once: false, amount: 0.5 }}
-                 transition={{ delay: 0.2, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                 transition={{ delay: 0.3, duration: 1, ease: [0.22, 1, 0.36, 1] }}
                >
-                 <div className="flex items-center gap-4 bg-emerald-400/5 border border-emerald-400/20 px-8 py-4 backdrop-blur-xl">
-                    <div className="w-2 h-2 bg-emerald-400 animate-pulse" />
-                    <span className="text-emerald-400 font-mono text-sm tracking-widest uppercase">
-                      LCP &lt; <NumberTicker value="1" decimals={0} />s <span className="text-[10px] ml-1 opacity-60 italic whitespace-nowrap">AS A STANDARD</span>
+                 <div className="flex items-center gap-6 bg-emerald-400/5 border border-emerald-400/20 px-10 py-5 backdrop-blur-2xl shadow-[0_0_30px_rgba(16,185,129,0.1)] relative overflow-visible">
+                    <div className="absolute -top-1 -left-1 w-2 h-2 border-t border-l border-emerald-400" />
+                    <div className="absolute -bottom-1 -right-1 w-2 h-2 border-b border-r border-emerald-400" />
+                    <div className="w-2.5 h-2.5 bg-emerald-400 animate-pulse shadow-[0_0_10px_#10b981]" />
+                    <span className="text-emerald-400 font-mono text-sm tracking-[0.4em] uppercase font-bold">
+                      LCP &lt; <NumberTicker value="1" decimals={0} />s <span className="text-[10px] ml-2 opacity-50 italic whitespace-nowrap font-normal">AS A STANDARD</span>
                     </span>
                  </div>
                </motion.div>
@@ -282,46 +186,15 @@ export const InmersiveHero = () => {
 
         </div>
 
-        {/* Layer 2.5: Dynamic Signal Light (Moving Light Effect) */}
+        {/* HUD Lights */}
         <motion.div
           animate={{ 
             top: ["-20%", "120%"],
             left: ["-20%", "120%"],
           }}
-          transition={{ 
-            duration: 10, 
-            repeat: Infinity, 
-            ease: "linear" 
-          }}
+          transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
           className="absolute w-[40vw] h-[40vw] bg-emerald-500/5 rounded-full blur-[120px] pointer-events-none z-[5]"
         />
-        
-        <motion.div
-          animate={{ 
-            bottom: ["-20%", "120%"],
-            right: ["-20%", "120%"],
-          }}
-          transition={{ 
-            duration: 15, 
-            repeat: Infinity, 
-            ease: "linear",
-            delay: 2
-          }}
-          className="absolute w-[30vw] h-[30vw] bg-blue-500/5 rounded-full blur-[100px] pointer-events-none z-[5]"
-        />
-
-        {/* Layer 3: Peripheral HUD Elements */}
-        <div className="absolute inset-x-8 inset-y-8 pointer-events-none flex justify-between items-end z-20">
-           <div className="flex flex-col gap-1 opacity-20">
-              <span className="text-[8px] font-mono text-white tracking-widest uppercase">system.status</span>
-              <div className="w-32 h-px bg-white/20" />
-           </div>
-           <div className="flex flex-col items-end gap-1 opacity-20">
-              <span className="text-[8px] font-mono text-white tracking-widest uppercase">render.engine.v2</span>
-              <div className="w-32 h-px bg-white/20" />
-           </div>
-        </div>
-
       </div>
     </section>
   );
