@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, useScroll, useTransform, useSpring, useMotionValueEvent, AnimatePresence, useInView } from "framer-motion";
 import { TunnelGrid } from "@/components/ui/TunnelGrid";
+import { CyberNebula } from "@/components/ui/CyberNebula";
 import { RecursiveReveal } from "@/components/ui/RecursiveReveal";
 
 const FRAME_COUNT = 90;
@@ -165,6 +166,9 @@ export const InmersiveHero = () => {
           ref={canvasRef} 
           className="absolute inset-0 z-0 pointer-events-none opacity-35 mix-blend-screen" 
         />
+
+        {/* Layer 0.5: Cybernetic Nebula (WebGL) */}
+        <CyberNebula progress={smoothProgress} />
 
         {/* Layer 1: Vector Tunnel */}
         <TunnelGrid progress={smoothProgress} />
