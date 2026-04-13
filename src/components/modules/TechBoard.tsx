@@ -44,7 +44,7 @@ export const TechBoard = () => {
           </div>
 
           {/* Board de Specs */}
-          <BreathingContainer className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-px bg-zinc-900 border border-zinc-900">
+          <BreathingContainer className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-px">
             {SPECS.map((spec, i) => (
               <RecursiveReveal key={i} delay={i * 0.1} className="h-full">
                 <div 

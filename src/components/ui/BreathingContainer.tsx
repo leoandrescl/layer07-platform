@@ -16,12 +16,12 @@ export const BreathingContainer = ({
   ...props 
 }: BreathingContainerProps) => {
   
-  // Base values for the breathing cycle
-  const baseBorderColor = isFocused ? "rgba(16, 185, 129, 0.4)" : "rgba(16, 185, 129, 0.2)";
-  const peakBorderColor = isFocused ? "rgba(16, 185, 129, 0.7)" : "rgba(16, 185, 129, 0.5)";
+  // Normalized Emerald-500 (16, 185, 129)
+  const baseBorderColor = isFocused ? "rgba(16, 185, 129, 0.4)" : "rgba(16, 185, 129, 0.25)";
+  const peakBorderColor = isFocused ? "rgba(16, 185, 129, 0.7)" : "rgba(16, 185, 129, 0.55)";
   
-  const baseShadowAlpha = isFocused ? 0.05 : 0.02;
-  const peakShadowAlpha = isFocused ? 0.25 : 0.12;
+  const baseShadowAlpha = isFocused ? 0.08 : 0.04;
+  const peakShadowAlpha = isFocused ? 0.28 : 0.16;
 
   return (
     <motion.div
@@ -38,7 +38,7 @@ export const BreathingContainer = ({
         repeat: Infinity, 
         ease: "easeInOut" 
       }}
-      className={className}
+      className={`bg-emerald-950/20 border ${className}`}
       {...props}
     >
       {children}

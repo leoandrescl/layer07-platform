@@ -153,7 +153,7 @@ export const Services = () => {
               <span className="text-zinc-800">Specifications</span>
             </RecursiveReveal>
           </div>
-          <BreathingContainer className="grid grid-cols-1 lg:grid-cols-3 gap-px bg-emerald-900/20 border border-emerald-900/40">
+          <BreathingContainer className="grid grid-cols-1 lg:grid-cols-3 gap-px">
             {SPECS.map((spec, i) => (
               <RecursiveReveal key={spec.id} delay={i * 0.1} className="h-full">
                 <div className="bg-black/75 backdrop-blur-xl p-10 h-full flex flex-col justify-between group relative overflow-hidden transition-colors duration-700 hover:bg-black/60">

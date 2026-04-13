@@ -97,9 +97,7 @@ export const BriefingForm = () => {
               triggerNebulaFocus(false);
             }
           }}
-          className={`bg-emerald-950/5 border p-8 md:p-12 min-h-[450px] flex flex-col justify-between backdrop-blur-xl relative overflow-hidden group transition-all duration-500 ${
-            isFocused ? "border-emerald-500/40" : "border-emerald-900/20"
-          }`}
+          className="p-8 md:p-12 min-h-[450px] flex flex-col justify-between backdrop-blur-xl relative overflow-hidden group transition-all duration-500"
         >
           {/* Holographic grid effect */}
           <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[radial-gradient(#10b981_1px,transparent_1px)] [background-size:20px_20px]" />
