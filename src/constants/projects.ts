@@ -18,11 +18,11 @@ export interface Solution {
 export const SOLUTIONS: Solution[] = [
   {
     id: "SOL-01",
-    code: "HEADLESS_COMMERCE",
-    title: "HEADLESS COMMERCE",
-    subtitle: "REVENUE OPTIMIZER",
-    concept: "Desacoplamiento total del Frontend para marcas de e-commerce que escalan. Eliminamos el cuello de botella del renderizado server-side legacy para convertir cada milisegundo de carga en ingreso directo.",
-    techStack: ["Next.js 15 (App Router)", "Shopify Storefront API", "GraphQL", "Vercel Edge Network"],
+    code: "COMMERCE_ARCHITECTURE",
+    title: "COMMERCE ARCHITECTURE",
+    subtitle: "// SHOPIFY HEADLESS SPECIALIZATION",
+    concept: "Ingeniería de conversión sobre Shopify Storefront API. Eliminamos las limitaciones de Liquid para construir experiencias de compra ultra-rápidas. Arquitecturas diseñadas para marcas que demandan control total sobre el checkout y la interfaz de usuario sin comprometer la robustez de Shopify.",
+    techStack: ["Next.js 15", "Shopify Storefront API", "GraphQL", "Vercel Edge Network"],
     kpis: [
       {
         value: "+1%",
@@ -40,22 +40,22 @@ export const SOLUTIONS: Solution[] = [
       }
     ],
     architectureDiagram: [
-      "[ SHOPIFY ] → [ STOREFRONT API ]",
-      "         ↓",
-      "[ GRAPHQL LAYER ] → [ ISR CACHE ]",
-      "         ↓",
-      "[ NEXT.JS APP ROUTER ] → [ EDGE CDN ]",
-      "         ↓",
+      "[ SHOPIFY ENGINE ]",
+      "           ↓",
+      "[ STOREFRONT API ]",
+      "           ↓",
+      "[ NEXT.JS APP ROUTER ]",
+      "           ↓",
       "[ CLIENT ] — LCP < 0.8s"
     ]
   },
   {
     id: "SOL-02",
-    code: "EDITORIAL_PERFORMANCE",
-    title: "EDITORIAL PERFORMANCE",
-    subtitle: "LEAD MAGNET",
-    concept: "Experiencias de alto impacto visual sin penalización de rendimiento. Arquitecturas composables que posicionan a la marca por encima de la competencia legacy en búsqueda orgánica y retención.",
-    techStack: ["Next.js 15", "Sanity / Payload CMS", "Framer Motion", "Lighthouse 100"],
+    code: "EDITORIAL_ENGINEERING",
+    title: "EDITORIAL & CONTENT",
+    subtitle: "// HEADLESS WORDPRESS & CUSTOM SITES",
+    concept: "Transformamos WordPress en un CMS Headless de alto rendimiento. Ideal para sitios informativos y plataformas de contenido que requieren una gestión editorial intuitiva pero exigen una entrega de datos estática y segura. Next.js + WP GraphQL para un SEO imbatible y tiempos de carga instantáneos.",
+    techStack: ["Shopify Storefront API (Content)", "WordPress GraphQL", "Next.js 15 + ISR", "Framer Motion"],
     kpis: [
       {
         value: "+40%",
@@ -73,12 +73,12 @@ export const SOLUTIONS: Solution[] = [
       }
     ],
     architectureDiagram: [
-      "[ CMS (SANITY/PAYLOAD) ] → [ CDN ]",
-      "         ↓",
-      "[ NEXT.JS + ISR ] → [ STATIC PAGES ]",
-      "         ↓",
-      "[ FRAMER MOTION ] → [ 60FPS UI ]",
-      "         ↓",
+      "[ WORDPRESS CORE ]",
+      "           ↓",
+      "[ WP GRAPHQL ]",
+      "           ↓",
+      "[ NEXT.JS + ISR ]",
+      "           ↓",
       "[ CLIENT ] — LIGHTHOUSE: 100/100"
     ]
   }

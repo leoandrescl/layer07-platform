@@ -10,9 +10,9 @@ const SPECS = [
   {
     id: "SPEC-01",
     version: "v4.2",
-    title: "HEADLESS CORE",
-    tech: "Next.js (App Router) + WordPress CMS",
-    description: "Desacoplamiento total del frontend para eliminar la latencia de PHP y maximizar el control sobre el LCP. Arquitectura preparada para el escalado orgánico.",
+    title: "NEXT.JS + [ SHOPIFY / WORDPRESS ]",
+    tech: "Next.js 15 + Shopify Storefront API / WP GraphQL",
+    description: "Desacoplamiento total del frontend para los dos ecosistemas líderes del mercado. Eliminamos la latencia de PHP en WP y las restricciones de Liquid en Shopify para maximizar el control sobre el LCP y la experiencia editorial.",
     kpi: "0.8",
     unit: "s",
     label: "LCP <"

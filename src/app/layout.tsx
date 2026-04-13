@@ -8,11 +8,20 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.layer07.cl"),
-  title: "LAYER07 // Headless E-commerce Studio",
-  description: "Boutique de ingeniería especializada en transformar diseños editoriales en experiencias Headless de alto rendimiento. LCP < 1s.",
+  title: "Layer07 // Senior Headless E-commerce Engineering",
+  description: "Senior engineering specializing in Headless Shopify and WordPress integrations with Next.js. High-performance Composable Commerce for global brands. LCP < 0.8s.",
+  keywords: [
+    "Headless Commerce",
+    "Composable Architecture",
+    "Next.js 15",
+    "Shopify Storefront API",
+    "Core Web Vitals Optimization",
+    "Senior Web Engineer Chile",
+    "Performance Engineering"
+  ],
   openGraph: {
-    title: "LAYER07 // Headless E-commerce Studio",
-    description: "Boutique de ingeniería especializada en transformar diseños editoriales en experiencias Headless de alto rendimiento. LCP < 1s.",
+    title: "Layer07 // Headless E-commerce at Scale",
+    description: "Transforming editorial vision into high-performance commerce. Specializing in Next.js, GraphQL, and Shopify Storefront API.",
     url: "https://www.layer07.cl",
     siteName: "LAYER07",
     images: [
@@ -28,8 +37,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "LAYER07 // Headless E-commerce Studio",
-    description: "Boutique de ingeniería especializada en transformar diseños editoriales en experiencias Headless de alto rendimiento. LCP < 1s.",
+    title: "Layer07 // Headless E-commerce at Scale",
+    description: "High-performance Composable Commerce for global brands. Next.js & Shopify Storefront API.",
     images: ["/og-image.png"],
   },
   icons: {
