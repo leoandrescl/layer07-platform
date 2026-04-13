@@ -113,8 +113,8 @@ const KPICounter = ({ value, unit, label }: { value: string, unit: string, label
 
   return (
     <div ref={ref} className="flex items-center gap-1">
-      <span className="text-[9px] font-mono text-zinc-700 uppercase tracking-widest">{label}</span>
-      <span className="text-emerald-400 font-mono text-xs font-bold tracking-widest">
+      <span className="text-[11px] font-mono text-zinc-700 uppercase tracking-widest">{label}</span>
+      <span className="text-emerald-400 font-mono text-sm font-bold tracking-widest">
         {displayValue}{unit}
       </span>
     </div>
@@ -123,7 +123,7 @@ const KPICounter = ({ value, unit, label }: { value: string, unit: string, label
 
 const TechnicalBadge = ({ version }: { version: string }) => {
   return (
-    <span className="text-[9px] font-mono text-emerald-500/50 border border-emerald-500/20 px-2 py-0.5 backdrop-blur-sm">
+    <span className="text-[11px] font-mono text-emerald-500/50 border border-emerald-500/20 px-2 py-0.5 backdrop-blur-sm">
       [{version}]
     </span>
   );
@@ -139,7 +139,7 @@ export const Services = () => {
           
           <div className="max-w-2xl">
             <RecursiveReveal>
-              <span className="text-emerald-400/60 font-mono text-[10px] uppercase tracking-[0.4em] mb-4 block">
+              <span className="text-emerald-400/60 font-mono text-[12px] uppercase tracking-[0.4em] mb-4 block">
                 Engineering Blueprint
               </span>
             </RecursiveReveal>
@@ -167,7 +167,7 @@ export const Services = () => {
                   
                   <div>
                     <div className="flex justify-between items-center mb-12">
-                      <span className="text-[10px] font-mono text-zinc-600 tracking-widest">{spec.id}</span>
+                      <span className="text-[12px] font-mono text-zinc-600 tracking-widest">{spec.id}</span>
                       <TechnicalBadge version={spec.version} />
                     </div>
                     
@@ -176,13 +176,13 @@ export const Services = () => {
                     </h3>
                     
                     <div className="mb-6">
-                      <p className="text-zinc-600 font-mono text-[10px] uppercase tracking-wider mb-2">Technology Stack</p>
-                      <p className="text-zinc-300 font-mono text-xs border-l border-emerald-500/30 pl-3">
+                      <p className="text-zinc-600 font-mono text-[12px] uppercase tracking-wider mb-2">Technology Stack</p>
+                      <p className="text-zinc-300 font-mono text-sm border-l border-emerald-500/30 pl-3">
                         {spec.tech}
                       </p>
                     </div>
 
-                    <p className="text-zinc-500 font-mono text-[11px] leading-relaxed uppercase tracking-tighter">
+                    <p className="text-zinc-500 font-mono text-[13px] leading-relaxed uppercase tracking-tighter">
                       {spec.description}
                     </p>
                   </div>

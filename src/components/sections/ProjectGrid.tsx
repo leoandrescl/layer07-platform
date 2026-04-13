@@ -32,13 +32,13 @@ const KPIHologram = ({ kpi, delay = 0 }: { kpi: KPI; delay?: number }) => {
         </motion.div>
 
         {/* Label */}
-        <div className="text-zinc-500 font-mono text-[9px] uppercase tracking-[0.2em] leading-tight">
+        <div className="text-zinc-500 font-mono text-[11px] uppercase tracking-[0.2em] leading-tight">
           {kpi.label}
         </div>
 
         {/* Source citation — activates on hover */}
         {kpi.source && (
-          <div className="text-emerald-900 font-mono text-[10px] uppercase tracking-wider group-hover:text-zinc-300 transition-colors duration-500">
+          <div className="text-emerald-900 font-mono text-[12px] uppercase tracking-wider group-hover:text-zinc-300 transition-colors duration-500">
             ↳ {kpi.source}
           </div>
         )}
@@ -58,7 +58,7 @@ const ArchDiagram = ({ lines }: { lines: string[] }) => {
       initial={{ opacity: 0 }}
       animate={isInView ? { opacity: 1 } : { opacity: 0 }}
       transition={{ duration: 1, ease: "easeOut" }}
-      className="relative font-mono text-[10px] leading-relaxed p-6 border border-emerald-900/30 bg-emerald-950/[0.02] backdrop-blur-sm"
+      className="relative font-mono text-[12px] leading-relaxed p-6 border border-emerald-900/30 bg-emerald-950/[0.02] backdrop-blur-sm"
       style={{ filter: 'drop-shadow(0 0 2px rgba(16,185,129,0.15))' }}
     >
       {/* Scanning line */}
@@ -123,7 +123,7 @@ const SolutionShowcase = ({ solution, index }: { solution: Solution; index: numb
           {/* Header */}
           <div className="space-y-3">
             <div className="flex items-center gap-3">
-              <span className="text-emerald-500/50 font-mono text-[9px] uppercase tracking-[0.5em]">
+              <span className="text-emerald-500/50 font-mono text-[11px] uppercase tracking-[0.5em]">
                 {solution.id}
               </span>
               <div className="h-px flex-1 bg-emerald-900/40" />
@@ -135,7 +135,7 @@ const SolutionShowcase = ({ solution, index }: { solution: Solution; index: numb
               duration="3s"
               className="text-5xl md:text-6xl font-bold tracking-tighter text-white uppercase leading-none"
             />
-            <p className="text-emerald-400/60 font-mono text-xs uppercase tracking-[0.4em]">
+            <p className="text-emerald-400/60 font-mono text-sm uppercase tracking-[0.4em]">
               // {solution.subtitle}
             </p>
           </div>
@@ -150,7 +150,7 @@ const SolutionShowcase = ({ solution, index }: { solution: Solution; index: numb
           {/* Tech Stack */}
           <div className="flex flex-wrap gap-x-6 gap-y-2">
             {solution.techStack.map((tech) => (
-              <span key={tech} className="text-[10px] font-mono text-zinc-600 uppercase tracking-widest">
+              <span key={tech} className="text-[12px] font-mono text-zinc-600 uppercase tracking-widest">
                 // {tech}
               </span>
             ))}
@@ -168,7 +168,7 @@ const SolutionShowcase = ({ solution, index }: { solution: Solution; index: numb
         <div className="flex-1 w-full z-10">
           <div className="space-y-4">
             <div className="flex items-center gap-2 mb-6">
-              <span className="text-[9px] font-mono text-emerald-500/40 uppercase tracking-[0.4em]">
+              <span className="text-[11px] font-mono text-emerald-500/40 uppercase tracking-[0.4em]">
                 Architecture.Blueprint
               </span>
               <div className="h-px flex-1 bg-emerald-900/30" />
