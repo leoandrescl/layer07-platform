@@ -1,6 +1,6 @@
-import { motion } from "framer-motion";
 import { Code2, Cpu, Globe, Zap } from "lucide-react";
 import { RecursiveReveal } from "@/components/ui/RecursiveReveal";
+import { BreathingContainer } from "@/components/ui/BreathingContainer";
 
 const SPECS = [
   {
@@ -44,7 +44,7 @@ export const TechBoard = () => {
           </div>
 
           {/* Board de Specs */}
-          <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-px bg-zinc-900 border border-zinc-900">
+          <BreathingContainer className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-px bg-zinc-900 border border-zinc-900">
             {SPECS.map((spec, i) => (
               <RecursiveReveal key={i} delay={i * 0.1} className="h-full">
                 <div 
@@ -73,7 +73,7 @@ export const TechBoard = () => {
               <p className="text-[10px] font-mono text-zinc-500 uppercase tracking-[0.2em] mb-2">Network Status</p>
               <span className="text-green-500 text-xs font-bold uppercase tracking-widest">Available for Q3-2026</span>
             </div>
-          </div>
+          </BreathingContainer>
 
         </div>
       </div>

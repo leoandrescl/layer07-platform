@@ -1,15 +1,12 @@
 "use client";
-import { useState, useEffect } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { ProjectGrid } from "@/components/sections/ProjectGrid";
-import { ProjectHeader } from "@/components/sections/ProjectHeader";
 import { Services } from "@/components/sections/Services";
 import { BriefingForm } from "@/components/modules/BriefingForm";
 import { WhatsAppButton } from "@/components/ui/WhatsAppButton";
 import { InmersiveHero } from "@/components/sections/InmersiveHero";
 
 export default function Home() {
-
   return (
     <>
       <main className="relative z-10">
@@ -20,7 +17,6 @@ export default function Home() {
 
         {/* Work Section - Solutions lead directly */}
         <ProjectGrid />
-
 
         {/* Tech Specifications Section */}
         <Services />

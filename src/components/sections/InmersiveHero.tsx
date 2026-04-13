@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, useScroll, useTransform, useSpring, useMotionValueEvent, AnimatePresence, useInView } from "framer-motion";
 import { TunnelGrid } from "@/components/ui/TunnelGrid";
-import { GeometricSingularity } from "@/components/ui/GeometricSingularity";
 import { RecursiveReveal } from "@/components/ui/RecursiveReveal";
 
 const FRAME_COUNT = 90;
@@ -164,15 +163,14 @@ export const InmersiveHero = () => {
         {/* Layer 0: Sequence Background */}
         <canvas 
           ref={canvasRef} 
-          className="absolute inset-0 z-0 pointer-events-none opacity-40 mix-blend-screen" 
+          className="absolute inset-0 z-0 pointer-events-none opacity-35 mix-blend-screen" 
         />
 
-        {/* Layer 1: Vector Tunnel & Geometric Singularity */}
+        {/* Layer 1: Vector Tunnel */}
         <TunnelGrid progress={smoothProgress} />
-        <GeometricSingularity />
 
         {/* Layer 2: Typography & HUD */}
-        <div className="z-10 text-center px-6 mix-blend-difference">
+        <div className="z-10 text-center px-6">
           
           <motion.div style={{ opacity: t1Opacity, y: t1Y }} className="absolute inset-0 flex flex-col items-center justify-center">
             <RecursiveReveal>

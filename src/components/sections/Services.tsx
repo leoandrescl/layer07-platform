@@ -4,6 +4,7 @@ import { motion, useInView } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { RecursiveReveal } from "@/components/ui/RecursiveReveal";
 import { GlitchTitle } from "@/components/ui/GlitchTitle";
+import { BreathingContainer } from "@/components/ui/BreathingContainer";
 
 const SPECS = [
   {
@@ -152,8 +153,7 @@ export const Services = () => {
               <span className="text-zinc-800">Specifications</span>
             </RecursiveReveal>
           </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-px bg-emerald-900/20 border border-emerald-900/40 shadow-[0_0_50px_rgba(16,185,129,0.01)]">
+          <BreathingContainer className="grid grid-cols-1 lg:grid-cols-3 gap-px bg-emerald-900/20 border border-emerald-900/40">
             {SPECS.map((spec, i) => (
               <RecursiveReveal key={spec.id} delay={i * 0.1} className="h-full">
                 <div className="bg-black/75 backdrop-blur-xl p-10 h-full flex flex-col justify-between group relative overflow-hidden transition-colors duration-700 hover:bg-black/60">
@@ -192,7 +192,7 @@ export const Services = () => {
                 </div>
               </RecursiveReveal>
             ))}
-          </div>
+          </BreathingContainer>
 
         </div>
       </div>

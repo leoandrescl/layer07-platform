@@ -8,7 +8,7 @@ interface TunnelGridProps {
   color?: string;
 }
 
-export const TunnelGrid = ({ progress, color = "rgba(52, 211, 153, 0.1)" }: TunnelGridProps) => {
+export const TunnelGrid = ({ progress, color = "rgba(52, 211, 153, 0.15)" }: TunnelGridProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const draw = (latest: number) => {
@@ -29,7 +29,9 @@ export const TunnelGrid = ({ progress, color = "rgba(52, 211, 153, 0.1)" }: Tunn
     const step = 200;
     
     ctx.save();
-    ctx.lineWidth = 1;
+    ctx.lineWidth = 1.2;
+    ctx.shadowBlur = 4;
+    ctx.shadowColor = color;
     ctx.strokeStyle = color;
 
     // Drawing the perspective lines (infinite corridor)
