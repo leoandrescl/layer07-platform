@@ -122,7 +122,7 @@ export const Services = () => {
                 as="h2"
                 delay="0.4s"
                 duration="3s"
-                className="text-5xl md:text-7xl font-bold tracking-tighter text-white uppercase leading-none"
+                className="text-3xl md:text-7xl font-bold tracking-tighter text-white uppercase leading-none"
               /> <br />
               <span className="text-zinc-800">Specifications</span>
             </RecursiveReveal>

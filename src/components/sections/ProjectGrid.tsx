@@ -135,7 +135,7 @@ const SolutionShowcase = ({ solution, index }: { solution: Solution; index: numb
               as="h3"
               delay={`${index * 0.8}s`}
               duration="3s"
-              className="text-5xl md:text-6xl font-bold tracking-tighter text-white uppercase leading-none"
+              className="text-3xl md:text-6xl font-bold tracking-tighter text-white uppercase leading-none"
             />
             <p className="text-emerald-400/60 font-mono text-sm uppercase tracking-[0.4em]">
               // {solution.subtitle}
