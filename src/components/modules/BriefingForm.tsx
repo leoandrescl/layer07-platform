@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Send, ChevronLeft } from "lucide-react";
 import { sendBriefing } from "@/app/actions";
 import { RecursiveReveal } from "@/components/ui/RecursiveReveal";
+import { GlitchTitle } from "@/components/ui/GlitchTitle";
 
 const STEPS = [
   {
@@ -50,7 +51,6 @@ export const BriefingForm = () => {
 
   const triggerNebulaFocus = (focus: boolean) => {
     setIsFocused(focus);
-    window.dispatchEvent(new CustomEvent("nebula-focus", { detail: { focus } }));
   };
 
   const clientAction = async (data: FormData): Promise<void> => {
@@ -74,9 +74,15 @@ export const BriefingForm = () => {
           </span>
         </RecursiveReveal>
         <RecursiveReveal delay={0.1}>
-          <h2 className="text-3xl font-mono tracking-tighter mt-2 text-white uppercase">
+          <GlitchTitle
+            text="Engineering Briefing"
+            as="h2"
+            delay="0.6s"
+            duration="2s"
+            className="text-3xl font-mono tracking-tighter mt-2 text-white uppercase"
+          >
             Engineering Briefing <BlinkingCursor />
-          </h2>
+          </GlitchTitle>
         </RecursiveReveal>
       </div>
 

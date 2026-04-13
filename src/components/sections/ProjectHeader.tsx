@@ -44,7 +44,7 @@ export const ProjectHeader = () => {
           transition={{ ...textVariants.transition, delay: 0.3 }}
           className="flex flex-col items-end gap-2"
         >
-          <span className="text-[10px] font-mono text-zinc-600 uppercase tracking-widest">Total Projects</span>
+          <span className="text-[10px] font-mono text-zinc-600 uppercase tracking-widest">Engineering Solutions</span>
           <span className="text-4xl font-mono text-white font-bold">
             {PROJECTS.length.toString().padStart(2, '0')}
           </span>

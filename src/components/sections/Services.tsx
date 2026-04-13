@@ -3,6 +3,7 @@
 import { motion, useInView } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { RecursiveReveal } from "@/components/ui/RecursiveReveal";
+import { GlitchTitle } from "@/components/ui/GlitchTitle";
 
 const SPECS = [
   {
@@ -130,8 +131,6 @@ const TechnicalBadge = ({ version }: { version: string }) => {
 export const Services = () => {
   return (
     <section id="services" className="w-full py-32 px-6 md:px-8 bg-transparent relative z-10">
-      {/* Depth Veil Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-black pointer-events-none opacity-80" />
       
       <div className="max-w-7xl mx-auto relative z-10">
         <div className="flex flex-col gap-16">
@@ -143,17 +142,21 @@ export const Services = () => {
               </span>
             </RecursiveReveal>
             <RecursiveReveal delay={0.1}>
-              <h2 className="text-5xl md:text-7xl font-bold tracking-tighter text-white uppercase leading-none">
-                <GlitchText text="System" /> <br /> 
-                <span className="text-zinc-800">Specifications</span>
-              </h2>
+              <GlitchTitle
+                text="System"
+                as="h2"
+                delay="0.4s"
+                duration="3s"
+                className="text-5xl md:text-7xl font-bold tracking-tighter text-white uppercase leading-none"
+              /> <br />
+              <span className="text-zinc-800">Specifications</span>
             </RecursiveReveal>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-px bg-emerald-900/20 border border-emerald-900/40 shadow-[0_0_50px_rgba(16,185,129,0.01)]">
             {SPECS.map((spec, i) => (
               <RecursiveReveal key={spec.id} delay={i * 0.1} className="h-full">
-                <div className="bg-emerald-950/[0.01] backdrop-blur-md p-10 h-full flex flex-col justify-between group relative overflow-hidden transition-colors duration-700 hover:bg-emerald-500/[0.01]">
+                <div className="bg-black/75 backdrop-blur-xl p-10 h-full flex flex-col justify-between group relative overflow-hidden transition-colors duration-700 hover:bg-black/60">
                   {/* Holographic scanning line effect */}
                   <motion.div 
                     animate={{ y: ["-100%", "300%"] }}

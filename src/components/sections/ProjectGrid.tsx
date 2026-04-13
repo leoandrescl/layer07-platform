@@ -1,113 +1,182 @@
 "use client";
 
-import { motion } from "framer-motion";
-import Link from "next/link";
-import Image from "next/image";
-import { PROJECTS, Project } from "@/constants/projects";
+import { motion, useInView } from "framer-motion";
+import { useRef } from "react";
+import { SOLUTIONS, Solution, KPI } from "@/constants/projects";
+import { GlitchTitle } from "@/components/ui/GlitchTitle";
 
-const cardVariants = {
-  initial: { opacity: 0, y: 50 },
-  whileInView: { 
-    opacity: 1, 
-    y: 0,
-    transition: {
-      duration: 1,
-      ease: [0.22, 1, 0.36, 1] as any,
-    },
-  },
-};
-
-const ProjectShowcase = ({ project, index }: { project: Project, index: number }) => {
-  const isEven = index % 2 === 0;
+// Animated KPI Hologram component
+const KPIHologram = ({ kpi, delay = 0 }: { kpi: KPI; delay?: number }) => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: false, amount: 0.5 });
 
   return (
     <motion.div
-      variants={cardVariants}
-      initial="initial"
-      whileInView="whileInView"
-      viewport={{ once: false, amount: 0.2 }}
-      className="w-full min-h-[70vh] flex flex-col items-center justify-center relative py-24"
+      ref={ref}
+      initial={{ opacity: 0, y: 20 }}
+      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+      transition={{ duration: 0.6, delay, ease: [0.22, 1, 0.36, 1] }}
+      className="relative group"
     >
-      <div className={`w-full max-w-7xl mx-auto px-6 md:px-8 flex flex-col ${isEven ? 'md:flex-row' : 'md:flex-row-reverse'} items-center gap-12 md:gap-24`}>
-        
-        {/* Text content - Authority Positioning */}
-        <div className="flex-1 space-y-8 z-10">
-          <div className="space-y-2">
-            <span className="text-emerald-500 font-mono text-[10px] uppercase tracking-[0.4em] block">
-              Project Specification 0{index + 1}
-            </span>
-            <h3 className="text-5xl md:text-7xl font-bold tracking-tighter text-white uppercase leading-none">
-              {project.title}
-            </h3>
-            <p className="text-zinc-500 font-mono text-xs uppercase tracking-widest mt-2">
-               {project.slug}.cl
-            </p>
-          </div>
+      {/* Holographic border */}
+      <div className="absolute -inset-2 border border-emerald-500/10 group-hover:border-emerald-500/30 transition-colors duration-500" />
+      
+      <div className="px-4 py-3 space-y-1">
+        {/* Value */}
+        <motion.div
+          animate={isInView ? { opacity: [0.7, 1, 0.7] } : {}}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay }}
+          className="text-emerald-400 font-mono text-3xl font-bold tracking-tighter leading-none"
+        >
+          {kpi.value}
+        </motion.div>
 
-          <div className="border-l border-emerald-500/20 pl-6 space-y-6">
-            <p className="text-zinc-400 font-mono text-sm leading-relaxed uppercase tracking-tight max-w-md">
-              {project.description}
-            </p>
-            
-            <div className="flex flex-wrap gap-x-6 gap-y-2">
-              {project.techStack.map(tech => (
-                <span key={tech} className="text-[10px] font-mono text-zinc-600 uppercase tracking-widest">
-                  // {tech}
-                </span>
-              ))}
+        {/* Label */}
+        <div className="text-zinc-500 font-mono text-[9px] uppercase tracking-[0.2em] leading-tight">
+          {kpi.label}
+        </div>
+
+        {/* Source citation — activates on hover */}
+        {kpi.source && (
+          <div className="text-emerald-900 font-mono text-[10px] uppercase tracking-wider group-hover:text-zinc-300 transition-colors duration-500">
+            ↳ {kpi.source}
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
+};
+
+// ASCII Architecture Diagram
+const ArchDiagram = ({ lines }: { lines: string[] }) => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: false, amount: 0.3 });
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0 }}
+      animate={isInView ? { opacity: 1 } : { opacity: 0 }}
+      transition={{ duration: 1, ease: "easeOut" }}
+      className="relative font-mono text-[10px] leading-relaxed p-6 border border-emerald-900/30 bg-emerald-950/[0.02] backdrop-blur-sm"
+      style={{ filter: 'drop-shadow(0 0 2px rgba(16,185,129,0.15))' }}
+    >
+      {/* Scanning line */}
+      <motion.div
+        animate={{ y: ["-100%", "400%"] }}
+        transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
+        className="absolute inset-x-0 h-px bg-gradient-to-r from-transparent via-emerald-500/20 to-transparent pointer-events-none"
+      />
+
+      {/* Corner markers */}
+      <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-emerald-500/40" />
+      <div className="absolute top-0 right-0 w-3 h-3 border-t border-r border-emerald-500/40" />
+      <div className="absolute bottom-0 left-0 w-3 h-3 border-b border-l border-emerald-500/40" />
+      <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-emerald-500/40" />
+
+      {lines.map((line, i) => (
+        <motion.div
+          key={i}
+          initial={{ opacity: 0, x: -10 }}
+          animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -10 }}
+          transition={{ duration: 0.4, delay: i * 0.1, ease: "easeOut" }}
+          className={`${
+            line.startsWith("[")
+              ? "text-emerald-400/80"
+              : line.includes("↓") || line.includes("→")
+              ? "text-zinc-600"
+              : line.includes("CLIENT")
+              ? "text-white/90"
+              : "text-zinc-600"
+          }`}
+        >
+          {line}
+        </motion.div>
+      ))}
+    </motion.div>
+  );
+};
+
+const SolutionShowcase = ({ solution, index }: { solution: Solution; index: number }) => {
+  const isEven = index % 2 === 0;
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: false, amount: 0.2 });
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0 }}
+      animate={isInView ? { opacity: 1 } : { opacity: 0.4 }}
+      transition={{ duration: 1 }}
+      className="w-full min-h-[80vh] flex flex-col items-center justify-center relative py-24"
+    >
+      {/* Subtle section divider */}
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-900/40 to-transparent" />
+
+      <div className={`w-full max-w-7xl mx-auto px-6 md:px-8 flex flex-col ${isEven ? "md:flex-row" : "md:flex-row-reverse"} items-center gap-12 md:gap-24`}>
+
+        {/* Left: Text & KPIs */}
+        <div className="flex-1 space-y-10 z-10">
+
+          {/* Header */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <span className="text-emerald-500/50 font-mono text-[9px] uppercase tracking-[0.5em]">
+                {solution.id}
+              </span>
+              <div className="h-px flex-1 bg-emerald-900/40" />
             </div>
+            <GlitchTitle
+              text={solution.title}
+              as="h3"
+              delay={`${index * 0.8}s`}
+              duration="3s"
+              className="text-5xl md:text-6xl font-bold tracking-tighter text-white uppercase leading-none"
+            />
+            <p className="text-emerald-400/60 font-mono text-xs uppercase tracking-[0.4em]">
+              // {solution.subtitle}
+            </p>
           </div>
 
-          {/* Prominent KPIs */}
-          <div className="flex gap-12 pt-4">
-             <div className="flex flex-col">
-                <span className="text-emerald-400 font-mono text-4xl font-bold tracking-tighter">
-                  {project.performanceScore}%
-                </span>
-                <span className="text-zinc-700 font-mono text-[9px] uppercase tracking-[0.3em]">
-                  Performance Score
-                </span>
-             </div>
-             <div className="flex flex-col">
-                <span className="text-emerald-400 font-mono text-4xl font-bold tracking-tighter">
-                  &lt;0.8s
-                </span>
-                <span className="text-zinc-700 font-mono text-[9px] uppercase tracking-[0.3em]">
-                  LCP Standard
-                </span>
-             </div>
+          {/* Concept */}
+          <div className="border-l border-emerald-500/20 pl-6">
+            <p className="text-zinc-400 font-mono text-sm leading-relaxed uppercase tracking-tighter max-w-md">
+              {solution.concept}
+            </p>
           </div>
 
-          <div className="pt-8">
-            <Link 
-              href={`/work/${project.slug}`}
-              className="group flex items-center gap-4 text-white font-mono text-[10px] uppercase tracking-[0.4em] hover:text-emerald-400 transition-colors"
-            >
-              EXPLORE ARCHITECTURE <span className="group-hover:translate-x-1 transition-transform">→</span>
-            </Link>
+          {/* Tech Stack */}
+          <div className="flex flex-wrap gap-x-6 gap-y-2">
+            {solution.techStack.map((tech) => (
+              <span key={tech} className="text-[10px] font-mono text-zinc-600 uppercase tracking-widest">
+                // {tech}
+              </span>
+            ))}
+          </div>
+
+          {/* KPI Holograms */}
+          <div className="grid grid-cols-3 gap-4 pt-2">
+            {solution.kpis.map((kpi, i) => (
+              <KPIHologram key={kpi.label} kpi={kpi} delay={i * 0.15} />
+            ))}
           </div>
         </div>
 
-        {/* Visual Showcase - Holographic Station */}
-        <div className="flex-1 w-full relative">
-          <div className="relative aspect-video md:aspect-[4/3] w-full group">
-            {/* Holographic Border & Glow */}
-            <div className="absolute -inset-4 border border-emerald-900/40 bg-emerald-500/[0.01] backdrop-blur-3xl transition-all duration-700 group-hover:bg-emerald-500/[0.03] group-hover:border-emerald-500/20" />
-            
-            <div className="relative w-full h-full overflow-hidden border border-white/5 grayscale hover:grayscale-0 transition-all duration-1000 shadow-2xl">
-              <Image 
-                src={project.coverImage}
-                alt={project.title}
-                fill
-                className="object-cover transition-transform duration-1000 group-hover:scale-105"
-                priority={index === 0}
+        {/* Right: Architecture Diagram */}
+        <div className="flex-1 w-full z-10">
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 mb-6">
+              <span className="text-[9px] font-mono text-emerald-500/40 uppercase tracking-[0.4em]">
+                Architecture.Blueprint
+              </span>
+              <div className="h-px flex-1 bg-emerald-900/30" />
+              <motion.div
+                animate={{ opacity: [1, 0.3, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+                className="w-1.5 h-1.5 bg-emerald-500 rounded-full"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-80" />
             </div>
-
-            {/* Corner Accents */}
-            <div className="absolute top-0 right-0 w-8 h-8 border-t border-r border-emerald-500/20 translate-x-1.5 -translate-y-1.5" />
-            <div className="absolute bottom-0 left-0 w-8 h-8 border-b border-l border-emerald-500/20 -translate-x-1.5 translate-y-1.5" />
+            <ArchDiagram lines={solution.architectureDiagram} />
           </div>
         </div>
 
@@ -119,12 +188,8 @@ const ProjectShowcase = ({ project, index }: { project: Project, index: number }
 export const ProjectGrid = () => {
   return (
     <section id="work" className="w-full relative z-10 flex flex-col">
-      {/* Depth Veil Overlay */}
-      <div className="absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-black to-transparent pointer-events-none z-20" />
-      <div className="absolute inset-x-0 bottom-0 h-64 bg-gradient-to-t from-black to-transparent pointer-events-none z-20" />
-      
-      {PROJECTS.map((project, i) => (
-        <ProjectShowcase key={project.id} project={project} index={i} />
+      {SOLUTIONS.map((solution, i) => (
+        <SolutionShowcase key={solution.id} solution={solution} index={i} />
       ))}
     </section>
   );

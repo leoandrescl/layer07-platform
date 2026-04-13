@@ -36,3 +36,120 @@ body {
     @apply selection:bg-zinc-500 selection:text-black;
   }
 }
+
+/* ─── RGB SPLIT INTERFERENCE — IN-PLACE HORIZONTAL SLICING ─────────────── */
+
+/*
+  ARCHITECTURE (corrected):
+  - Base text: white, stable, wraps naturally. NEVER moves.
+  - ::before: same position (left:0), text-shadow -2px magenta → clips to horizontal bands
+  - ::after:  same position (left:0), text-shadow +2px cyan    → clips to different bands
+  - NO translate() — the ghost text stays exactly over the base text
+  - NO white-space:nowrap — pseudo-elements wrap identically to the base
+  - clip-path: inset(T 0 B 0) reveals only a thin horizontal slice of the color ghost
+  - Net visual: colored fringe appears/disappears in horizontal bands = signal interference
+*/
+
+/* MAGENTA channel — clips horizontal bands, no spatial movement */
+@keyframes glitch-before {
+  0%,    39.9%  { opacity: 0; clip-path: inset(0 0 100% 0); }
+  /* ── 15-frame burst at the 40% mark ── */
+  40%    { opacity: 1; clip-path: inset( 0% 0 85%  0); }
+  40.8%  { opacity: 1; clip-path: inset(22% 0 62%  0); }
+  41.6%  { opacity: 1; clip-path: inset(42% 0 42%  0); }
+  42.4%  { opacity: 1; clip-path: inset(12% 0 76%  0); }
+  43.2%  { opacity: 1; clip-path: inset(62% 0 22%  0); }
+  44.0%  { opacity: 1; clip-path: inset(78% 0  8%  0); }
+  44.8%  { opacity: 1; clip-path: inset(32% 0 52%  0); }
+  45.6%  { opacity: 1; clip-path: inset( 6% 0 82%  0); }
+  46.4%  { opacity: 1; clip-path: inset(52% 0 34%  0); }
+  47.2%  { opacity: 1; clip-path: inset(88% 0  4%  0); }
+  48.0%  { opacity: 1; clip-path: inset(18% 0 70%  0); }
+  48.8%  { opacity: 1; clip-path: inset(48% 0 40%  0); }
+  49.6%  { opacity: 1; clip-path: inset(72% 0 16%  0); }
+  50.4%  { opacity: 1; clip-path: inset(28% 0 56%  0); }
+  51.2%  { opacity: 1; clip-path: inset(58% 0 28%  0); }
+  /* ── silence ── */
+  52%,  100% { opacity: 0; clip-path: inset(0 0 100% 0); }
+}
+
+/* CYAN channel — different band positions, half-frame offset */
+@keyframes glitch-after {
+  0%,    40.39% { opacity: 0; clip-path: inset(0 0 100% 0); }
+  /* ── 15-frame burst, offset half a step ── */
+  40.4%  { opacity: 1; clip-path: inset(14% 0 72%  0); }
+  41.2%  { opacity: 1; clip-path: inset(52% 0 32%  0); }
+  42.0%  { opacity: 1; clip-path: inset( 4% 0 82%  0); }
+  42.8%  { opacity: 1; clip-path: inset(36% 0 48%  0); }
+  43.6%  { opacity: 1; clip-path: inset(70% 0 16%  0); }
+  44.4%  { opacity: 1; clip-path: inset(82% 0  6%  0); }
+  45.2%  { opacity: 1; clip-path: inset(24% 0 62%  0); }
+  46.0%  { opacity: 1; clip-path: inset(58% 0 28%  0); }
+  46.8%  { opacity: 1; clip-path: inset( 8% 0 78%  0); }
+  47.6%  { opacity: 1; clip-path: inset(44% 0 44%  0); }
+  48.4%  { opacity: 1; clip-path: inset(80% 0  8%  0); }
+  49.2%  { opacity: 1; clip-path: inset(30% 0 54%  0); }
+  50.0%  { opacity: 1; clip-path: inset(64% 0 20%  0); }
+  50.8%  { opacity: 1; clip-path: inset(10% 0 70%  0); }
+  51.6%  { opacity: 1; clip-path: inset(46% 0 36%  0); }
+  /* ── silence ── */
+  52.4%, 100% { opacity: 0; clip-path: inset(0 0 100% 0); }
+}
+
+/* BASE WRAPPER */
+.glitch-text {
+  position: relative;
+  display: inline-block;
+}
+
+/* SHARED BASE — both channels sit exactly over the base text */
+.glitch-text::before,
+.glitch-text::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #000;
+  /* SCANLINES: 2px color strip / 2px dark gap — horizontal TV interference lines */
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent         0px,
+    transparent         2px,
+    rgba(0, 0, 0, 0.75) 2px,
+    rgba(0, 0, 0, 0.75) 4px
+  );
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  line-height: inherit;
+  color: #ffffff;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0;
+}
+
+/* MAGENTA channel — slight left shift + strong magenta halo */
+.glitch-text::before {
+  text-shadow:
+    -3px 0   #ff003c,
+     3px 0   rgba(255, 0, 60, 0.5),
+    -5px 0   rgba(255, 0, 60, 0.2),
+     0   0   14px rgba(255, 0, 60, 0.4);
+  transform: translateX(-2px);
+  animation: glitch-before var(--glitch-duration, 3s) steps(1) infinite;
+  animation-delay: var(--glitch-delay, 0s);
+}
+
+/* CYAN channel — slight right shift + strong cyan halo */
+.glitch-text::after {
+  text-shadow:
+     3px 0   #00ffff,
+    -3px 0   rgba(0, 255, 255, 0.5),
+     5px 0   rgba(0, 255, 255, 0.2),
+     0   0   14px rgba(0, 255, 255, 0.4);
+  transform: translateX(2px);
+  animation: glitch-after var(--glitch-duration, 3s) steps(1) infinite;
+  animation-delay: var(--glitch-delay, 0s);
+}
