@@ -215,10 +215,11 @@ export const CapabilitiesContent = () => {
           />
         </Section>
 
-        <Section id="referencias" kicker="Referencias" title="Proyectos publicados">
+        <Section id="referencias" kicker="Referencias" title="Proyectos en producción">
           <p>
-            Sitios en producción que podés revisar en línea. Donde hay cifras, corresponden al
-            trabajo descrito y al contexto del encargo.
+            Más abajo hay sitios en producción y de acceso público, para revisar el resultado en
+            vivo. Las cifras, cuando se citan, corresponden al trabajo entregado y al alcance de cada
+            encargo.
           </p>
 
           <div className="mt-10 space-y-6 md:space-y-8 max-w-4xl">
@@ -288,8 +289,9 @@ export const CapabilitiesContent = () => {
           </div>
 
           <p className="mt-10 leading-relaxed">
-            Además desarrollo sitios WordPress con temas PHP cien por ciento a medida cuando el
-            proyecto lo exige; no los listo acá si no hay URL pública asociada.
+            También implemento sitios WordPress con temas PHP hechos completamente a medida cuando
+            el proyecto lo requiere; en esta página solo dejo los que tienen URL pública para
+            revisión.
           </p>
         </Section>
 
@@ -301,8 +303,8 @@ export const CapabilitiesContent = () => {
             Contacto
           </p>
           <p className="text-zinc-400 max-w-2xl mb-8 leading-relaxed">
-            Si tenés un requerimiento concreto (plataforma, URL, plazo), coordinamos por briefing o
-            por los canales de abajo.
+            Si tienes un requerimiento acotado —plataforma, una URL de referencia y un plazo
+            aproximado—, partimos por el briefing o por los medios de contacto de abajo.
           </p>
           <div className="flex flex-wrap gap-3">
             <Link
