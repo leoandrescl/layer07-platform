@@ -216,13 +216,7 @@ export const CapabilitiesContent = () => {
         </Section>
 
         <Section id="referencias" kicker="Referencias" title="Proyectos en producción">
-          <p>
-            Más abajo hay sitios en producción y de acceso público, para revisar el resultado en
-            vivo. Las cifras, cuando se citan, corresponden al trabajo entregado y al alcance de cada
-            encargo.
-          </p>
-
-          <div className="mt-10 space-y-6 md:space-y-8 max-w-4xl">
+          <div className="space-y-6 md:space-y-8 max-w-4xl">
             <ReferenceCard domain="chanchimercado.cl" href="https://chanchimercado.cl">
               <p>
                 Producto web tipo libreta de fiados: interfaz, estado en cliente, persistencia y
@@ -287,12 +281,6 @@ export const CapabilitiesContent = () => {
               />
             </ReferenceCard>
           </div>
-
-          <p className="mt-10 leading-relaxed">
-            También implemento sitios WordPress con temas PHP hechos completamente a medida cuando
-            el proyecto lo requiere; en esta página solo dejo los que tienen URL pública para
-            revisión.
-          </p>
         </Section>
 
         <footer className="mt-20 md:mt-28">
