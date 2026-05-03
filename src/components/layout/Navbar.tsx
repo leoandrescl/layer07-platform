@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { motion, useScroll, useTransform } from "framer-motion";
 
 export const Navbar = () => {
@@ -30,6 +31,13 @@ export const Navbar = () => {
         >
           Work
         </a>
+        <Link
+          href="/capacidades"
+          className="hover:text-white transition-colors duration-200"
+          style={{ transform: "none" }}
+        >
+          Perfil
+        </Link>
         <a
           href="#services"
           className="hover:text-white transition-colors duration-200"

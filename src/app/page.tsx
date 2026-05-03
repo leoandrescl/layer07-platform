@@ -5,6 +5,7 @@ import { Services } from "@/components/sections/Services";
 import { BriefingForm } from "@/components/modules/BriefingForm";
 import { WhatsAppButton } from "@/components/ui/WhatsAppButton";
 import { InmersiveHero } from "@/components/sections/InmersiveHero";
+import { HomeProfileStrip } from "@/components/sections/HomeProfileStrip";
 
 export default function Home() {
   return (
@@ -14,6 +15,8 @@ export default function Home() {
         
         {/* Cinematic Canvas Scroll Sequence */}
         <InmersiveHero />
+
+        <HomeProfileStrip />
 
         {/* Work Section - Solutions lead directly */}
         <ProjectGrid />

@@ -1,12 +1,15 @@
 "use client";
 import { motion } from "framer-motion";
 import { MessageSquare } from "lucide-react";
+import { CONTACT_WA_HREF } from "@/constants/contact";
 
 export const WhatsAppButton = () => {
   return (
     <motion.a
-      href="https://wa.me/tu-numero"
+      href={CONTACT_WA_HREF}
       target="_blank"
+      rel="noopener noreferrer"
+      aria-label="Contactar por WhatsApp"
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}
       whileHover={{ scale: 1.05 }}
