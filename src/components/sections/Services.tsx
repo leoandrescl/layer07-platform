@@ -104,7 +104,7 @@ import { WiredTerminal } from "@/components/ui/WiredTerminal";
 
 export const Services = () => {
   return (
-    <section id="services" className="w-full py-32 px-6 md:px-8 bg-transparent relative z-10">
+    <section id="services" className="w-full py-20 md:py-28 px-6 md:px-8 bg-transparent relative z-10">
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-500/20 to-transparent" />
       
       <div className="max-w-7xl mx-auto relative z-10">

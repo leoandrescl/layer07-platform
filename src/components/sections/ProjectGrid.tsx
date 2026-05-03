@@ -110,7 +110,7 @@ const SolutionShowcase = ({ solution, index }: { solution: Solution; index: numb
       initial={{ opacity: 0 }}
       animate={isInView ? { opacity: 1 } : { opacity: 0.4 }}
       transition={{ duration: 1 }}
-      className="w-full min-h-[80vh] flex flex-col items-center justify-center relative py-24"
+      className="w-full flex flex-col items-center justify-start relative py-20 md:py-28"
     >
       {/* Subtle section divider */}
       {index > 0 && (

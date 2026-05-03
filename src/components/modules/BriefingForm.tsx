@@ -107,7 +107,7 @@ export const BriefingForm = () => {
   };
 
   return (
-    <section id="contact" className="py-20 md:py-32 px-4 md:px-8 max-w-5xl mx-auto relative z-10 transition-all duration-1000">
+    <section id="contact" className="py-20 md:py-28 px-4 md:px-8 max-w-5xl mx-auto relative z-10 transition-all duration-1000">
       {/* The Wired - Final Deep Layers (Unstable) */}
       <div className="absolute left-2 md:left-4 top-4 z-0 opacity-40">
         <WiredTerminal 

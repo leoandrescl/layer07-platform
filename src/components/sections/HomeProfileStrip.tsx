@@ -13,10 +13,11 @@ export const HomeProfileStrip = () => {
     <section
       id="perfil"
       aria-labelledby="perfil-heading"
-      className="relative z-10 w-full border-t border-emerald-500/15 bg-black/50 backdrop-blur-sm"
+      className="relative z-10 w-full scroll-mt-28 border-t border-emerald-500/15 bg-black/50 backdrop-blur-sm"
     >
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-500/25 to-transparent" />
-      <div className="max-w-7xl mx-auto px-6 md:px-8 py-16 md:py-24">
+      <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-emerald-500/20 to-transparent" />
+      <div className="max-w-7xl mx-auto px-6 md:px-8 pt-28 pb-20 md:pt-32 md:pb-28">
         <p className="text-[11px] font-mono uppercase tracking-[0.35em] text-emerald-500/70 mb-4">
           {CONTACT.name} · {CONTACT.location}
         </p>
