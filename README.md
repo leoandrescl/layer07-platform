@@ -1,36 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Layer07 Platform
 
-## Getting Started
+Sitio de marca / agencia para **Layer07**: portfolio, capacidades y briefing de proyectos con enfoque en e-commerce e ingeniería web.
 
-First, run the development server:
+**Demo:** [layer07-platform.vercel.app](https://layer07-platform.vercel.app)
+
+## Stack
+
+- **Next.js** (App Router) + TypeScript + Tailwind CSS
+- **Three.js** + Framer Motion (hero / motion)
+- **Resend** (formulario de contacto / briefing)
+- **Upstash Redis** (rate limiting en acciones)
+
+## Qué incluye
+
+- Landing con hero inmersivo
+- Grid de trabajo / casos (`/work/[slug]`)
+- Página de capacidades (`/capacidades`)
+- Formulario de briefing con rate limit
+- CTA hacia WhatsApp / contacto
+
+## Requisitos
+
+- Node.js 20+
+
+## Setup
 
 ```bash
+npm install
+cp .env.example .env.local
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abre [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Sin `RESEND_API_KEY` el sitio corre; el envío de emails del briefing fallará hasta configurarlo.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Variables de entorno
 
-## Learn More
+Ver [`.env.example`](./.env.example).
 
-To learn more about Next.js, take a look at the following resources:
+| Variable | Uso |
+|---|---|
+| `RESEND_API_KEY` | Envío de emails del formulario |
+| `NEXT_PUBLIC_WORDPRESS_API_URL` | Opcional, si se conecta a un backend WP/GraphQL |
+| `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | Rate limiting (si aplica en el deploy) |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Estructura (resumen)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `src/app/` — páginas y server actions
+- `src/lib/` — cliente API / GraphQL helpers
+- Motion y 3D en componentes del hero
 
-## Deploy on Vercel
+## Nota
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Sitio de presentación / acquisition. El contenido de portfolio puede ser estático o conectado a CMS según el deploy.
