@@ -73,7 +73,7 @@ export default function HomePage() {
           </h1>
           <p className="mt-6 max-w-xl text-sm leading-relaxed text-muted-dim sm:text-base">
             Ingeniería full stack para sistemas a medida, e-commerce headless e
-            integraciones API. Liderado por {SITE.founder.name}.
+            integraciones API.
           </p>
           <div className="mt-6">
             <TypeLine text="boot --module engineering --mode production" />
