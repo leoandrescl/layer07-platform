@@ -1,26 +1,210 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #050505;
+  --surface: #0a0a0c;
+  --surface-elevated: #111116;
+  --foreground: #ffffff;
+  --muted: #e2e8f0;
+  --muted-dim: #94a3b8;
+  --border: #1e293b;
+  --neon: #00ff66;
+  --neon-dim: #00ff41;
+  --cyan: #00f0ff;
+  --magenta: #ff0055;
+  --grid-line: rgba(0, 255, 102, 0.06);
+  --glow-neon: 0 0 12px rgba(0, 255, 102, 0.45), 0 0 28px rgba(0, 255, 102, 0.15);
+  --glow-cyan: 0 0 12px rgba(0, 240, 255, 0.4), 0 0 28px rgba(0, 240, 255, 0.12);
+  --glow-magenta: 0 0 12px rgba(255, 0, 85, 0.4);
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-elevated: var(--surface-elevated);
   --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-muted-dim: var(--muted-dim);
+  --color-border: var(--border);
+  --color-neon: var(--neon);
+  --color-neon-dim: var(--neon-dim);
+  --color-cyan: var(--cyan);
+  --color-magenta: var(--magenta);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --shadow-neon: var(--glow-neon);
+  --shadow-cyan: var(--glow-cyan);
+  --shadow-magenta: var(--glow-magenta);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  html {
+    color-scheme: dark;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-geist-mono), ui-monospace, monospace;
+    min-height: 100dvh;
+  }
+
+  ::selection {
+    background: color-mix(in srgb, var(--neon) 35%, transparent);
+    color: var(--foreground);
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer utilities {
+  .bg-grid {
+    background-color: var(--background);
+    background-image:
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+
+  .bg-scanlines {
+    background-image: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.12) 2px,
+      rgba(0, 0, 0, 0.12) 4px
+    );
+    pointer-events: none;
+  }
+
+  .text-glow-neon {
+    text-shadow: 0 0 10px rgba(0, 255, 102, 0.55);
+  }
+
+  .text-glow-cyan {
+    text-shadow: 0 0 10px rgba(0, 240, 255, 0.45);
+  }
+
+  .border-glow {
+    box-shadow: var(--glow-neon);
+  }
+
+  .border-glow-cyan {
+    box-shadow: var(--glow-cyan);
+  }
+
+  .glitch-hover {
+    position: relative;
+  }
+
+  .glitch-hover:hover {
+    animation: glitch-skew 0.35s steps(2, end) 1;
+  }
+
+  .animate-scan {
+    animation: scanline 6s linear infinite;
+  }
+
+  .animate-pulse-online {
+    animation: pulse-online 2s ease-in-out infinite;
+  }
+
+  .animate-type {
+    overflow: hidden;
+    white-space: nowrap;
+    border-right: 2px solid var(--neon);
+    animation:
+      typing 2.4s steps(32, end) 1,
+      blink-caret 0.75s step-end infinite;
+  }
 }
+
+@keyframes glitch-skew {
+  0% {
+    transform: translate(0);
+  }
+  20% {
+    transform: translate(-2px, 1px);
+  }
+  40% {
+    transform: translate(2px, -1px);
+  }
+  60% {
+    transform: translate(-1px, 0);
+  }
+  100% {
+    transform: translate(0);
+  }
+}
+
+@keyframes scanline {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100vh);
+  }
+}
+
+@keyframes pulse-online {
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 rgba(0, 255, 102, 0.5);
+  }
+  50% {
+    opacity: 0.75;
+    box-shadow: 0 0 0 6px rgba(0, 255, 102, 0);
+  }
+}
+
+@keyframes typing {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+@keyframes blink-caret {
+  from,
+  to {
+    border-color: transparent;
+  }
+  50% {
+    border-color: var(--neon);
+  }
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 28s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .animate-marquee,
+  .animate-scan,
+  .animate-pulse-online,
+  .animate-type,
+  .glitch-hover:hover {
+    animation: none !important;
+  }
+}
+
