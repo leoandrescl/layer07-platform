@@ -114,7 +114,7 @@ export const projects: Project[] = [
     slug: "sanmateo-web",
     title: "San Mateo Inmobiliaria",
     client: "Inmobiliaria San Mateo",
-    category: "sistemas",
+    category: "integraciones",
     year: 2026,
     excerpt:
       "Tema hijo WordPress (GeneratePress) para inmobiliaria: propiedades, proyectos, cotizador y leads.",
@@ -131,6 +131,35 @@ export const projects: Project[] = [
     repoUrl: "https://github.com/leoandrescl/sanmateo-web",
     featured: false,
     coverGradient: "from-neon/15 via-surface to-transparent",
+  },
+  {
+    slug: "sorteoseguro-web",
+    title: "Sorteo Seguro",
+    client: "Sorteo Seguro",
+    category: "ecommerce",
+    year: 2026,
+    excerpt:
+      "E-commerce WooCommerce a medida para sorteos: mu-plugins custom, packs, checkout guest y Mercado Pago en producción.",
+    challenge:
+      "Rediseñar sorteoseguro.cl sin tocar el core de plugins de terceros, manteniendo Lottery, packs DigiPacks y cobros con Mercado Pago.",
+    solution:
+      "Capa mu-plugins (chrome, home, cart, checkout, PDP, thank-you, packs/MP) con UI custom, preferencias Mercado Pago con fees de packs y auto-complete post-pago.",
+    stack: [
+      "WordPress",
+      "WooCommerce",
+      "PHP",
+      "Mercado Pago",
+      "mu-plugins",
+    ],
+    metrics: [
+      { label: "Live", value: "sorteoseguro.cl" },
+      { label: "Pagos", value: "Mercado Pago" },
+      { label: "Capa", value: "mu-plugins" },
+    ],
+    liveUrl: "https://sorteoseguro.cl",
+    repoUrl: "https://github.com/leoandrescl/sorteoseguro-web",
+    featured: false,
+    coverGradient: "from-magenta/20 via-cyan/10 to-transparent",
   },
   {
     slug: "sorteo-web",
@@ -182,6 +211,7 @@ export const clientLogos = [
   "CHANCHI",
   "ALLISONE",
   "PAGATE",
+  "SORTEO SEGURO",
   "SAN MATEO",
   "SORTEO WEB",
   "IMPPULSOR",
