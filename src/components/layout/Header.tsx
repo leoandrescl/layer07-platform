@@ -58,7 +58,7 @@ export function Header() {
 
         <button
           type="button"
-          className="border border-border px-3 py-2 font-mono text-[10px] tracking-widest text-muted uppercase hover:border-neon hover:text-neon lg:hidden"
+          className="cursor-pointer border border-border px-3 py-2 font-mono text-[10px] tracking-widest text-muted uppercase transition-all duration-200 hover:border-neon hover:bg-neon/10 hover:text-neon lg:hidden"
           aria-expanded={open}
           aria-controls="mobile-nav"
           onClick={() => setOpen((v) => !v)}

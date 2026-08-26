@@ -10,9 +10,12 @@ type NeonButtonProps = {
 };
 
 const variants = {
-  neon: "border-neon text-neon hover:bg-neon/10 border-glow",
-  cyan: "border-cyan text-cyan hover:bg-cyan/10 border-glow-cyan",
-  ghost: "border-border text-muted hover:border-neon/50 hover:text-neon",
+  neon:
+    "border-neon text-neon border-glow hover:bg-neon/15 hover:shadow-neon hover:brightness-110",
+  cyan:
+    "border-cyan text-cyan border-glow-cyan hover:bg-cyan/15 hover:shadow-cyan hover:brightness-110",
+  ghost:
+    "border-border text-muted hover:border-neon/60 hover:bg-neon/5 hover:text-neon hover:shadow-neon",
 } as const;
 
 export function NeonButton({
@@ -23,7 +26,7 @@ export function NeonButton({
   external,
 }: NeonButtonProps) {
   const classes = cn(
-    "inline-flex items-center justify-center gap-2 border px-5 py-3 font-mono text-xs tracking-[0.18em] uppercase transition-colors glitch-hover",
+    "inline-flex cursor-pointer items-center justify-center gap-2 border px-5 py-3 font-mono text-xs tracking-[0.18em] uppercase transition-all duration-200 ease-out glitch-hover hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]",
     variants[variant],
     className,
   );

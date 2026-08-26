@@ -16,7 +16,7 @@ export function WhatsAppTerminal() {
             </span>
             <button
               type="button"
-              className="font-mono text-[10px] text-muted-dim hover:text-magenta"
+              className="cursor-pointer font-mono text-[10px] text-muted-dim transition-colors hover:text-magenta"
               onClick={() => setOpen(false)}
               aria-label="Cerrar consola WhatsApp"
             >
@@ -34,7 +34,7 @@ export function WhatsAppTerminal() {
               href={whatsappUrl()}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-2 flex w-full items-center justify-center border border-neon bg-neon/10 px-3 py-2 text-[11px] tracking-[0.18em] text-neon uppercase hover:bg-neon/20"
+              className="mt-2 flex w-full cursor-pointer items-center justify-center border border-neon bg-neon/10 px-3 py-2 text-[11px] tracking-[0.18em] text-neon uppercase transition-all duration-200 hover:bg-neon/20 hover:-translate-y-0.5 hover:shadow-neon"
             >
               Ejecutar conexión
             </a>
@@ -45,7 +45,7 @@ export function WhatsAppTerminal() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="border border-neon bg-background px-4 py-3 font-mono text-[11px] tracking-[0.2em] text-neon uppercase shadow-neon glitch-hover"
+        className="cursor-pointer border border-neon bg-background px-4 py-3 font-mono text-[11px] tracking-[0.2em] text-neon uppercase shadow-neon transition-all duration-200 glitch-hover hover:-translate-y-0.5 hover:bg-neon/10 hover:shadow-neon"
         aria-expanded={open}
         aria-label="Abrir terminal WhatsApp"
       >

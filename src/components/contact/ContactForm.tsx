@@ -60,7 +60,7 @@ export function ContactForm() {
         </p>
         <button
           type="button"
-          className="mt-6 border border-border px-4 py-2 text-[11px] tracking-widest text-cyan uppercase hover:border-cyan"
+          className="mt-6 cursor-pointer border border-border px-4 py-2 text-[11px] tracking-widest text-cyan uppercase transition-all duration-200 hover:border-cyan hover:bg-cyan/10 hover:-translate-y-0.5"
           onClick={() => setStatus("idle")}
         >
           Nueva transmisión
@@ -128,7 +128,7 @@ export function ContactForm() {
       <button
         type="submit"
         disabled={status === "loading"}
-        className="w-full border border-neon bg-neon/10 px-4 py-3 font-mono text-xs tracking-[0.2em] text-neon uppercase shadow-neon transition-colors hover:bg-neon/20 disabled:opacity-60"
+        className="w-full cursor-pointer border border-neon bg-neon/10 px-4 py-3 font-mono text-xs tracking-[0.2em] text-neon uppercase shadow-neon transition-all duration-200 hover:bg-neon/20 hover:-translate-y-0.5 hover:shadow-neon active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
       >
         {status === "loading" ? "Transmitiendo..." : "Enviar transmisión"}
       </button>

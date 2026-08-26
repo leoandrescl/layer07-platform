@@ -37,10 +37,10 @@ export function PortfolioGrid({ projects }: PortfolioGridProps) {
             type="button"
             onClick={() => setFilter(key)}
             className={cn(
-              "border px-3 py-2 font-mono text-[10px] tracking-[0.16em] uppercase transition-colors",
+              "border cursor-pointer px-3 py-2 font-mono text-[10px] tracking-[0.16em] uppercase transition-all duration-200 hover:-translate-y-0.5",
               filter === key
                 ? "border-neon text-neon shadow-neon"
-                : "border-border text-muted-dim hover:border-cyan hover:text-cyan",
+                : "border-border text-muted-dim hover:border-cyan hover:text-cyan hover:shadow-cyan",
             )}
           >
             {key === "all" ? "Todos" : CATEGORY_LABELS[key]}
