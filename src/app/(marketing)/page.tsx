@@ -4,7 +4,7 @@ import { NeonButton } from "@/components/ui/NeonButton";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { TerminalPanel } from "@/components/ui/TerminalPanel";
 import { TypeLine } from "@/components/ui/TypeLine";
-import { clientLogos, getFeaturedProjects, getTestimonials } from "@/lib/data/content";
+import { getFeaturedProjects, getTestimonials } from "@/lib/data/content";
 import { SITE } from "@/lib/site";
 
 const services = [
@@ -87,24 +87,6 @@ export default function HomePage() {
           <p className="mt-10 font-mono text-[11px] tracking-widest text-muted-dim uppercase">
             <span className="text-cyan">session</span> · dark · edge · scl
           </p>
-        </div>
-      </section>
-
-      <section className="overflow-hidden border-b border-border py-8" aria-label="Clientes">
-        <p className="mb-4 text-center font-mono text-[10px] tracking-[0.3em] text-muted-dim uppercase">
-          Señales // Clientes & proyectos
-        </p>
-        <div className="relative flex overflow-hidden">
-          <div className="animate-marquee flex min-w-max gap-10 px-4">
-            {[...clientLogos, ...clientLogos].map((logo, i) => (
-              <span
-                key={`${logo}-${i}`}
-                className="font-mono text-sm tracking-[0.25em] text-muted-dim/80 uppercase"
-              >
-                {logo}
-              </span>
-            ))}
-          </div>
         </div>
       </section>
 
