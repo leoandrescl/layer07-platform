@@ -203,9 +203,9 @@
     linear-gradient(var(--grid-line) 1px, transparent 1px),
     linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
   background-size: 64px 64px;
-  transform-origin: center top;
-  transform: perspective(500px) rotateX(62deg) scale(2.2);
-  mask-image: linear-gradient(to bottom, black 0%, transparent 75%);
+  transform-origin: center bottom;
+  transform: perspective(420px) rotateX(72deg) scale(1.6);
+  mask-image: linear-gradient(to top, black 0%, transparent 85%);
 }
 
 .hero-nodes {

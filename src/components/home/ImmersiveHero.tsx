@@ -59,11 +59,17 @@ const PHASE_COUNT = PHASES.length;
 const SCROLL_HEIGHT_VH = PHASE_COUNT * 72;
 
 function phaseOpacity(index: number, progress: number) {
-  const center = (index + 0.5) / PHASE_COUNT;
-  const halfBand = 0.55 / PHASE_COUNT;
-  const dist = Math.abs(progress - center);
-  if (dist >= halfBand * 2) return 0;
-  return 1 - dist / halfBand;
+  const segment = 1 / PHASE_COUNT;
+  const start = index * segment;
+  const end = (index + 1) * segment;
+
+  if (progress <= start) return index === 0 ? 1 : 0;
+  if (progress >= end) return index === PHASE_COUNT - 1 ? 1 : 0;
+
+  const local = (progress - start) / segment;
+  if (local < 0.2 && index > 0) return local / 0.2;
+  if (local > 0.8 && index < PHASE_COUNT - 1) return (1 - local) / 0.2;
+  return 1;
 }
 
 const accentText = {
@@ -245,8 +251,8 @@ function HeroBackdrop({
       <div className="absolute inset-0 bg-background" />
 
       <div
-        className="hero-perspective-grid absolute inset-0 opacity-50"
-        style={{ transform: `translateY(${parallax(-30)}px)` }}
+        className="hero-perspective-grid absolute inset-x-0 bottom-0 h-[42%] opacity-40"
+        style={{ transform: `translateY(${parallax(-15)}px)` }}
       />
 
       <div
@@ -258,13 +264,8 @@ function HeroBackdrop({
         style={{ transform: `translate(${parallax(-20)}px, ${parallax(-10)}px)` }}
       />
 
-      <div
-        className="absolute inset-x-0 top-1/2 h-px bg-gradient-to-r from-transparent via-neon/30 to-transparent"
-        style={{ transform: `translateY(${parallax(-40)}px)` }}
-      />
-
-      <div className="hero-nodes absolute inset-0 opacity-25" />
-      <div className="hero-scan-beam absolute inset-x-0 top-0 h-24 opacity-35" />
+      <div className="hero-nodes absolute inset-0 opacity-20" />
+      <div className="hero-scan-beam absolute inset-x-0 top-0 h-16 opacity-20" />
       <div className="absolute inset-0 bg-scanlines opacity-20" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_50%,#050505_100%)]" />
 
