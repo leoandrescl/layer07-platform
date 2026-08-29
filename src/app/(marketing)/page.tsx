@@ -1,9 +1,8 @@
 import Link from "next/link";
 import { CtaTerminal } from "@/components/shared/CtaTerminal";
-import { NeonButton } from "@/components/ui/NeonButton";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { TerminalPanel } from "@/components/ui/TerminalPanel";
-import { TypeLine } from "@/components/ui/TypeLine";
+import { ImmersiveHero } from "@/components/home/ImmersiveHero";
 import { getFeaturedProjects, getTestimonials } from "@/lib/data/content";
 import { SITE } from "@/lib/site";
 
@@ -51,44 +50,7 @@ export default function HomePage() {
 
   return (
     <>
-      <section className="relative overflow-hidden border-b border-border">
-        <div
-          className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-neon/60 to-transparent"
-          aria-hidden
-        />
-        <div
-          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(0,255,102,0.08),transparent_55%)]"
-          aria-hidden
-        />
-        <div
-          className="pointer-events-none absolute inset-x-0 top-0 h-24 animate-scan bg-gradient-to-b from-neon/10 to-transparent opacity-40"
-          aria-hidden
-        />
-        <div className="relative mx-auto flex min-h-[calc(100dvh-4rem)] max-w-6xl flex-col justify-center px-4 py-16 sm:px-6">
-          <p className="font-mono text-[11px] tracking-[0.35em] text-neon uppercase text-glow-neon">
-            {SITE.name}
-          </p>
-          <h1 className="mt-5 max-w-4xl text-3xl leading-tight font-medium tracking-tight text-foreground sm:text-5xl">
-            {SITE.tagline}
-          </h1>
-          <p className="mt-6 max-w-xl text-sm leading-relaxed text-muted-dim sm:text-base">
-            Ingeniería full stack para sistemas a medida, e-commerce headless e
-            integraciones API.
-          </p>
-          <div className="mt-6">
-            <TypeLine text="boot --module engineering --mode production" />
-          </div>
-          <div className="mt-10 flex flex-wrap gap-4">
-            <NeonButton href="/contacto">Iniciar conexión</NeonButton>
-            <NeonButton href="/portafolio" variant="ghost">
-              Ver nodos en producción
-            </NeonButton>
-          </div>
-          <p className="mt-10 font-mono text-[11px] tracking-widest text-muted-dim uppercase">
-            <span className="text-cyan">session</span> · dark · edge · scl
-          </p>
-        </div>
-      </section>
+      <ImmersiveHero />
 
       <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
         <SectionHeading
