@@ -77,27 +77,44 @@ export function playShot() {
     if (ac.state === "suspended") void ac.resume();
     const t0 = ac.currentTime;
 
-    const thump = ac.createOscillator();
-    const thumpGain = ac.createGain();
-    thump.type = "sine";
-    thump.frequency.setValueAtTime(170, t0);
-    thump.frequency.exponentialRampToValueAtTime(48, t0 + 0.07);
-    thumpGain.gain.setValueAtTime(0.16, t0);
-    thumpGain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.08);
-    thump.connect(thumpGain);
-    thumpGain.connect(ac.destination);
-    thump.onended = () => disconnect(thump, thumpGain);
-    thump.start(t0);
-    thump.stop(t0 + 0.09);
+    const chirp = ac.createOscillator();
+    const chirpGain = ac.createGain();
+    chirp.type = "sine";
+    chirp.frequency.setValueAtTime(1240, t0);
+    chirp.frequency.exponentialRampToValueAtTime(420, t0 + 0.14);
+    chirpGain.gain.setValueAtTime(0.05, t0);
+    chirpGain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.16);
+    chirp.connect(chirpGain);
+    chirpGain.connect(ac.destination);
+    chirp.onended = () => disconnect(chirp, chirpGain);
+    chirp.start(t0);
+    chirp.stop(t0 + 0.17);
+
+    const over = ac.createOscillator();
+    const overGain = ac.createGain();
+    over.type = "triangle";
+    over.frequency.setValueAtTime(2480, t0);
+    over.frequency.exponentialRampToValueAtTime(880, t0 + 0.09);
+    overGain.gain.setValueAtTime(0.018, t0);
+    overGain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.1);
+    over.connect(overGain);
+    overGain.connect(ac.destination);
+    over.onended = () => disconnect(over, overGain);
+    over.start(t0);
+    over.stop(t0 + 0.11);
 
     const src = ac.createBufferSource();
     src.buffer = getNoise(ac);
     const noiseGain = ac.createGain();
-    noiseGain.gain.setValueAtTime(0.22, t0);
-    noiseGain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.045);
-    src.connect(noiseGain);
+    const filter = ac.createBiquadFilter();
+    filter.type = "highpass";
+    filter.frequency.setValueAtTime(1800, t0);
+    noiseGain.gain.setValueAtTime(0.04, t0);
+    noiseGain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.06);
+    src.connect(filter);
+    filter.connect(noiseGain);
     noiseGain.connect(ac.destination);
-    src.onended = () => disconnect(src, noiseGain);
+    src.onended = () => disconnect(src, filter, noiseGain);
     src.start(t0);
   } catch {
     // Audio must never stall the render loop.

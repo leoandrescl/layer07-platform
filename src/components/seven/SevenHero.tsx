@@ -13,6 +13,7 @@ import {
 import { DuvetPlayer } from "./DuvetPlayer";
 import { RainGL, type Pointer } from "./RainGL";
 import { SevenShell, type SevenShellHandle } from "./SevenShell";
+import { SevenWorld } from "./SevenWorld";
 import type { SevenProcess } from "./commands";
 
 const SCROLL_VH = 420;
@@ -49,7 +50,7 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
   const hintRef = useRef<HTMLParagraphElement>(null);
   const arrivalRef = useRef<HTMLDivElement>(null);
   const shellRef = useRef<HTMLDivElement>(null);
-  const restoreRef = useRef<HTMLButtonElement>(null);
+  const worldRef = useRef<HTMLDivElement>(null);
   const shellApi = useRef<SevenShellHandle>(null);
   const cursorRef = useRef<HTMLDivElement>(null);
   const muzzleRef = useRef<HTMLSpanElement>(null);
@@ -152,11 +153,14 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
         }
       }
 
-      if (restoreRef.current) {
+      if (worldRef.current) {
         const jacked = reducedMotion ? 1 : clamp((p - 0.8) / 0.12);
         const show = !naviOpenRef.current && jacked > 0.55;
-        restoreRef.current.style.opacity = show ? "1" : "0";
-        restoreRef.current.style.pointerEvents = show ? "auto" : "none";
+        worldRef.current.style.opacity = show ? "1" : "0";
+        const card = worldRef.current.firstElementChild;
+        if (card instanceof HTMLElement) {
+          card.style.pointerEvents = show ? "auto" : "none";
+        }
       }
 
       const gun = gunRef.current;
@@ -182,7 +186,7 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
       if (muzzleRef.current) {
         const bloom = gun.flash;
         muzzleRef.current.style.opacity = String(bloom);
-        muzzleRef.current.style.transform = `translate(-50%, -50%) scale(${1 + bloom * 2.8})`;
+        muzzleRef.current.style.transform = `translate(-50%, -50%) scale(${1 + bloom * 1.6})`;
       }
       if (shockRef.current) {
         const since = (performance.now() - gun.lastShot) / 1000;
@@ -225,11 +229,11 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
       });
 
       gun.lastShot = now;
-      gun.flash = 1;
-      gun.kickX = Math.max(-14, Math.min(14, gun.kickX + (Math.random() - 0.5) * 12));
-      gun.kickY = Math.max(-16, Math.min(4, gun.kickY - 8 - Math.random() * 6));
-      gun.shakeX = Math.max(-5, Math.min(5, gun.shakeX + (Math.random() - 0.5) * 5));
-      gun.shakeY = Math.max(-5, Math.min(5, gun.shakeY + (Math.random() - 0.5) * 4));
+      gun.flash = 0.55;
+      gun.kickX = 0;
+      gun.kickY = 0;
+      gun.shakeX = (Math.random() - 0.5) * 1.4;
+      gun.shakeY = (Math.random() - 0.5) * 1.2;
       playShot();
     };
 
@@ -443,25 +447,19 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
             </div>
 
             {naviOpen ? null : (
-              <button
-                ref={restoreRef}
-                type="button"
-                data-no-shot
-                onClick={() => {
-                  naviOpenRef.current = true;
-                  setNaviOpen(true);
-                  didFocus.current = false;
-                }}
-                className="pointer-events-none absolute bottom-4 left-4 z-30 flex items-center gap-2 border border-[#111] bg-[#cfcfcf] px-2 py-1 font-mono text-[10px] tracking-wide text-[#222] opacity-0 shadow-[2px_2px_0_#111] hover:bg-[#e4e4e4]"
+              <div
+                ref={worldRef}
+                className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center px-4 opacity-0 sm:px-6"
               >
-                <span
-                  className="grid size-[13px] place-items-center border border-[#111] bg-[#e8e8e8] text-[9px] leading-none"
-                  aria-hidden
-                >
-                  □
-                </span>
-                NAVI.SYS
-              </button>
+                <SevenWorld
+                  processes={processes}
+                  onRestore={() => {
+                    naviOpenRef.current = true;
+                    setNaviOpen(true);
+                    didFocus.current = false;
+                  }}
+                />
+              </div>
             )}
           </div>
         </div>
@@ -469,23 +467,19 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
 
       <div
         ref={cursorRef}
-        className="pointer-events-none fixed top-0 left-0 z-50 hidden h-10 w-10 -translate-x-1/2 -translate-y-1/2 opacity-0 will-change-transform [@media(pointer:fine)]:block"
+        className="pointer-events-none fixed top-0 left-0 z-50 hidden h-8 w-8 -translate-x-1/2 -translate-y-1/2 opacity-0 will-change-transform [@media(pointer:fine)]:block"
         aria-hidden
       >
         <span
           ref={muzzleRef}
-          className="absolute top-1/2 left-1/2 size-8 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(255,255,230,0.95)_0%,rgba(127,255,212,0.5)_38%,transparent_70%)] opacity-0"
+          className="absolute top-1/2 left-1/2 size-10 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(127,255,212,0.35)_0%,transparent_70%)] opacity-0"
         />
         <span
           ref={shockRef}
-          className="absolute top-1/2 left-1/2 size-10 -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#7fffd4] opacity-0"
+          className="absolute top-1/2 left-1/2 size-8 -translate-x-1/2 -translate-y-1/2 border border-[#7fffd4]/80 opacity-0"
         />
-        <span className="absolute inset-0 rounded-full border border-[#7fffd4]/80" />
-        <span className="absolute top-1/2 left-1/2 size-1.5 -translate-x-1/2 -translate-y-1/2 bg-[#7fffd4] shadow-[0_0_10px_#7fffd4]" />
-        <span className="absolute top-0 left-1/2 h-2.5 w-px -translate-x-1/2 bg-[#7fffd4]/80" />
-        <span className="absolute bottom-0 left-1/2 h-2.5 w-px -translate-x-1/2 bg-[#7fffd4]/80" />
-        <span className="absolute top-1/2 left-0 h-px w-2.5 -translate-y-1/2 bg-[#7fffd4]/80" />
-        <span className="absolute top-1/2 right-0 h-px w-2.5 -translate-y-1/2 bg-[#7fffd4]/80" />
+        <span className="absolute inset-1 border border-[#7fffd4]/70" />
+        <span className="absolute top-1/2 left-1/2 size-1 -translate-x-1/2 -translate-y-1/2 bg-[#7fffd4]" />
       </div>
     </>
   );
