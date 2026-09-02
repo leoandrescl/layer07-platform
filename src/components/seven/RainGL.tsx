@@ -7,7 +7,7 @@ import { RAIN_FRAG, RAIN_VERT } from "./shaders";
 export type Pointer = { x: number; y: number };
 
 const GLYPHS =
-  "ｦｧｨｩｪｫｬｭｮｯｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ0123456789ABCDEFLAYER07#$+<>*";
+  "ｦｧｨｩｪｫｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝWIREDNAVI LAYER07#_+<>";
 
 const ATLAS_COLS = 16;
 const ATLAS_CELL = 64;
@@ -49,7 +49,7 @@ function createGlyphAtlas() {
   ctx.fillStyle = "#fff";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.font = `600 ${ATLAS_CELL * 0.72}px "Geist Mono", "MS Gothic", "Noto Sans JP", ui-monospace, monospace`;
+  ctx.font = `500 ${ATLAS_CELL * 0.7}px "Courier Prime", "Courier New", "MS Gothic", "Noto Sans JP", ui-monospace, monospace`;
 
   for (let i = 0; i < GLYPHS.length; i += 1) {
     const x = (i % ATLAS_COLS) * ATLAS_CELL + ATLAS_CELL / 2;
@@ -178,8 +178,8 @@ export function RainGL({
         canvas.height = ph;
         gl.viewport(0, 0, pw, ph);
         gl.uniform2f(uRes, pw, ph);
-        const cell = 14 * dpr;
-        gl.uniform2f(uGrid, Math.max(18, pw / cell), Math.max(12, ph / (cell * 1.45)));
+        const cell = 20 * dpr;
+        gl.uniform2f(uGrid, Math.max(14, pw / cell), Math.max(10, ph / (cell * 1.55)));
       }
       if (overlay && (overlay.width !== pw || overlay.height !== ph)) {
         overlay.width = pw;
@@ -224,7 +224,7 @@ export function RainGL({
         const radius = Math.max(0.5, age * 380 * hit.power);
         fx.beginPath();
         fx.arc(hit.x * w, hit.y * h, radius, 0, Math.PI * 2);
-        fx.strokeStyle = `rgba(180,255,210,${alpha * 0.7})`;
+        fx.strokeStyle = `rgba(180,255,230,${alpha * 0.7})`;
         fx.stroke();
       }
 
@@ -240,7 +240,7 @@ export function RainGL({
         p.y += p.vy * dt;
         p.vy += 480 * dt;
         const t = 1 - p.age / p.life;
-        fx.fillStyle = `rgba(210,255,230,${t})`;
+        fx.fillStyle = `rgba(190,255,235,${t})`;
         fx.fillRect(p.x, p.y, p.size, p.size);
       }
     };

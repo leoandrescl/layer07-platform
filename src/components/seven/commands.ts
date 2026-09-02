@@ -62,12 +62,12 @@ export function bootLines(count: number): ShellLine[] {
     {
       id: count,
       tone: "ok",
-      text: "attached  LAYER 07 / APPLICATION  ·  session guest",
+      text: "NAVI attached  ·  protocol 7  ·  guest in the Wired",
     },
     {
       id: count + 1,
       tone: "dim",
-      text: "click a process     type help     / to focus",
+      text: "present day, present time.     scroll · type help     / to focus",
     },
   ];
 }

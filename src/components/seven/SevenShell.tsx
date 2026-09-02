@@ -158,14 +158,14 @@ export const SevenShell = forwardRef<SevenShellHandle, Props>(
             <p className="shrink-0 border-t border-dashed border-[#00ff66]/20 px-4 py-3 font-mono text-[10px] leading-relaxed tracking-[0.12em] text-[#94a3b8] uppercase">
               Full Stack Engineer · Santiago, CL
               <span className="mt-1 block text-[#00f0ff]/70 normal-case tracking-normal">
-                present in the layer
+                present in the Wired
               </span>
             </p>
           </section>
 
           <section className="flex min-h-0 flex-col px-3 pt-2 sm:px-4">
             <p className="font-mono text-[10px] tracking-[0.32em] text-[#00f0ff] uppercase">
-              APPLICATION // TTY0
+              APPLICATION // NAVI
             </p>
             <p className="mt-0.5 font-mono text-[10px] tracking-[0.18em] text-[#94a3b8] uppercase">
               {processes.length} processes · click to attach · or type

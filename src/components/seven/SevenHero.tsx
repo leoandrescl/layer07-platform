@@ -311,13 +311,13 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
       >
         <div
           ref={stageRef}
-          className="sticky top-0 h-dvh overflow-hidden bg-[#050505] will-change-transform select-none"
+          className="sticky top-0 h-dvh overflow-hidden bg-[#030b0c] will-change-transform select-none"
         >
-          <header className="pointer-events-auto absolute top-0 right-0 left-0 z-30 flex items-center justify-between gap-3 px-4 py-4 font-mono text-[10px] tracking-[0.28em] text-[#00ff66]/80 uppercase sm:px-6">
+          <header className="pointer-events-auto absolute top-0 right-0 left-0 z-30 flex items-center justify-between gap-3 px-4 py-4 font-mono text-[10px] tracking-[0.22em] text-[#7fffd4]/80 sm:px-6">
             <Link href="/labs" className="hover:text-white">
-              ESC // LABS
+              close the world
             </Link>
-            <span className="hidden sm:inline">NODE // SCL</span>
+            <span className="hidden sm:inline">the Wired</span>
             <div className="flex items-center gap-4">
               <button
                 type="button"
@@ -328,11 +328,11 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
                   setAudioOn(next);
                   setShotAudio(next);
                 }}
-                className="cursor-pointer tracking-[0.28em] hover:text-white"
+                className="cursor-pointer tracking-[0.22em] hover:text-white"
               >
                 {audioOn ? "SND // ON" : "SND // OFF"}
               </button>
-              <span className="text-[#00f0ff]">LAYER 07</span>
+              <span className="text-[#7fffd4]">LAYER 07</span>
             </div>
           </header>
 
@@ -346,7 +346,7 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
                 className="absolute inset-0 opacity-40"
                 style={{
                   backgroundImage:
-                    "repeating-linear-gradient(0deg, transparent, transparent 18px, rgba(0,255,102,0.12) 18px, rgba(0,255,102,0.12) 19px)",
+                    "repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,40,42,0.55) 3px, rgba(0,40,42,0.55) 4px)",
                 }}
                 aria-hidden
               />
@@ -354,49 +354,57 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
               <RainGL mouseRef={mouseRef} progressRef={progressRef} hitsRef={hitsRef} />
             )}
 
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(5,5,5,0.35)_70%,rgba(5,5,5,0.82)_100%)]" />
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(3,11,12,0.35)_55%,rgba(3,11,12,0.88)_100%)]" />
+            <div
+              className="pointer-events-none absolute inset-0 z-[2] opacity-40 mix-blend-multiply"
+              style={{
+                backgroundImage:
+                  "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.28) 2px, rgba(0,0,0,0.28) 3px)",
+              }}
+              aria-hidden
+            />
 
             <div
               ref={lockupRef}
               className="pointer-events-none relative z-10 flex h-full select-none flex-col items-center justify-center px-4 text-center will-change-transform"
             >
-              <p className="font-mono text-[10px] tracking-[0.42em] text-[#00ff66] uppercase sm:text-[11px]">
-                SYS.LAYER 7 // APPLICATION
+              <p className="font-mono text-[11px] tracking-[0.28em] text-[#7fffd4] sm:text-xs">
+                present day, present time.
               </p>
 
-              <h1 className="relative mt-6 font-sans text-[clamp(2.75rem,14vw,9.5rem)] font-bold tracking-[-0.06em] text-white uppercase">
+              <h1 className="font-lain lain-glow relative mt-8 text-[clamp(2.4rem,12vw,8.4rem)] font-normal tracking-[0.06em] text-[#e8fff8] lowercase">
                 <span
                   ref={magRef}
-                  className="absolute inset-0 block leading-[0.78] whitespace-nowrap text-[#ff0055] mix-blend-screen"
+                  className="absolute inset-0 block leading-[0.88] whitespace-nowrap text-[#5eead4]/50 mix-blend-screen"
                   aria-hidden
                 >
-                  LEONARDO
+                  leonardo
                 </span>
                 <span
                   ref={cyanRef}
-                  className="absolute inset-0 block leading-[0.78] whitespace-nowrap text-[#00f0ff] mix-blend-screen"
+                  className="absolute inset-0 block leading-[0.88] whitespace-nowrap text-[#7fffd4] mix-blend-screen"
                   aria-hidden
                 >
-                  LEONARDO
+                  leonardo
                 </span>
-                <span className="relative block leading-[0.78] whitespace-nowrap">
-                  LEONARDO
+                <span className="relative block leading-[0.88] whitespace-nowrap">
+                  leonardo
                 </span>
               </h1>
 
-              <p className="mt-1 font-sans text-[clamp(1.5rem,6vw,4.2rem)] font-medium tracking-[-0.04em] text-white/90 uppercase">
-                Contreras
+              <p className="font-lain mt-1 text-[clamp(1.35rem,5.5vw,3.6rem)] tracking-[0.14em] text-[#c8efe6]/90 lowercase">
+                contreras
               </p>
-              <p className="mt-6 max-w-xl font-mono text-[10px] leading-relaxed tracking-[0.22em] text-[#94a3b8] uppercase sm:text-xs">
-                Full Stack Engineer · 8+ years · web · systems · headless
+              <p className="mt-7 max-w-xl font-mono text-[11px] leading-relaxed tracking-[0.18em] text-[#8fb8b0] sm:text-xs">
+                a body in Santiago · a ghost in the Wired
               </p>
             </div>
 
             <p
               ref={hintRef}
-              className="pointer-events-none absolute bottom-8 left-1/2 z-10 -translate-x-1/2 font-mono text-[10px] tracking-[0.32em] text-[#00ff66] uppercase"
+              className="lain-cursor pointer-events-none absolute bottom-8 left-1/2 z-10 -translate-x-1/2 font-mono text-[11px] tracking-[0.22em] text-[#7fffd4]"
             >
-              click to fire · scroll to jack in
+              LAYER 07: DE-CIPHER
             </p>
 
             <div
@@ -404,14 +412,14 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
               className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center px-4 text-center opacity-0"
               aria-hidden
             >
-              <p className="font-mono text-[10px] tracking-[0.4em] text-[#00f0ff] uppercase">
-                arrived // layer 07
+              <p className="font-mono text-[10px] tracking-[0.28em] text-[#7fffd4]">
+                unpacking cipher-data...
               </p>
-              <p className="mt-4 font-sans text-4xl font-bold tracking-[-0.05em] text-white uppercase sm:text-6xl">
-                Application
+              <p className="font-lain lain-glow mt-4 text-4xl tracking-[0.12em] text-[#e8fff8] lowercase sm:text-6xl">
+                connected
               </p>
-              <p className="mt-4 font-mono text-[11px] tracking-[0.22em] text-[#94a3b8] uppercase">
-                click a process — or type
+              <p className="mt-4 font-mono text-[11px] tracking-[0.2em] text-[#8fb8b0]">
+                the Wired accepts you
               </p>
             </div>
 
@@ -466,18 +474,18 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
       >
         <span
           ref={muzzleRef}
-          className="absolute top-1/2 left-1/2 size-8 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(255,255,230,0.95)_0%,rgba(0,255,120,0.55)_38%,transparent_70%)] opacity-0"
+          className="absolute top-1/2 left-1/2 size-8 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(255,255,230,0.95)_0%,rgba(127,255,212,0.5)_38%,transparent_70%)] opacity-0"
         />
         <span
           ref={shockRef}
-          className="absolute top-1/2 left-1/2 size-10 -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#00ff66] opacity-0"
+          className="absolute top-1/2 left-1/2 size-10 -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#7fffd4] opacity-0"
         />
-        <span className="absolute inset-0 rounded-full border border-[#00ff66]/80" />
-        <span className="absolute top-1/2 left-1/2 size-1.5 -translate-x-1/2 -translate-y-1/2 bg-[#00ff66] shadow-[0_0_10px_#00ff66]" />
-        <span className="absolute top-0 left-1/2 h-2.5 w-px -translate-x-1/2 bg-[#00ff66]/80" />
-        <span className="absolute bottom-0 left-1/2 h-2.5 w-px -translate-x-1/2 bg-[#00ff66]/80" />
-        <span className="absolute top-1/2 left-0 h-px w-2.5 -translate-y-1/2 bg-[#00ff66]/80" />
-        <span className="absolute top-1/2 right-0 h-px w-2.5 -translate-y-1/2 bg-[#00ff66]/80" />
+        <span className="absolute inset-0 rounded-full border border-[#7fffd4]/80" />
+        <span className="absolute top-1/2 left-1/2 size-1.5 -translate-x-1/2 -translate-y-1/2 bg-[#7fffd4] shadow-[0_0_10px_#7fffd4]" />
+        <span className="absolute top-0 left-1/2 h-2.5 w-px -translate-x-1/2 bg-[#7fffd4]/80" />
+        <span className="absolute bottom-0 left-1/2 h-2.5 w-px -translate-x-1/2 bg-[#7fffd4]/80" />
+        <span className="absolute top-1/2 left-0 h-px w-2.5 -translate-y-1/2 bg-[#7fffd4]/80" />
+        <span className="absolute top-1/2 right-0 h-px w-2.5 -translate-y-1/2 bg-[#7fffd4]/80" />
       </div>
     </>
   );

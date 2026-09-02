@@ -43,7 +43,7 @@ function bakeAscii(
 
   bctx.fillStyle = "#000000";
   bctx.fillRect(0, 0, baked.width, baked.height);
-  bctx.font = `700 ${cellH}px "Geist Mono", ui-monospace, monospace`;
+  bctx.font = `700 ${cellH}px "Courier Prime", "Courier New", ui-monospace, monospace`;
   bctx.textBaseline = "top";
   bctx.textAlign = "left";
 

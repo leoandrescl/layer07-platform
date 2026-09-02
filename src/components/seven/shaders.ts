@@ -54,8 +54,8 @@ void main() {
         blast += crater;
         ring += ringPulse;
         scramble += crater;
-        impactLight += vec3(1.0, 0.95, 0.72) * exp(-dist * 32.0) * exp(-age * 7.0) * hit.w;
-        impactLight += vec3(0.2, 1.0, 0.45) * ringPulse;
+        impactLight += vec3(0.85, 1.0, 0.92) * exp(-dist * 32.0) * exp(-age * 7.0) * hit.w;
+        impactLight += vec3(0.35, 1.0, 0.82) * ringPulse;
       }
     }
   }
@@ -75,14 +75,14 @@ void main() {
   local.y = 1.0 - local.y;
 
   float rnd = hash(cell.x + 13.0);
-  float speed = mix(0.28, 1.05, hash(cell.x + 41.0)) * mix(1.0, 1.55, u_progress);
+  float speed = mix(0.16, 0.62, hash(cell.x + 41.0)) * mix(1.0, 1.35, u_progress);
   speed *= 1.0 + scramble * 2.2;
-  float headY = 1.0 - fract(u_time * speed * 0.22 + rnd * 2.0 + blast * 0.28);
+  float headY = 1.0 - fract(u_time * speed * 0.16 + rnd * 2.0 + blast * 0.28);
   float raw = fract(headY - uv.y);
-  float trail = exp(-raw * 7.2) * (1.0 - clamp(blast, 0.0, 1.0) * 0.9);
-  float head = exp(-raw * 36.0);
+  float trail = exp(-raw * 5.4) * (1.0 - clamp(blast, 0.0, 1.0) * 0.9);
+  float head = exp(-raw * 28.0);
 
-  float tick = floor(u_time * mix(6.0, 16.0, hash2(cell)) * (1.0 + scramble * 14.0));
+  float tick = floor(u_time * mix(3.5, 9.0, hash2(cell)) * (1.0 + scramble * 14.0));
   float g = floor(hash2(cell + tick) * u_glyph_count);
   vec2 atlasCell = vec2(mod(g, u_atlas_grid.x), floor(g / u_atlas_grid.x));
   vec2 atlasUV = (atlasCell + local) / u_atlas_grid;
@@ -90,27 +90,30 @@ void main() {
 
   float signal = glyph * trail;
 
-  vec3 phosphor = vec3(0.02, 1.0, 0.38);
-  vec3 cyan = vec3(0.0, 0.94, 1.0);
-  vec3 mag = vec3(1.0, 0.05, 0.34);
-  vec3 tone = mix(phosphor, cyan, rnd * 0.22);
-  tone = mix(tone, vec3(0.86, 1.0, 0.92), head);
+  vec3 phosphor = vec3(0.42, 1.0, 0.82);
+  vec3 cyan = vec3(0.12, 0.9, 0.88);
+  vec3 tear = vec3(0.7, 1.0, 0.92);
+  vec3 tone = mix(phosphor, cyan, rnd * 0.35);
+  tone = mix(tone, vec3(0.9, 1.0, 0.96), head);
   tone = mix(tone, vec3(1.0), clamp(blast, 0.0, 1.0));
 
-  float band = step(0.997, hash(floor(uv.y * 90.0) + floor(u_time * 4.0)));
-  tone = mix(tone, mag, band * 0.85);
+  float band = step(0.992, hash(floor(uv.y * 70.0) + floor(u_time * 2.4)));
+  tone = mix(tone, tear, band * 0.7);
 
   vec2 centered = uv0 - 0.5;
-  float vig = smoothstep(1.2, 0.18, length(centered * vec2(1.08, 1.0)) * mix(1.0, 1.55, u_progress));
-  float scan = 0.88 + 0.12 * sin(gl_FragCoord.y * 1.8 + u_time * 6.0);
+  float vig = smoothstep(1.15, 0.16, length(centered * vec2(1.08, 1.0)) * mix(1.0, 1.45, u_progress));
+  float scan = 0.78 + 0.22 * sin(gl_FragCoord.y * 2.4 + u_time * 3.2);
+  float grain = (hash2(gl_FragCoord.xy * 0.7 + u_time * 8.0) - 0.5) * 0.06;
 
-  vec3 color = tone * signal * vig * scan;
-  color += head * glyph * vec3(0.55, 1.0, 0.7) * 0.45;
-  color += glyph * ring * phosphor * 1.8;
+  vec3 bg = vec3(0.012, 0.035, 0.038);
+  vec3 color = bg + tone * signal * vig * scan;
+  color += head * glyph * vec3(0.55, 1.0, 0.88) * 0.4;
+  color += glyph * ring * phosphor * 1.5;
   color += impactLight * mix(0.4, 1.0, glyph);
+  color += grain;
 
-  float fog = u_progress * 0.08;
-  color = mix(color, phosphor * 0.06, fog);
+  float fog = u_progress * 0.1;
+  color = mix(color, phosphor * 0.05, fog);
 
   gl_FragColor = vec4(color, 1.0);
 }
