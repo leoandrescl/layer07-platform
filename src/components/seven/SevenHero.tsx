@@ -58,7 +58,6 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
     shakeX: 0,
     shakeY: 0,
     lastShot: 0,
-    holding: false,
   });
   const typingRef = useRef(false);
   const didFocus = useRef(false);
@@ -68,6 +67,7 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
     if (!pin) return;
 
     let raf = 0;
+    let alive = true;
 
     const readProgress = () => {
       if (reducedMotion) {
@@ -84,6 +84,7 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
     };
 
     const tick = () => {
+      try {
       readProgress();
       const p = progressRef.current;
       const m = mouseRef.current;
@@ -128,7 +129,10 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
       if (shellRef.current) {
         const s = reducedMotion ? 1 : clamp((p - 0.8) / 0.12);
         shellRef.current.style.opacity = String(s);
-        shellRef.current.classList.toggle("is-live", s > 0.55);
+        const live = s > 0.55;
+        if (shellRef.current.classList.contains("is-live") !== live) {
+          shellRef.current.classList.toggle("is-live", live);
+        }
         if (s > 0.85 && !didFocus.current && window.matchMedia("(pointer: fine)").matches) {
           didFocus.current = true;
           shellApi.current?.focus();
@@ -136,12 +140,6 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
       }
 
       const gun = gunRef.current;
-      if (gun.holding && !reducedMotion) {
-        const now = performance.now();
-        if (now - gun.lastShot >= FIRE_GAP_MS) {
-          fireAt(cursorPos.current.tx, cursorPos.current.ty);
-        }
-      }
       gun.flash *= 0.72;
       gun.kickX *= 0.7;
       gun.kickY *= 0.7;
@@ -173,7 +171,9 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
         shockRef.current.style.transform = `translate(-50%, -50%) scale(${live ? 1 + since * 11 : 1})`;
       }
 
-      raf = requestAnimationFrame(tick);
+      } finally {
+        if (alive) raf = requestAnimationFrame(tick);
+      }
     };
 
     const fireAt = (clientX: number, clientY: number) => {
@@ -195,14 +195,11 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
 
       gun.lastShot = now;
       gun.flash = 1;
-      gun.kickX += (Math.random() - 0.5) * 16;
-      gun.kickY += -9 - Math.random() * 11;
-      gun.shakeX += (Math.random() - 0.5) * 6;
-      gun.shakeY += (Math.random() - 0.5) * 5;
+      gun.kickX = Math.max(-14, Math.min(14, gun.kickX + (Math.random() - 0.5) * 12));
+      gun.kickY = Math.max(-16, Math.min(4, gun.kickY - 8 - Math.random() * 6));
+      gun.shakeX = Math.max(-5, Math.min(5, gun.shakeX + (Math.random() - 0.5) * 5));
+      gun.shakeY = Math.max(-5, Math.min(5, gun.shakeY + (Math.random() - 0.5) * 4));
       playShot();
-      if (typeof navigator !== "undefined" && navigator.vibrate) {
-        navigator.vibrate(14);
-      }
     };
 
     const onPointer = (event: PointerEvent) => {
@@ -217,7 +214,6 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
 
     const onLeave = () => {
       cursorPos.current.visible = false;
-      gunRef.current.holding = false;
     };
 
     const canShoot = (event: PointerEvent) => {
@@ -229,17 +225,11 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
 
     const onDown = (event: PointerEvent) => {
       if (!canShoot(event)) return;
-      event.preventDefault();
       if (typingRef.current) {
         const active = document.activeElement;
         if (active instanceof HTMLElement) active.blur();
       }
-      gunRef.current.holding = true;
       fireAt(event.clientX, event.clientY);
-    };
-
-    const onUp = () => {
-      gunRef.current.holding = false;
     };
 
     const onHotkey = (event: KeyboardEvent) => {
@@ -261,21 +251,16 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
     window.addEventListener("resize", readProgress, { passive: true });
     window.addEventListener("pointermove", onPointer);
     window.addEventListener("pointerdown", onDown);
-    window.addEventListener("pointerup", onUp);
-    window.addEventListener("pointercancel", onUp);
-    window.addEventListener("blur", onUp);
     window.addEventListener("keydown", onHotkey);
     document.documentElement.addEventListener("mouseleave", onLeave);
 
     return () => {
+      alive = false;
       cancelAnimationFrame(raf);
       window.removeEventListener("scroll", readProgress);
       window.removeEventListener("resize", readProgress);
       window.removeEventListener("pointermove", onPointer);
       window.removeEventListener("pointerdown", onDown);
-      window.removeEventListener("pointerup", onUp);
-      window.removeEventListener("pointercancel", onUp);
-      window.removeEventListener("blur", onUp);
       window.removeEventListener("keydown", onHotkey);
       document.documentElement.removeEventListener("mouseleave", onLeave);
     };
@@ -291,7 +276,7 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
       >
         <div
           ref={stageRef}
-          className="sticky top-0 h-dvh overflow-hidden bg-[#050505] will-change-transform"
+          className="sticky top-0 h-dvh overflow-hidden bg-[#050505] will-change-transform select-none"
         >
           {reducedMotion ? (
             <div
