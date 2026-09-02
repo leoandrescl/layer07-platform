@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { DuvetPlayer } from "./DuvetPlayer";
+import { GlitchWord } from "./GlitchWord";
 import { RainGL, type Pointer } from "./RainGL";
 import { SevenShell, type SevenShellHandle } from "./SevenShell";
 import { SevenWorld } from "./SevenWorld";
@@ -36,8 +37,6 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
   const mouseRef = useRef<Pointer>({ x: 0.5, y: 0.5 });
   const progressRef = useRef(0);
   const lockupRef = useRef<HTMLDivElement>(null);
-  const cyanRef = useRef<HTMLSpanElement>(null);
-  const magRef = useRef<HTMLSpanElement>(null);
   const hintRef = useRef<HTMLParagraphElement>(null);
   const arrivalRef = useRef<HTMLDivElement>(null);
   const shellRef = useRef<HTMLDivElement>(null);
@@ -73,7 +72,6 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
       try {
       readProgress();
       const p = progressRef.current;
-      const m = mouseRef.current;
 
       const lockup = lockupRef.current;
       if (lockup) {
@@ -86,15 +84,6 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
         lockup.style.opacity = String(fade);
         lockup.style.transform = `translate3d(0, ${y}px, 0)`;
         lockup.style.pointerEvents = "none";
-      }
-
-      const split = (0.35 + p * 1.4) * 8;
-      const dx = (m.x - 0.5) * split;
-      if (cyanRef.current) {
-        cyanRef.current.style.transform = `translate3d(${dx}px, 0, 0)`;
-      }
-      if (magRef.current) {
-        magRef.current.style.transform = `translate3d(${-dx}px, 0, 0)`;
       }
 
       if (hintRef.current) {
@@ -241,34 +230,12 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
                 present day, present time.
               </p>
 
-              <h1
-                className="lain-glitch font-lain lain-glow relative mt-8 text-[clamp(2.4rem,12vw,8.4rem)] leading-[0.88] font-normal tracking-[0.06em] text-[#e8fff8] lowercase"
-                data-text="leonardo"
-              >
-                <span
-                  ref={magRef}
-                  className="absolute inset-0 block leading-[0.88] whitespace-nowrap text-[#5eead4]/50 mix-blend-screen"
-                  aria-hidden
-                >
-                  leonardo
-                </span>
-                <span
-                  ref={cyanRef}
-                  className="absolute inset-0 block leading-[0.88] whitespace-nowrap text-[#7fffd4] mix-blend-screen"
-                  aria-hidden
-                >
-                  leonardo
-                </span>
-                <span className="relative block leading-[0.88] whitespace-nowrap">
-                  leonardo
-                </span>
+              <h1 className="font-lain lain-glow relative mt-8 text-[clamp(2.4rem,12vw,8.4rem)] leading-[0.88] font-normal tracking-[0.06em] text-[#e8fff8] lowercase">
+                <GlitchWord text="leonardo" />
               </h1>
 
-              <p
-                className="lain-glitch font-lain mt-1 text-[clamp(1.35rem,5.5vw,3.6rem)] tracking-[0.14em] text-[#c8efe6]/90 lowercase"
-                data-text="contreras"
-              >
-                contreras
+              <p className="font-lain mt-1 text-[clamp(1.35rem,5.5vw,3.6rem)] tracking-[0.14em] text-[#c8efe6]/90 lowercase">
+                <GlitchWord text="contreras" />
               </p>
               <p className="mt-7 max-w-xl font-mono text-[11px] leading-relaxed tracking-[0.18em] text-[#8fb8b0] sm:text-xs">
                 a body in Santiago · a ghost in the Wired
@@ -290,11 +257,8 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
               <p className="font-mono text-[10px] tracking-[0.28em] text-[#7fffd4]">
                 unpacking cipher-data...
               </p>
-              <p
-                className="lain-glitch font-lain lain-glow mt-4 text-4xl tracking-[0.12em] text-[#e8fff8] lowercase sm:text-6xl"
-                data-text="connected"
-              >
-                connected
+              <p className="font-lain lain-glow mt-4 text-4xl tracking-[0.12em] text-[#e8fff8] lowercase sm:text-6xl">
+                <GlitchWord text="connected" />
               </p>
               <p className="mt-4 font-mono text-[11px] tracking-[0.2em] text-[#8fb8b0]">
                 the Wired accepts you

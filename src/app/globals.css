@@ -352,37 +352,52 @@
   position: relative;
   display: inline-block;
   isolation: isolate;
-  animation: lain-glitch-shake 4.6s steps(2, end) infinite;
 }
 
-.seven-root .lain-glitch::before,
-.seven-root .lain-glitch::after {
-  content: attr(data-text);
+.seven-root .lain-glitch-sizer {
+  display: block;
+  visibility: hidden;
+  white-space: nowrap;
+}
+
+.seven-root .lain-glitch-slice,
+.seven-root .lain-glitch-rgb {
   position: absolute;
   inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: block;
   overflow: hidden;
-  line-height: inherit;
   white-space: nowrap;
   pointer-events: none;
-  opacity: 0;
 }
 
-.seven-root .lain-glitch::before {
-  color: #7fffd4;
+.seven-root .lain-glitch-s1 {
+  clip-path: inset(0 0 66.66% 0);
+  animation: lain-slice-1 4.6s steps(2, end) infinite;
+}
+
+.seven-root .lain-glitch-s2 {
+  clip-path: inset(33.33% 0 33.33% 0);
+  animation: lain-slice-2 4.6s steps(2, end) infinite;
+}
+
+.seven-root .lain-glitch-s3 {
+  clip-path: inset(66.66% 0 0 0);
+  animation: lain-slice-3 4.6s steps(2, end) infinite;
+}
+
+.seven-root .lain-glitch-cyan {
+  color: #5b8cff;
   mix-blend-mode: screen;
-  animation: lain-glitch-cyan 4.6s steps(2, end) infinite;
+  animation: lain-rgb-cyan 4.6s steps(2, end) infinite;
 }
 
-.seven-root .lain-glitch::after {
-  color: #ff5ea8;
+.seven-root .lain-glitch-mag {
+  color: #ff4d6d;
   mix-blend-mode: screen;
-  animation: lain-glitch-mag 4.6s steps(2, end) infinite;
+  animation: lain-rgb-mag 4.6s steps(2, end) infinite;
 }
 
-@keyframes lain-glitch-shake {
+@keyframes lain-slice-1 {
   0%,
   8%,
   51%,
@@ -391,93 +406,131 @@
     transform: translateX(0);
   }
   2% {
-    transform: translateX(-4px) skewX(-8deg);
-  }
-  4% {
-    transform: translateX(5px) skewX(6deg);
-  }
-  6% {
-    transform: translateX(-2px);
-  }
-  53% {
-    transform: translateX(4px) skewX(7deg);
-  }
-  56% {
-    transform: translateX(-3px);
-  }
-}
-
-@keyframes lain-glitch-cyan {
-  0%,
-  8%,
-  51%,
-  60%,
-  100% {
-    opacity: 0;
-    transform: translateX(0);
-    clip-path: inset(18% 0 18% 0);
-  }
-  2% {
-    opacity: 0.85;
-    transform: translateX(-8px);
-    clip-path: inset(18% 0 18% 0);
-  }
-  4% {
-    opacity: 0.7;
-    transform: translateX(6px);
-    clip-path: inset(18% 42% 18% 0);
-  }
-  6% {
-    opacity: 0.5;
-    transform: translateX(-5px);
-    clip-path: inset(18% 0 18% 38%);
-  }
-  53% {
-    opacity: 0.8;
-    transform: translateX(-7px);
-    clip-path: inset(18% 0 18% 0);
-  }
-  56% {
-    opacity: 0.5;
-    transform: translateX(5px);
-    clip-path: inset(18% 35% 18% 0);
-  }
-}
-
-@keyframes lain-glitch-mag {
-  0%,
-  8%,
-  51%,
-  60%,
-  100% {
-    opacity: 0;
-    transform: translateX(0);
-    clip-path: inset(18% 0 18% 0);
-  }
-  2% {
-    opacity: 0.8;
     transform: translateX(8px);
-    clip-path: inset(18% 0 18% 0);
   }
   4% {
-    opacity: 0.65;
-    transform: translateX(-6px);
-    clip-path: inset(18% 0 18% 40%);
+    transform: translateX(-5px);
   }
   6% {
-    opacity: 0.4;
-    transform: translateX(5px);
-    clip-path: inset(18% 36% 18% 0);
+    transform: translateX(3px);
   }
   53% {
-    opacity: 0.75;
-    transform: translateX(7px);
-    clip-path: inset(18% 0 18% 0);
+    transform: translateX(-7px);
   }
   56% {
-    opacity: 0.45;
+    transform: translateX(5px);
+  }
+}
+
+@keyframes lain-slice-2 {
+  0%,
+  8%,
+  51%,
+  60%,
+  100% {
+    transform: translateX(0);
+  }
+  2% {
+    transform: translateX(-12px);
+  }
+  4% {
+    transform: translateX(9px);
+  }
+  6% {
+    transform: translateX(-6px);
+  }
+  53% {
+    transform: translateX(11px);
+  }
+  56% {
+    transform: translateX(-8px);
+  }
+}
+
+@keyframes lain-slice-3 {
+  0%,
+  8%,
+  51%,
+  60%,
+  100% {
+    transform: translateX(0);
+  }
+  2% {
+    transform: translateX(6px);
+  }
+  4% {
+    transform: translateX(-9px);
+  }
+  6% {
+    transform: translateX(4px);
+  }
+  53% {
     transform: translateX(-5px);
-    clip-path: inset(18% 0 18% 32%);
+  }
+  56% {
+    transform: translateX(7px);
+  }
+}
+
+@keyframes lain-rgb-cyan {
+  0%,
+  8%,
+  51%,
+  60%,
+  100% {
+    opacity: 0;
+    transform: translateX(0);
+  }
+  2% {
+    opacity: 0.7;
+    transform: translateX(-10px);
+  }
+  4% {
+    opacity: 0.45;
+    transform: translateX(7px);
+  }
+  6% {
+    opacity: 0.3;
+    transform: translateX(-6px);
+  }
+  53% {
+    opacity: 0.65;
+    transform: translateX(-9px);
+  }
+  56% {
+    opacity: 0.35;
+    transform: translateX(6px);
+  }
+}
+
+@keyframes lain-rgb-mag {
+  0%,
+  8%,
+  51%,
+  60%,
+  100% {
+    opacity: 0;
+    transform: translateX(0);
+  }
+  2% {
+    opacity: 0.7;
+    transform: translateX(10px);
+  }
+  4% {
+    opacity: 0.45;
+    transform: translateX(-7px);
+  }
+  6% {
+    opacity: 0.3;
+    transform: translateX(6px);
+  }
+  53% {
+    opacity: 0.65;
+    transform: translateX(9px);
+  }
+  56% {
+    opacity: 0.35;
+    transform: translateX(-6px);
   }
 }
 
@@ -572,9 +625,8 @@
   .uplink-glitch:hover::after,
   .uplink-glitch:focus-visible::after,
   .seven-root .lain-cursor::after,
-  .seven-root .lain-glitch,
-  .seven-root .lain-glitch::before,
-  .seven-root .lain-glitch::after {
+  .seven-root .lain-glitch-slice,
+  .seven-root .lain-glitch-rgb {
     animation: none !important;
   }
 }
