@@ -223,7 +223,7 @@ export const SevenShell = forwardRef<SevenShellHandle, Props>(
                 ) : (
                   <p className="font-mono text-[12px] leading-relaxed text-[#64748b]">
                     Selecciona un proceso, o escribe{" "}
-                    <span className="text-[#00ff66]">open chanchi</span>.
+                    <span className="text-[#00ff66]">open allisone</span>.
                   </p>
                 )}
               </div>
