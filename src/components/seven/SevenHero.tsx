@@ -90,12 +90,11 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
 
       const split = (0.35 + p * 1.4) * 8;
       const dx = (m.x - 0.5) * split;
-      const dy = (m.y - 0.5) * split;
       if (cyanRef.current) {
-        cyanRef.current.style.transform = `translate3d(${dx}px, ${-dy * 0.4}px, 0)`;
+        cyanRef.current.style.transform = `translate3d(${dx}px, 0, 0)`;
       }
       if (magRef.current) {
-        magRef.current.style.transform = `translate3d(${-dx}px, ${dy * 0.4}px, 0)`;
+        magRef.current.style.transform = `translate3d(${-dx}px, 0, 0)`;
       }
 
       if (hintRef.current) {
@@ -243,7 +242,7 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
               </p>
 
               <h1
-                className="lain-glitch font-lain lain-glow relative mt-8 text-[clamp(2.4rem,12vw,8.4rem)] font-normal tracking-[0.06em] text-[#e8fff8] lowercase"
+                className="lain-glitch font-lain lain-glow relative mt-8 text-[clamp(2.4rem,12vw,8.4rem)] leading-[0.88] font-normal tracking-[0.06em] text-[#e8fff8] lowercase"
                 data-text="leonardo"
               >
                 <span
