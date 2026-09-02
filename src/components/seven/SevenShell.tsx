@@ -232,7 +232,7 @@ export const SevenShell = forwardRef<SevenShellHandle, Props>(
 
         <div
           ref={logRef}
-          className="max-h-12 shrink-0 overflow-y-auto border-t border-dashed border-[#00ff66]/25 px-4 py-1.5 font-mono text-[11px] leading-relaxed [scrollbar-width:none] sm:max-h-14 [&::-webkit-scrollbar]:hidden"
+          className="max-h-36 shrink-0 overflow-y-auto border-t border-dashed border-[#00ff66]/25 px-4 py-3 font-mono text-[11px] leading-relaxed [scrollbar-width:none] sm:max-h-44 [&::-webkit-scrollbar]:hidden"
           aria-live="polite"
         >
           {lines.map((line) => (
