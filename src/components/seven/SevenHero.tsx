@@ -10,6 +10,7 @@ import {
   setShotAudio,
   type ShotHit,
 } from "./fx";
+import { DuvetPlayer } from "./DuvetPlayer";
 import { RainGL, type Pointer } from "./RainGL";
 import { SevenShell, type SevenShellHandle } from "./SevenShell";
 import type { SevenProcess } from "./commands";
@@ -334,6 +335,10 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
               <span className="text-[#00f0ff]">LAYER 07</span>
             </div>
           </header>
+
+          <div className="pointer-events-auto absolute right-3 bottom-3 z-40 sm:right-5 sm:bottom-4">
+            <DuvetPlayer />
+          </div>
 
           <div ref={rainPaneRef} className="relative h-full">
             {reducedMotion ? (
