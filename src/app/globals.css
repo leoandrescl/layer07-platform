@@ -369,6 +369,10 @@
   pointer-events: auto;
 }
 
+.neo-root .is-live [data-shot-ui] {
+  pointer-events: auto;
+}
+
 @keyframes bounce-subtle {
   0%,
   100% {

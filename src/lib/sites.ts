@@ -21,6 +21,13 @@ export const labs: LabSite[] = [
     summary: "Portafolio inmersivo: lluvia digital, hero cinematográfico, 8+ años.",
   },
   {
+    slug: "neo",
+    name: "NEO",
+    path: "/s/neo",
+    status: "draft",
+    summary: "Portafolio inmersivo Matrix: lluvia digital verde, hero cinematográfico, 8+ años.",
+  },
+  {
     slug: "uplink",
     name: "UPLINK",
     path: "/s/uplink",
