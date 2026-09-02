@@ -352,7 +352,7 @@
   position: relative;
   display: inline-block;
   isolation: isolate;
-  padding: 0.2em 0.42em;
+  padding: 0.12em 0.42em 0;
   overflow: visible;
 }
 

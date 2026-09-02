@@ -230,11 +230,11 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
                 present day, present time.
               </p>
 
-              <h1 className="font-lain lain-glow relative mt-8 text-[clamp(2.4rem,12vw,8.4rem)] leading-[1.15] font-normal tracking-[0.06em] text-[#e8fff8] lowercase">
+              <h1 className="font-lain lain-glow relative mt-8 text-[clamp(2.4rem,12vw,8.4rem)] leading-none font-normal tracking-[0.06em] text-[#e8fff8] lowercase">
                 <GlitchWord text="leonardo" />
               </h1>
 
-              <p className="font-lain mt-1 text-[clamp(1.35rem,5.5vw,3.6rem)] tracking-[0.14em] text-[#c8efe6]/90 lowercase">
+              <p className="font-lain -mt-3 text-[clamp(1.35rem,5.5vw,3.6rem)] leading-none tracking-[0.14em] text-[#c8efe6]/90 lowercase sm:-mt-4">
                 <GlitchWord text="contreras" />
               </p>
               <p className="mt-7 max-w-xl font-mono text-[11px] leading-relaxed tracking-[0.18em] text-[#8fb8b0] sm:text-xs">
