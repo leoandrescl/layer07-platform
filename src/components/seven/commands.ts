@@ -253,18 +253,13 @@ export function runCommand(
       if (!proc) {
         return { lines: [echo, out("attach failed", "err")] };
       }
-      const lines: ShellLine[] = [
-        echo,
-        out(`attached pid ${proc.pid}  ${proc.status}`, "ok"),
-        out(proc.title),
-        out(`${proc.client}  ·  ${proc.year}  ·  ${proc.category}`, "dim"),
-        out(proc.excerpt),
-        out(`stack  ${proc.stack.join(" · ")}`, "dim"),
-      ];
-      if (proc.liveUrl) lines.push(link(`live  ${proc.liveUrl}`, proc.liveUrl));
-      if (proc.repoUrl) lines.push(link(`repo  ${proc.repoUrl}`, proc.repoUrl));
-      lines.push(link(`case  /portafolio/${proc.slug}`, `/portafolio/${proc.slug}`));
-      return { lines, attached: proc };
+      return {
+        lines: [
+          echo,
+          out(`attached pid ${proc.pid}  ${proc.status}  ·  ${proc.slug}`, "ok"),
+        ],
+        attached: proc,
+      };
     }
     default:
       return {

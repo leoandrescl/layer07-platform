@@ -68,7 +68,7 @@ export const SevenShell = forwardRef<SevenShellHandle, Props>(
         setAttached(null);
       } else if (result.attached) {
         idRef.current += result.lines.length;
-        setLines(result.lines);
+        setLines((prev) => [...prev, ...result.lines]);
         setAttached(result.attached);
       } else if (result.lines.length > 0) {
         idRef.current += result.lines.length;
@@ -144,10 +144,10 @@ export const SevenShell = forwardRef<SevenShellHandle, Props>(
           />
         </div>
 
-        <div className="grid min-h-0 flex-1 grid-rows-[auto_minmax(0,1fr)] lg:grid-rows-none lg:grid-cols-[minmax(16rem,44%)_1fr]">
+        <div className="grid min-h-0 flex-1 grid-rows-[auto_minmax(0,1fr)] lg:grid-rows-none lg:grid-cols-[minmax(16rem,40%)_minmax(0,1fr)]">
           <section
             aria-label="Retrato ASCII"
-            className="flex min-h-0 shrink-0 flex-col overflow-hidden border-b border-dashed border-[#00ff66]/25 lg:h-full lg:shrink lg:border-r lg:border-b-0"
+            className="flex min-h-0 flex-col overflow-hidden border-b border-dashed border-[#00ff66]/25 lg:h-full lg:border-r lg:border-b-0"
           >
             <p className="shrink-0 px-4 pt-3 font-mono text-[12px] text-[#e2e8f0]">
               Welcome, visitor.
@@ -164,17 +164,17 @@ export const SevenShell = forwardRef<SevenShellHandle, Props>(
           </section>
 
           <section className="flex min-h-0 flex-col overflow-hidden px-3 pt-2 sm:px-4">
-            <p className="font-mono text-[10px] tracking-[0.32em] text-[#00f0ff] uppercase">
+            <p className="shrink-0 font-mono text-[10px] tracking-[0.32em] text-[#00f0ff] uppercase">
               APPLICATION // NAVI
             </p>
-            <p className="mt-0.5 font-mono text-[10px] tracking-[0.18em] text-[#94a3b8] uppercase">
+            <p className="mt-0.5 shrink-0 font-mono text-[10px] tracking-[0.18em] text-[#94a3b8] uppercase">
               {processes.length} processes · click to attach · or type
             </p>
 
-            <div className="mt-3 grid min-h-0 flex-1 grid-rows-[8rem_minmax(0,1fr)] gap-3 overflow-hidden md:grid-rows-none md:grid-cols-[1fr_minmax(14rem,18rem)]">
+            <div className="mt-3 flex min-h-0 flex-1 flex-col overflow-hidden border border-dashed border-white/15 bg-black/30">
               <ul
                 data-shot-ui
-                className="min-h-0 space-y-1 overflow-y-auto md:order-2 md:border-l md:border-dashed md:border-[#00ff66]/25 md:pl-3"
+                className="h-32 shrink-0 space-y-1 overflow-y-auto border-b border-dashed border-[#00ff66]/25 p-2 lg:h-40"
               >
                 {processes.map((proc) => {
                   const active = attached?.pid === proc.pid;
@@ -216,21 +216,16 @@ export const SevenShell = forwardRef<SevenShellHandle, Props>(
 
               <div
                 data-shot-ui
-                className="flex min-h-0 flex-col border border-dashed border-white/15 bg-black/30 md:order-1"
+                className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-4"
               >
-                <div className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-4">
-                  {attached ? (
-                    <ProcessInspector process={attached} />
-                  ) : (
-                    <p className="font-mono text-[12px] leading-relaxed text-[#64748b]">
-                      Selecciona un proceso{" "}
-                      <span className="md:hidden">arriba</span>
-                      <span className="hidden md:inline">a la derecha</span>, o
-                      escribe{" "}
-                      <span className="text-[#00ff66]">open chanchi</span>.
-                    </p>
-                  )}
-                </div>
+                {attached ? (
+                  <ProcessInspector process={attached} />
+                ) : (
+                  <p className="font-mono text-[12px] leading-relaxed text-[#64748b]">
+                    Selecciona un proceso, o escribe{" "}
+                    <span className="text-[#00ff66]">open chanchi</span>.
+                  </p>
+                )}
               </div>
             </div>
           </section>
@@ -238,7 +233,7 @@ export const SevenShell = forwardRef<SevenShellHandle, Props>(
 
         <div
           ref={logRef}
-          className="max-h-36 shrink-0 overflow-y-auto border-t border-dashed border-[#00ff66]/25 px-4 py-3 font-mono text-[11px] leading-relaxed [scrollbar-width:none] sm:max-h-44 [&::-webkit-scrollbar]:hidden"
+          className="h-28 shrink-0 overflow-y-auto border-t border-dashed border-[#00ff66]/25 px-4 py-3 font-mono text-[11px] leading-relaxed [scrollbar-width:none] sm:h-32 [&::-webkit-scrollbar]:hidden"
           aria-live="polite"
         >
           {lines.map((line) => (
