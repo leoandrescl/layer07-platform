@@ -14,6 +14,13 @@ export type LabSite = {
  */
 export const labs: LabSite[] = [
   {
+    slug: "seven",
+    name: "SEVEN",
+    path: "/s/seven",
+    status: "draft",
+    summary: "Portafolio inmersivo: lluvia digital, hero cinematográfico, 8+ años.",
+  },
+  {
     slug: "hola",
     name: "hola",
     path: "/s/hola",
