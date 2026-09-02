@@ -26,11 +26,12 @@ export type SevenShellHandle = {
 type Props = {
   processes: SevenProcess[];
   onFocusChange?: (focused: boolean) => void;
+  onClose?: () => void;
   reducedMotion?: boolean;
 };
 
 export const SevenShell = forwardRef<SevenShellHandle, Props>(
-  function SevenShell({ processes, onFocusChange, reducedMotion = false }, ref) {
+  function SevenShell({ processes, onFocusChange, onClose, reducedMotion = false }, ref) {
     const router = useRouter();
     const inputRef = useRef<HTMLInputElement>(null);
     const logRef = useRef<HTMLDivElement>(null);
@@ -114,14 +115,30 @@ export const SevenShell = forwardRef<SevenShellHandle, Props>(
     }
 
     return (
-      <div className="pointer-events-none flex h-full min-h-0 flex-col border border-dashed border-[#00ff66]/35 bg-black/70">
-        <div className="flex shrink-0 items-center gap-2 border-b border-dashed border-[#00ff66]/35 px-3 py-2">
-          <span className="size-2.5 rounded-full bg-[#ff5f57]" aria-hidden />
-          <span className="size-2.5 rounded-full bg-[#febc2e]" aria-hidden />
-          <span className="size-2.5 rounded-full bg-[#28c840]" aria-hidden />
-          <span className="ml-2 truncate font-mono text-[11px] text-[#94a3b8]">
-            guest@layer07 ~ /s/seven
+      <div className="pointer-events-none flex h-full min-h-0 flex-col overflow-hidden border border-dashed border-[#00ff66]/35 bg-black/70">
+        <div className="flex shrink-0 items-center gap-2 border-b border-dashed border-[#00ff66]/35 px-2 py-1.5">
+          <button
+            type="button"
+            data-shot-ui
+            data-no-shot
+            onClick={onClose}
+            aria-label="Cerrar NAVI"
+            title="close"
+            className="grid size-[15px] shrink-0 place-items-center border border-[#111] bg-[#cfcfcf] font-mono text-[10px] leading-none font-bold text-[#1a1a1a] shadow-[inset_1px_1px_0_#fff,inset_-1px_-1px_0_#6a6a6a] hover:bg-[#e8e8e8] active:shadow-[inset_1px_1px_0_#6a6a6a,inset_-1px_-1px_0_#fff]"
+          >
+            ×
+          </button>
+          <span
+            className="h-[7px] min-w-4 flex-1 bg-[repeating-linear-gradient(to_bottom,#00ff66_0_1px,transparent_1px_2px)] opacity-35"
+            aria-hidden
+          />
+          <span className="truncate font-mono text-[11px] text-[#94a3b8]">
+            NAVI · guest@layer07 ~ /s/seven
           </span>
+          <span
+            className="h-[7px] min-w-4 flex-1 bg-[repeating-linear-gradient(to_bottom,#00ff66_0_1px,transparent_1px_2px)] opacity-35"
+            aria-hidden
+          />
         </div>
 
         <div className="grid min-h-0 flex-1 lg:grid-cols-[minmax(16rem,44%)_1fr]">
@@ -143,11 +160,11 @@ export const SevenShell = forwardRef<SevenShellHandle, Props>(
             </p>
           </section>
 
-          <section className="flex min-h-0 flex-col px-3 pt-3 sm:px-4">
+          <section className="flex min-h-0 flex-col px-3 pt-2 sm:px-4">
             <p className="font-mono text-[10px] tracking-[0.32em] text-[#00f0ff] uppercase">
               APPLICATION // TTY0
             </p>
-            <p className="mt-1 font-mono text-[10px] tracking-[0.18em] text-[#94a3b8] uppercase">
+            <p className="mt-0.5 font-mono text-[10px] tracking-[0.18em] text-[#94a3b8] uppercase">
               {processes.length} processes · click to attach · or type
             </p>
 
@@ -198,7 +215,7 @@ export const SevenShell = forwardRef<SevenShellHandle, Props>(
                 data-shot-ui
                 className="flex min-h-0 flex-col border border-dashed border-white/15 bg-black/30"
               >
-                <div className="min-h-0 flex-1 overflow-y-auto p-4">
+                <div className="min-h-0 flex-1 overflow-hidden p-3 sm:p-4">
                   {attached ? (
                     <ProcessInspector process={attached} />
                   ) : (
@@ -215,7 +232,7 @@ export const SevenShell = forwardRef<SevenShellHandle, Props>(
 
         <div
           ref={logRef}
-          className="max-h-24 shrink-0 overflow-y-auto border-t border-dashed border-[#00ff66]/25 px-4 py-2 font-mono text-[11px] leading-relaxed sm:max-h-28"
+          className="max-h-12 shrink-0 overflow-y-auto border-t border-dashed border-[#00ff66]/25 px-4 py-1.5 font-mono text-[11px] leading-relaxed [scrollbar-width:none] sm:max-h-14 [&::-webkit-scrollbar]:hidden"
           aria-live="polite"
         >
           {lines.map((line) => (
@@ -224,7 +241,7 @@ export const SevenShell = forwardRef<SevenShellHandle, Props>(
         </div>
 
         <form
-          className="flex shrink-0 items-center gap-2 border-t border-dashed border-[#00ff66]/35 px-4 py-2.5 font-mono text-[12px] sm:text-[13px]"
+          className="flex shrink-0 items-center gap-2 border-t border-dashed border-[#00ff66]/35 px-4 py-2 font-mono text-[12px] sm:text-[13px]"
           data-shot-ui
           onSubmit={(event) => {
             event.preventDefault();
@@ -273,30 +290,30 @@ export const SevenShell = forwardRef<SevenShellHandle, Props>(
 
 function ProcessInspector({ process }: { process: SevenProcess }) {
   return (
-    <div>
+    <div className="flex h-full min-h-0 flex-col">
       <p className="font-mono text-[10px] tracking-[0.28em] text-[#00f0ff] uppercase">
         pid {process.pid} · {process.status}
       </p>
-      <h2 className="mt-2 font-sans text-2xl font-semibold tracking-tight text-white sm:text-3xl">
+      <h2 className="mt-1 font-sans text-xl font-semibold tracking-tight text-white sm:text-2xl">
         {process.title}
       </h2>
-      <p className="mt-1 font-mono text-[11px] text-[#94a3b8]">
+      <p className="mt-0.5 font-mono text-[11px] text-[#94a3b8]">
         {process.client} · {process.year} · {process.category}
       </p>
-      <p className="mt-4 max-w-xl text-sm leading-relaxed text-[#cbd5e1]">
+      <p className="mt-3 max-w-xl line-clamp-3 text-sm leading-relaxed text-[#cbd5e1]">
         {process.excerpt}
       </p>
-      <div className="mt-4 flex flex-wrap gap-1.5">
+      <div className="mt-3 flex flex-wrap gap-1.5">
         {process.stack.map((tech) => (
           <span
             key={tech}
-            className="border border-[#00ff66]/25 px-2 py-1 font-mono text-[10px] tracking-wider text-[#00ff66] uppercase"
+            className="border border-[#00ff66]/25 px-2 py-0.5 font-mono text-[10px] tracking-wider text-[#00ff66] uppercase"
           >
             {tech}
           </span>
         ))}
       </div>
-      <div className="mt-5 flex flex-wrap gap-3 font-mono text-[11px] tracking-widest uppercase">
+      <div className="mt-3 flex flex-wrap gap-3 font-mono text-[11px] tracking-widest uppercase">
         {process.liveUrl ? (
           <Link
             href={process.liveUrl}

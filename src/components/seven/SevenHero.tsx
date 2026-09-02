@@ -48,6 +48,7 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
   const hintRef = useRef<HTMLParagraphElement>(null);
   const arrivalRef = useRef<HTMLDivElement>(null);
   const shellRef = useRef<HTMLDivElement>(null);
+  const restoreRef = useRef<HTMLButtonElement>(null);
   const shellApi = useRef<SevenShellHandle>(null);
   const cursorRef = useRef<HTMLDivElement>(null);
   const muzzleRef = useRef<HTMLSpanElement>(null);
@@ -64,6 +65,8 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
   const typingRef = useRef(false);
   const didFocus = useRef(false);
   const [audioOn, setAudioOn] = useState(false);
+  const [naviOpen, setNaviOpen] = useState(true);
+  const naviOpenRef = useRef(true);
 
   useEffect(() => {
     const pin = pinRef.current;
@@ -130,16 +133,29 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
       }
 
       if (shellRef.current) {
-        const s = reducedMotion ? 1 : clamp((p - 0.8) / 0.12);
+        const jacked = reducedMotion ? 1 : clamp((p - 0.8) / 0.12);
+        const s = naviOpenRef.current ? jacked : 0;
         shellRef.current.style.opacity = String(s);
         const live = s > 0.55;
         if (shellRef.current.classList.contains("is-live") !== live) {
           shellRef.current.classList.toggle("is-live", live);
         }
-        if (s > 0.85 && !didFocus.current && window.matchMedia("(pointer: fine)").matches) {
+        if (
+          naviOpenRef.current &&
+          s > 0.85 &&
+          !didFocus.current &&
+          window.matchMedia("(pointer: fine)").matches
+        ) {
           didFocus.current = true;
           shellApi.current?.focus();
         }
+      }
+
+      if (restoreRef.current) {
+        const jacked = reducedMotion ? 1 : clamp((p - 0.8) / 0.12);
+        const show = !naviOpenRef.current && jacked > 0.55;
+        restoreRef.current.style.opacity = show ? "1" : "0";
+        restoreRef.current.style.pointerEvents = show ? "auto" : "none";
       }
 
       const gun = gunRef.current;
@@ -396,18 +412,44 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
 
             <div
               ref={shellRef}
-              className="pointer-events-none absolute inset-0 z-20 px-3 pt-14 pb-3 opacity-0 sm:px-5 sm:pt-14 sm:pb-4"
+              className="pointer-events-none absolute inset-0 z-20 px-3 pt-12 pb-1 opacity-0 sm:px-4 sm:pt-12 sm:pb-1.5"
               style={reducedMotion ? { opacity: 1 } : undefined}
             >
               <SevenShell
                 ref={shellApi}
                 processes={processes}
                 reducedMotion={reducedMotion}
+                onClose={() => {
+                  naviOpenRef.current = false;
+                  setNaviOpen(false);
+                }}
                 onFocusChange={(focused) => {
                   typingRef.current = focused;
                 }}
               />
             </div>
+
+            {naviOpen ? null : (
+              <button
+                ref={restoreRef}
+                type="button"
+                data-no-shot
+                onClick={() => {
+                  naviOpenRef.current = true;
+                  setNaviOpen(true);
+                  didFocus.current = false;
+                }}
+                className="pointer-events-none absolute bottom-4 left-4 z-30 flex items-center gap-2 border border-[#111] bg-[#cfcfcf] px-2 py-1 font-mono text-[10px] tracking-wide text-[#222] opacity-0 shadow-[2px_2px_0_#111] hover:bg-[#e4e4e4]"
+              >
+                <span
+                  className="grid size-[13px] place-items-center border border-[#111] bg-[#e8e8e8] text-[9px] leading-none"
+                  aria-hidden
+                >
+                  □
+                </span>
+                NAVI.SYS
+              </button>
+            )}
           </div>
         </div>
       </section>
