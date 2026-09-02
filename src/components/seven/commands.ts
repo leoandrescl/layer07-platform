@@ -42,19 +42,21 @@ export const COMMANDS = [
 ] as const;
 
 export function toProcesses(projects: Project[]): SevenProcess[] {
-  return projects.map((project, index) => ({
-    pid: 1001 + index,
-    slug: project.slug,
-    title: project.title,
-    client: project.client,
-    category: CATEGORY_LABELS[project.category],
-    year: project.year,
-    excerpt: project.excerpt,
-    stack: project.stack,
-    liveUrl: project.liveUrl,
-    repoUrl: project.repoUrl,
-    status: project.liveUrl ? "LIVE" : "IDLE",
-  }));
+  return [...projects]
+    .sort((a, b) => a.title.localeCompare(b.title, "es", { sensitivity: "base" }))
+    .map((project, index) => ({
+      pid: 1001 + index,
+      slug: project.slug,
+      title: project.title,
+      client: project.client,
+      category: CATEGORY_LABELS[project.category],
+      year: project.year,
+      excerpt: project.excerpt,
+      stack: project.stack,
+      liveUrl: project.liveUrl,
+      repoUrl: project.repoUrl,
+      status: project.liveUrl ? "LIVE" : "IDLE",
+    }));
 }
 
 export function bootLines(count: number): ShellLine[] {
