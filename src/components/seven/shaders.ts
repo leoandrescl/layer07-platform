@@ -33,20 +33,18 @@ void main() {
   float md = length(delta);
   float warp = 0.11 * (0.35 + u_progress) * exp(-md * 7.5);
   uv += delta * warp;
+  uv = fract(uv);
 
-  vec2 focus = mix(vec2(0.5), mouse, 0.1);
-  float zoom = mix(1.0, 0.38, u_progress * u_progress);
-  uv = (uv - focus) / zoom + focus;
-
-  float cols = max(u_grid.x, 8.0);
-  float rows = max(u_grid.y, 8.0);
+  float densify = mix(1.0, 1.9, u_progress);
+  float cols = max(u_grid.x, 8.0) * densify;
+  float rows = max(u_grid.y, 8.0) * densify;
   vec2 grid = vec2(cols, rows);
   vec2 cell = floor(uv * grid);
   vec2 local = fract(uv * grid);
   local.y = 1.0 - local.y;
 
   float rnd = hash(cell.x + 13.0);
-  float speed = mix(0.35, 1.65, hash(cell.x + 41.0));
+  float speed = mix(0.35, 1.65, hash(cell.x + 41.0)) * mix(1.0, 2.6, u_progress);
   float headY = 1.0 - fract(u_time * speed * 0.22 + rnd * 2.0);
   float raw = fract(headY - uv.y);
   float trail = exp(-raw * 7.2);
@@ -58,8 +56,7 @@ void main() {
   vec2 atlasUV = (atlasCell + local) / u_atlas_grid;
   float glyph = texture2D(u_atlas, atlasUV).r;
 
-  float inBounds = step(0.0, uv.x) * step(uv.x, 1.0) * step(0.0, uv.y) * step(uv.y, 1.0);
-  float signal = glyph * trail * inBounds;
+  float signal = glyph * trail;
 
   vec3 phosphor = vec3(0.02, 1.0, 0.38);
   vec3 cyan = vec3(0.0, 0.94, 1.0);
@@ -71,14 +68,14 @@ void main() {
   tone = mix(tone, mag, band * 0.85);
 
   vec2 centered = gl_FragCoord.xy / u_res - 0.5;
-  float vig = smoothstep(1.15, 0.22, length(centered * vec2(1.1, 1.0)) * (1.0 + u_progress * 0.8));
+  float vig = smoothstep(1.2, 0.18, length(centered * vec2(1.08, 1.0)) * mix(1.0, 1.55, u_progress));
   float scan = 0.88 + 0.12 * sin(gl_FragCoord.y * 1.8 + u_time * 6.0);
 
   vec3 color = tone * signal * vig * scan;
-  color += head * glyph * vec3(0.55, 1.0, 0.7) * 0.45 * inBounds;
+  color += head * glyph * vec3(0.55, 1.0, 0.7) * 0.45;
 
-  float fog = u_progress * 0.12;
-  color = mix(color, phosphor * 0.08, fog);
+  float fog = u_progress * 0.08;
+  color = mix(color, phosphor * 0.06, fog);
 
   gl_FragColor = vec4(color, 1.0);
 }
