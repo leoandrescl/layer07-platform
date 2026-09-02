@@ -25,7 +25,7 @@ export default function SevenLayout({
 }) {
   return (
     <div
-      className={`${lainMono.variable} ${lainDisplay.variable} seven-root min-h-dvh bg-[#030b0c] font-mono text-white [@media(pointer:fine)]:cursor-none [&_input]:cursor-text`}
+      className={`${lainMono.variable} ${lainDisplay.variable} seven-root min-h-dvh bg-[#030b0c] font-mono text-white`}
     >
       {children}
     </div>

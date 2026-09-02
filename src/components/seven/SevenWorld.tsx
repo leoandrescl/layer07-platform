@@ -2,21 +2,12 @@
 
 import Link from "next/link";
 import { SITE, whatsappUrl } from "@/lib/site";
-import type { SevenProcess } from "./commands";
 
 const STACK = SITE.founder.stack.slice(0, 6);
 
-type Props = {
-  processes: SevenProcess[];
-  onRestore: () => void;
-};
-
-export function SevenWorld({ processes, onRestore }: Props) {
-  const nodes = processes.filter((proc) => proc.liveUrl).slice(0, 3);
-
+export function SevenWorld({ onRestore }: { onRestore: () => void }) {
   return (
     <div
-      data-no-shot
       data-shot-ui
       className="pointer-events-none w-full max-w-lg border border-dashed border-[#7fffd4]/35 bg-black/70 px-6 py-7 text-center backdrop-blur-[2px] sm:px-8"
     >
@@ -66,32 +57,8 @@ export function SevenWorld({ processes, onRestore }: Props) {
         </Link>
       </div>
 
-      {nodes.length > 0 ? (
-        <div className="mt-7 border-t border-dashed border-[#7fffd4]/20 pt-5">
-          <p className="font-mono text-[9px] tracking-[0.28em] text-[#8fb8b0]">
-            nodes still reachable
-          </p>
-          <ul className="mt-3 flex flex-col gap-2">
-            {nodes.map((node) => (
-              <li key={node.pid}>
-                <Link
-                  href={node.liveUrl ?? `/portafolio/${node.slug}`}
-                  target={node.liveUrl ? "_blank" : undefined}
-                  rel={node.liveUrl ? "noreferrer" : undefined}
-                  className="font-mono text-[12px] tracking-[0.08em] text-[#e8fff8] hover:text-[#7fffd4]"
-                >
-                  {node.title}
-                  <span className="ml-2 text-[10px] text-[#7fffd4]">→</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
-
       <button
         type="button"
-        data-no-shot
         onClick={onRestore}
         className="mt-7 inline-flex items-center gap-2 border border-[#111] bg-[#cfcfcf] px-3 py-1.5 font-mono text-[10px] tracking-wide text-[#222] shadow-[2px_2px_0_#111] hover:bg-[#e4e4e4]"
       >
