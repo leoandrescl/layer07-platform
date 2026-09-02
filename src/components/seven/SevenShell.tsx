@@ -66,11 +66,14 @@ export const SevenShell = forwardRef<SevenShellHandle, Props>(
         idRef.current = 2;
         setLines(bootLines(0));
         setAttached(null);
+      } else if (result.attached) {
+        idRef.current += result.lines.length;
+        setLines(result.lines);
+        setAttached(result.attached);
       } else if (result.lines.length > 0) {
         idRef.current += result.lines.length;
         setLines((prev) => [...prev, ...result.lines]);
       }
-      if (result.attached) setAttached(result.attached);
       if (raw.trim()) {
         setHistory((prev) =>
           prev[prev.length - 1] === raw.trim() ? prev : [...prev, raw.trim()],
@@ -236,7 +239,7 @@ export const SevenShell = forwardRef<SevenShellHandle, Props>(
           aria-live="polite"
         >
           {lines.map((line) => (
-            <LogLine key={line.id} line={line} />
+            <LogLine key={`${line.id}:${line.href ?? line.text}`} line={line} />
           ))}
         </div>
 

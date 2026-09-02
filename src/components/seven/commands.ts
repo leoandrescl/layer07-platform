@@ -75,7 +75,8 @@ export function bootLines(count: number): ShellLine[] {
 function matchesProcess(proc: SevenProcess, query: string) {
   const q = query.toLowerCase();
   return (
-    proc.slug.toLowerCase().includes(q) ||
+    proc.slug.toLowerCase() === q ||
+    proc.slug.toLowerCase().startsWith(q) ||
     proc.title.toLowerCase().includes(q) ||
     proc.client.toLowerCase().includes(q) ||
     String(proc.pid) === q
