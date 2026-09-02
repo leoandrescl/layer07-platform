@@ -144,15 +144,15 @@ export const SevenShell = forwardRef<SevenShellHandle, Props>(
           />
         </div>
 
-        <div className="grid min-h-0 flex-1 lg:grid-cols-[minmax(16rem,44%)_1fr]">
+        <div className="grid min-h-0 flex-1 grid-rows-[auto_minmax(0,1fr)] lg:grid-rows-none lg:grid-cols-[minmax(16rem,44%)_1fr]">
           <section
             aria-label="Retrato ASCII"
-            className="flex min-h-0 flex-col border-b border-dashed border-[#00ff66]/25 lg:border-r lg:border-b-0"
+            className="flex min-h-0 shrink-0 flex-col overflow-hidden border-b border-dashed border-[#00ff66]/25 lg:h-full lg:shrink lg:border-r lg:border-b-0"
           >
             <p className="shrink-0 px-4 pt-3 font-mono text-[12px] text-[#e2e8f0]">
               Welcome, visitor.
             </p>
-            <div className="relative min-h-[180px] flex-1">
+            <div className="relative h-44 shrink-0 sm:h-52 lg:h-auto lg:min-h-0 lg:flex-1">
               <AsciiFace reducedMotion={reducedMotion} />
             </div>
             <p className="shrink-0 border-t border-dashed border-[#00ff66]/20 px-4 py-3 font-mono text-[10px] leading-relaxed tracking-[0.12em] text-[#94a3b8] uppercase">
@@ -163,7 +163,7 @@ export const SevenShell = forwardRef<SevenShellHandle, Props>(
             </p>
           </section>
 
-          <section className="flex min-h-0 flex-col px-3 pt-2 sm:px-4">
+          <section className="flex min-h-0 flex-col overflow-hidden px-3 pt-2 sm:px-4">
             <p className="font-mono text-[10px] tracking-[0.32em] text-[#00f0ff] uppercase">
               APPLICATION // NAVI
             </p>
@@ -171,10 +171,10 @@ export const SevenShell = forwardRef<SevenShellHandle, Props>(
               {processes.length} processes · click to attach · or type
             </p>
 
-            <div className="mt-3 grid min-h-0 flex-1 gap-3 md:grid-cols-[1fr_minmax(14rem,18rem)]">
+            <div className="mt-3 grid min-h-0 flex-1 grid-rows-[8rem_minmax(0,1fr)] gap-3 overflow-hidden md:grid-rows-none md:grid-cols-[1fr_minmax(14rem,18rem)]">
               <ul
                 data-shot-ui
-                className="max-h-40 space-y-1 overflow-y-auto md:order-2 md:max-h-none md:border-l md:border-dashed md:border-[#00ff66]/25 md:pl-3"
+                className="min-h-0 space-y-1 overflow-y-auto md:order-2 md:border-l md:border-dashed md:border-[#00ff66]/25 md:pl-3"
               >
                 {processes.map((proc) => {
                   const active = attached?.pid === proc.pid;
@@ -218,12 +218,15 @@ export const SevenShell = forwardRef<SevenShellHandle, Props>(
                 data-shot-ui
                 className="flex min-h-0 flex-col border border-dashed border-white/15 bg-black/30 md:order-1"
               >
-                <div className="min-h-0 flex-1 overflow-hidden p-3 sm:p-4">
+                <div className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-4">
                   {attached ? (
                     <ProcessInspector process={attached} />
                   ) : (
                     <p className="font-mono text-[12px] leading-relaxed text-[#64748b]">
-                      Selecciona un proceso a la derecha, o escribe{" "}
+                      Selecciona un proceso{" "}
+                      <span className="md:hidden">arriba</span>
+                      <span className="hidden md:inline">a la derecha</span>, o
+                      escribe{" "}
                       <span className="text-[#00ff66]">open chanchi</span>.
                     </p>
                   )}
@@ -293,7 +296,7 @@ export const SevenShell = forwardRef<SevenShellHandle, Props>(
 
 function ProcessInspector({ process }: { process: SevenProcess }) {
   return (
-    <div className="flex h-full min-h-0 flex-col">
+    <div className="flex min-h-0 flex-col">
       <p className="font-mono text-[10px] tracking-[0.28em] text-[#00f0ff] uppercase">
         pid {process.pid} · {process.status}
       </p>
@@ -303,7 +306,7 @@ function ProcessInspector({ process }: { process: SevenProcess }) {
       <p className="mt-0.5 font-mono text-[11px] text-[#94a3b8]">
         {process.client} · {process.year} · {process.category}
       </p>
-      <p className="mt-3 max-w-xl line-clamp-3 text-sm leading-relaxed text-[#cbd5e1]">
+      <p className="mt-3 max-w-xl text-sm leading-relaxed text-[#cbd5e1]">
         {process.excerpt}
       </p>
       <div className="mt-3 flex flex-wrap gap-1.5">

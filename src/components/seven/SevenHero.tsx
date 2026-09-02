@@ -295,7 +295,7 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
 
             <div
               ref={shellRef}
-              className="pointer-events-none absolute inset-0 z-20 px-3 pt-12 pb-1 opacity-0 sm:px-4 sm:pt-12 sm:pb-1.5"
+              className="pointer-events-none absolute inset-0 z-20 px-3 pt-12 pb-11 opacity-0 sm:px-4 sm:pt-12 sm:pb-1.5"
               style={reducedMotion ? { opacity: 1 } : undefined}
             >
               <SevenShell
