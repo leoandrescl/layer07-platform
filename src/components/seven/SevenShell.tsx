@@ -9,6 +9,7 @@ import {
   useState,
 } from "react";
 import { useRouter } from "next/navigation";
+import { AsciiFace } from "./AsciiFace";
 import {
   bootLines,
   completeToken,
@@ -25,10 +26,11 @@ export type SevenShellHandle = {
 type Props = {
   processes: SevenProcess[];
   onFocusChange?: (focused: boolean) => void;
+  reducedMotion?: boolean;
 };
 
 export const SevenShell = forwardRef<SevenShellHandle, Props>(
-  function SevenShell({ processes, onFocusChange }, ref) {
+  function SevenShell({ processes, onFocusChange, reducedMotion = false }, ref) {
     const router = useRouter();
     const inputRef = useRef<HTMLInputElement>(null);
     const logRef = useRef<HTMLDivElement>(null);
@@ -112,79 +114,117 @@ export const SevenShell = forwardRef<SevenShellHandle, Props>(
     }
 
     return (
-      <div className="pointer-events-none flex h-full min-h-0 flex-col px-4 pt-16 pb-3 sm:px-6">
-        <p className="font-mono text-[10px] tracking-[0.32em] text-[#00f0ff] uppercase">
-          APPLICATION // TTY0
-        </p>
-        <p className="mt-1 font-mono text-[10px] tracking-[0.18em] text-[#94a3b8] uppercase">
-          {processes.length} processes · click to attach · or type
-        </p>
+      <div className="pointer-events-none flex h-full min-h-0 flex-col border border-dashed border-[#00ff66]/35 bg-black/70">
+        <div className="flex shrink-0 items-center gap-2 border-b border-dashed border-[#00ff66]/35 px-3 py-2">
+          <span className="size-2.5 rounded-full bg-[#ff5f57]" aria-hidden />
+          <span className="size-2.5 rounded-full bg-[#febc2e]" aria-hidden />
+          <span className="size-2.5 rounded-full bg-[#28c840]" aria-hidden />
+          <span className="ml-2 truncate font-mono text-[11px] text-[#94a3b8]">
+            guest@layer07 ~ /s/seven
+          </span>
+        </div>
 
-        <div className="mt-4 grid min-h-0 flex-1 gap-3 md:grid-cols-[minmax(16rem,20rem)_1fr]">
-          <ul data-shot-ui className="max-h-44 space-y-1 overflow-y-auto md:max-h-none">
-            {processes.map((proc) => {
-              const active = attached?.pid === proc.pid;
-              return (
-                <li key={proc.pid}>
-                  <button
-                    type="button"
-                    onClick={() => attach(proc)}
-                    className={cn(
-                      "flex w-full items-baseline gap-3 border px-3 py-2 text-left font-mono transition-colors",
-                      active
-                        ? "border-[#00ff66]/50 bg-[#00ff66]/10"
-                        : "border-white/10 bg-black/25 hover:border-[#00f0ff]/40 hover:bg-white/5",
-                    )}
-                  >
-                    <span
-                      className={cn(
-                        "w-10 shrink-0 text-[10px] tracking-widest",
-                        proc.status === "LIVE"
-                          ? "text-[#00ff66]"
-                          : "text-[#64748b]",
-                      )}
-                    >
-                      {proc.status}
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-[12px] text-white">
-                        {proc.title}
-                      </span>
-                      <span className="mt-0.5 block truncate text-[10px] text-[#64748b]">
-                        {proc.pid} · {proc.slug}
-                      </span>
-                    </span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
+        <div className="grid min-h-0 flex-1 lg:grid-cols-[minmax(16rem,40%)_1fr]">
+          <section
+            aria-label="Retrato ASCII"
+            className="flex min-h-0 flex-col border-b border-dashed border-[#00ff66]/25 lg:border-r lg:border-b-0"
+          >
+            <p className="shrink-0 px-4 pt-3 font-mono text-[12px] text-[#e2e8f0]">
+              Welcome, visitor.
+            </p>
+            <div className="relative min-h-[180px] flex-1">
+              <AsciiFace reducedMotion={reducedMotion} />
+            </div>
+            <p className="shrink-0 border-t border-dashed border-[#00ff66]/20 px-4 py-3 font-mono text-[10px] leading-relaxed tracking-[0.12em] text-[#94a3b8] uppercase">
+              Full Stack Engineer · Santiago, CL
+              <span className="mt-1 block text-[#00f0ff]/70 normal-case tracking-normal">
+                present in the layer
+              </span>
+            </p>
+          </section>
 
-          <div data-shot-ui className="flex min-h-0 flex-col border border-white/10 bg-black/30">
-            <div className="min-h-0 flex-1 overflow-y-auto p-4">
-              {attached ? (
-                <ProcessInspector process={attached} />
-              ) : (
-                <p className="font-mono text-[12px] leading-relaxed text-[#64748b]">
-                  Selecciona un proceso a la izquierda, o escribe{" "}
-                  <span className="text-[#00ff66]">open chanchi</span>.
-                </p>
-              )}
+          <section className="flex min-h-0 flex-col px-3 pt-3 sm:px-4">
+            <p className="font-mono text-[10px] tracking-[0.32em] text-[#00f0ff] uppercase">
+              APPLICATION // TTY0
+            </p>
+            <p className="mt-1 font-mono text-[10px] tracking-[0.18em] text-[#94a3b8] uppercase">
+              {processes.length} processes · click to attach · or type
+            </p>
+
+            <div className="mt-3 grid min-h-0 flex-1 gap-3 md:grid-cols-[minmax(14rem,18rem)_1fr]">
+              <ul
+                data-shot-ui
+                className="max-h-40 space-y-1 overflow-y-auto md:max-h-none"
+              >
+                {processes.map((proc) => {
+                  const active = attached?.pid === proc.pid;
+                  return (
+                    <li key={proc.pid}>
+                      <button
+                        type="button"
+                        onClick={() => attach(proc)}
+                        className={cn(
+                          "flex w-full items-baseline gap-3 border px-3 py-2 text-left font-mono transition-colors",
+                          active
+                            ? "border-[#00ff66]/50 bg-[#00ff66]/10"
+                            : "border-white/10 bg-black/25 hover:border-[#00f0ff]/40 hover:bg-white/5",
+                        )}
+                      >
+                        <span
+                          className={cn(
+                            "w-10 shrink-0 text-[10px] tracking-widest",
+                            proc.status === "LIVE"
+                              ? "text-[#00ff66]"
+                              : "text-[#64748b]",
+                          )}
+                        >
+                          {proc.status}
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-[12px] text-white">
+                            {proc.title}
+                          </span>
+                          <span className="mt-0.5 block truncate text-[10px] text-[#64748b]">
+                            {proc.pid} · {proc.slug}
+                          </span>
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+
+              <div
+                data-shot-ui
+                className="flex min-h-0 flex-col border border-dashed border-white/15 bg-black/30"
+              >
+                <div className="min-h-0 flex-1 overflow-y-auto p-4">
+                  {attached ? (
+                    <ProcessInspector process={attached} />
+                  ) : (
+                    <p className="font-mono text-[12px] leading-relaxed text-[#64748b]">
+                      Selecciona un proceso a la izquierda, o escribe{" "}
+                      <span className="text-[#00ff66]">open chanchi</span>.
+                    </p>
+                  )}
+                </div>
+              </div>
             </div>
-            <div
-              ref={logRef}
-              className="max-h-28 overflow-y-auto border-t border-white/10 px-4 py-2 font-mono text-[11px] leading-relaxed sm:max-h-32"
-              aria-live="polite"
-            >
-              {lines.map((line) => (
-                <LogLine key={line.id} line={line} />
-              ))}
-            </div>
-          </div>
+          </section>
+        </div>
+
+        <div
+          ref={logRef}
+          className="max-h-24 shrink-0 overflow-y-auto border-t border-dashed border-[#00ff66]/25 px-4 py-2 font-mono text-[11px] leading-relaxed sm:max-h-28"
+          aria-live="polite"
+        >
+          {lines.map((line) => (
+            <LogLine key={line.id} line={line} />
+          ))}
         </div>
 
         <form
-          className="mt-3 flex items-center gap-2 border-t border-white/10 pt-3 font-mono text-[12px] sm:text-[13px]"
+          className="flex shrink-0 items-center gap-2 border-t border-dashed border-[#00ff66]/35 px-4 py-2.5 font-mono text-[12px] sm:text-[13px]"
           data-shot-ui
           onSubmit={(event) => {
             event.preventDefault();

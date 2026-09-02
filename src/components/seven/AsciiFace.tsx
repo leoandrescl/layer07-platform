@@ -186,13 +186,7 @@ export function AsciiFace({ reducedMotion }: { reducedMotion: boolean }) {
             "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.28) 2px, rgba(0,0,0,0.28) 3px)",
         }}
       />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_35%,rgba(2,6,10,0.72)_100%)]" />
-      <div className="pointer-events-none absolute top-3 left-3 font-mono text-[9px] tracking-[0.28em] text-[#00f0ff]/70 uppercase sm:text-[10px]">
-        navi // wired
-      </div>
-      <div className="pointer-events-none absolute right-3 bottom-3 font-mono text-[9px] tracking-[0.22em] text-[#00ff66]/55 uppercase sm:text-[10px]">
-        present in the layer
-      </div>
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_35%,rgba(2,6,10,0.55)_100%)]" />
     </div>
   );
 }

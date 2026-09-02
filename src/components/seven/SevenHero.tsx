@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { AsciiFace } from "./AsciiFace";
 import {
   FIRE_GAP_MS,
   isUiTarget,
@@ -303,102 +302,94 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
             <span className="text-[#00f0ff]">LAYER 07</span>
           </header>
 
-          <div className="flex h-full flex-col pt-12 lg:flex-row">
-            <aside
-              aria-label="Retrato ASCII"
-              className="relative z-10 h-[40%] min-h-[220px] shrink-0 border-[#00f0ff]/25 lg:h-full lg:w-[min(44vw,540px)] lg:border-r lg:border-dotted"
-            >
-              <AsciiFace reducedMotion={reducedMotion} />
-            </aside>
-
-            <div ref={rainPaneRef} className="relative min-h-0 flex-1">
-              {reducedMotion ? (
-                <div
-                  className="absolute inset-0 opacity-40"
-                  style={{
-                    backgroundImage:
-                      "repeating-linear-gradient(0deg, transparent, transparent 18px, rgba(0,255,102,0.12) 18px, rgba(0,255,102,0.12) 19px)",
-                  }}
-                  aria-hidden
-                />
-              ) : (
-                <RainGL mouseRef={mouseRef} progressRef={progressRef} hitsRef={hitsRef} />
-              )}
-
-              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(5,5,5,0.35)_70%,rgba(5,5,5,0.82)_100%)]" />
-
+          <div ref={rainPaneRef} className="relative h-full">
+            {reducedMotion ? (
               <div
-                ref={lockupRef}
-                className="pointer-events-none relative z-10 flex h-full select-none flex-col items-center justify-center px-4 text-center will-change-transform"
-              >
-                <p className="font-mono text-[10px] tracking-[0.42em] text-[#00ff66] uppercase sm:text-[11px]">
-                  SYS.LAYER 7 // APPLICATION
-                </p>
+                className="absolute inset-0 opacity-40"
+                style={{
+                  backgroundImage:
+                    "repeating-linear-gradient(0deg, transparent, transparent 18px, rgba(0,255,102,0.12) 18px, rgba(0,255,102,0.12) 19px)",
+                }}
+                aria-hidden
+              />
+            ) : (
+              <RainGL mouseRef={mouseRef} progressRef={progressRef} hitsRef={hitsRef} />
+            )}
 
-                <h1 className="relative mt-6 font-sans text-[clamp(2rem,9vw,6.5rem)] font-bold tracking-[-0.06em] text-white uppercase">
-                  <span
-                    ref={magRef}
-                    className="absolute inset-0 block leading-[0.78] whitespace-nowrap text-[#ff0055] mix-blend-screen"
-                    aria-hidden
-                  >
-                    LEONARDO
-                  </span>
-                  <span
-                    ref={cyanRef}
-                    className="absolute inset-0 block leading-[0.78] whitespace-nowrap text-[#00f0ff] mix-blend-screen"
-                    aria-hidden
-                  >
-                    LEONARDO
-                  </span>
-                  <span className="relative block leading-[0.78] whitespace-nowrap">
-                    LEONARDO
-                  </span>
-                </h1>
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(5,5,5,0.35)_70%,rgba(5,5,5,0.82)_100%)]" />
 
-                <p className="mt-1 font-sans text-[clamp(1.1rem,4vw,2.8rem)] font-medium tracking-[-0.04em] text-white/90 uppercase">
-                  Contreras
-                </p>
-                <p className="mt-6 max-w-xl font-mono text-[10px] leading-relaxed tracking-[0.22em] text-[#94a3b8] uppercase sm:text-xs">
-                  Full Stack Engineer · 8+ years · web · systems · headless
-                </p>
-              </div>
-
-              <p
-                ref={hintRef}
-                className="pointer-events-none absolute bottom-8 left-1/2 z-10 -translate-x-1/2 font-mono text-[10px] tracking-[0.32em] text-[#00ff66] uppercase"
-              >
-                click to fire · scroll to jack in
+            <div
+              ref={lockupRef}
+              className="pointer-events-none relative z-10 flex h-full select-none flex-col items-center justify-center px-4 text-center will-change-transform"
+            >
+              <p className="font-mono text-[10px] tracking-[0.42em] text-[#00ff66] uppercase sm:text-[11px]">
+                SYS.LAYER 7 // APPLICATION
               </p>
 
-              <div
-                ref={arrivalRef}
-                className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center px-4 text-center opacity-0"
-                aria-hidden
-              >
-                <p className="font-mono text-[10px] tracking-[0.4em] text-[#00f0ff] uppercase">
-                  arrived // layer 07
-                </p>
-                <p className="mt-4 font-sans text-4xl font-bold tracking-[-0.05em] text-white uppercase sm:text-6xl">
-                  Application
-                </p>
-                <p className="mt-4 font-mono text-[11px] tracking-[0.22em] text-[#94a3b8] uppercase">
-                  click a process — or type
-                </p>
-              </div>
+              <h1 className="relative mt-6 font-sans text-[clamp(2.75rem,14vw,9.5rem)] font-bold tracking-[-0.06em] text-white uppercase">
+                <span
+                  ref={magRef}
+                  className="absolute inset-0 block leading-[0.78] whitespace-nowrap text-[#ff0055] mix-blend-screen"
+                  aria-hidden
+                >
+                  LEONARDO
+                </span>
+                <span
+                  ref={cyanRef}
+                  className="absolute inset-0 block leading-[0.78] whitespace-nowrap text-[#00f0ff] mix-blend-screen"
+                  aria-hidden
+                >
+                  LEONARDO
+                </span>
+                <span className="relative block leading-[0.78] whitespace-nowrap">
+                  LEONARDO
+                </span>
+              </h1>
 
-              <div
-                ref={shellRef}
-                className="pointer-events-none absolute inset-0 z-20 opacity-0"
-                style={reducedMotion ? { opacity: 1 } : undefined}
-              >
-                <SevenShell
-                  ref={shellApi}
-                  processes={processes}
-                  onFocusChange={(focused) => {
-                    typingRef.current = focused;
-                  }}
-                />
-              </div>
+              <p className="mt-1 font-sans text-[clamp(1.5rem,6vw,4.2rem)] font-medium tracking-[-0.04em] text-white/90 uppercase">
+                Contreras
+              </p>
+              <p className="mt-6 max-w-xl font-mono text-[10px] leading-relaxed tracking-[0.22em] text-[#94a3b8] uppercase sm:text-xs">
+                Full Stack Engineer · 8+ years · web · systems · headless
+              </p>
+            </div>
+
+            <p
+              ref={hintRef}
+              className="pointer-events-none absolute bottom-8 left-1/2 z-10 -translate-x-1/2 font-mono text-[10px] tracking-[0.32em] text-[#00ff66] uppercase"
+            >
+              click to fire · scroll to jack in
+            </p>
+
+            <div
+              ref={arrivalRef}
+              className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center px-4 text-center opacity-0"
+              aria-hidden
+            >
+              <p className="font-mono text-[10px] tracking-[0.4em] text-[#00f0ff] uppercase">
+                arrived // layer 07
+              </p>
+              <p className="mt-4 font-sans text-4xl font-bold tracking-[-0.05em] text-white uppercase sm:text-6xl">
+                Application
+              </p>
+              <p className="mt-4 font-mono text-[11px] tracking-[0.22em] text-[#94a3b8] uppercase">
+                click a process — or type
+              </p>
+            </div>
+
+            <div
+              ref={shellRef}
+              className="pointer-events-none absolute inset-0 z-20 px-3 pt-14 pb-3 opacity-0 sm:px-5 sm:pt-14 sm:pb-4"
+              style={reducedMotion ? { opacity: 1 } : undefined}
+            >
+              <SevenShell
+                ref={shellApi}
+                processes={processes}
+                reducedMotion={reducedMotion}
+                onFocusChange={(focused) => {
+                  typingRef.current = focused;
+                }}
+              />
             </div>
           </div>
         </div>
