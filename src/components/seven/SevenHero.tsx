@@ -265,7 +265,7 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
               </h1>
 
               <p
-                className="lain-glitch lain-glitch-late font-lain mt-1 text-[clamp(1.35rem,5.5vw,3.6rem)] tracking-[0.14em] text-[#c8efe6]/90 lowercase"
+                className="lain-glitch font-lain mt-1 text-[clamp(1.35rem,5.5vw,3.6rem)] tracking-[0.14em] text-[#c8efe6]/90 lowercase"
                 data-text="contreras"
               >
                 contreras

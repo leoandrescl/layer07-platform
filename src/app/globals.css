@@ -382,15 +382,6 @@
   animation: lain-glitch-mag 4.6s steps(2, end) infinite;
 }
 
-.seven-root .lain-glitch-late {
-  animation-delay: 0.7s;
-}
-
-.seven-root .lain-glitch-late::before,
-.seven-root .lain-glitch-late::after {
-  animation-delay: 0.7s;
-}
-
 @keyframes lain-glitch-shake {
   0%,
   8%,
