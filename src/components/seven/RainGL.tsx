@@ -50,10 +50,8 @@ function createGlyphAtlas() {
 
 export function RainGL({
   mouseRef,
-  progressRef,
 }: {
   mouseRef: React.RefObject<Pointer>;
-  progressRef: React.RefObject<number>;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -108,7 +106,6 @@ export function RainGL({
     const uRes = gl.getUniformLocation(program, "u_res");
     const uTime = gl.getUniformLocation(program, "u_time");
     const uMouse = gl.getUniformLocation(program, "u_mouse");
-    const uProgress = gl.getUniformLocation(program, "u_progress");
     const uAtlas = gl.getUniformLocation(program, "u_atlas");
     const uAtlasGrid = gl.getUniformLocation(program, "u_atlas_grid");
     const uGlyphCount = gl.getUniformLocation(program, "u_glyph_count");
@@ -144,7 +141,6 @@ export function RainGL({
       const mouse = mouseRef.current;
       gl.uniform1f(uTime, (now - start) / 1000);
       gl.uniform2f(uMouse, mouse?.x ?? 0.5, mouse?.y ?? 0.5);
-      gl.uniform1f(uProgress, progressRef.current ?? 0);
       gl.drawArrays(gl.TRIANGLES, 0, 6);
       raf = requestAnimationFrame(draw);
     };
@@ -173,7 +169,7 @@ export function RainGL({
       gl.deleteBuffer(buffer);
       gl.deleteTexture(texture);
     };
-  }, [mouseRef, progressRef]);
+  }, [mouseRef]);
 
   return (
     <canvas

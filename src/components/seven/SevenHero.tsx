@@ -221,7 +221,7 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
                 aria-hidden
               />
             ) : (
-              <RainGL mouseRef={mouseRef} progressRef={progressRef} />
+              <RainGL mouseRef={mouseRef} />
             )}
 
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(3,11,12,0.35)_55%,rgba(3,11,12,0.88)_100%)]" />

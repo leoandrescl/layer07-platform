@@ -11,7 +11,6 @@ precision highp float;
 uniform vec2 u_res;
 uniform float u_time;
 uniform vec2 u_mouse;
-uniform float u_progress;
 uniform sampler2D u_atlas;
 uniform vec2 u_atlas_grid;
 uniform float u_glyph_count;
@@ -33,20 +32,19 @@ void main() {
 
   vec2 mdelta = uv - mouse;
   float md = length(mdelta);
-  float warp = 0.11 * (0.35 + u_progress) * exp(-md * 7.5);
+  float warp = 0.038 * exp(-md * 7.5);
   uv += mdelta * warp;
   uv = fract(uv);
 
-  float densify = mix(1.0, 1.45, u_progress);
-  float cols = max(u_grid.x, 8.0) * densify;
-  float rows = max(u_grid.y, 8.0) * densify;
+  float cols = max(u_grid.x, 8.0);
+  float rows = max(u_grid.y, 8.0);
   vec2 grid = vec2(cols, rows);
   vec2 cell = floor(uv * grid);
   vec2 local = fract(uv * grid);
   local.y = 1.0 - local.y;
 
   float rnd = hash(cell.x + 13.0);
-  float speed = mix(0.16, 0.62, hash(cell.x + 41.0)) * mix(1.0, 1.35, u_progress);
+  float speed = mix(0.16, 0.62, hash(cell.x + 41.0));
   float headY = 1.0 - fract(u_time * speed * 0.16 + rnd * 2.0);
   float raw = fract(headY - uv.y);
   float trail = exp(-raw * 5.4);
@@ -70,7 +68,7 @@ void main() {
   tone = mix(tone, tear, band * 0.7);
 
   vec2 centered = uv0 - 0.5;
-  float vig = smoothstep(1.15, 0.16, length(centered * vec2(1.08, 1.0)) * mix(1.0, 1.45, u_progress));
+  float vig = smoothstep(1.15, 0.16, length(centered * vec2(1.08, 1.0)));
   float scan = 0.78 + 0.22 * sin(gl_FragCoord.y * 2.4 + u_time * 3.2);
   float grain = (hash2(gl_FragCoord.xy * 0.7 + u_time * 8.0) - 0.5) * 0.06;
 
@@ -78,9 +76,6 @@ void main() {
   vec3 color = bg + tone * signal * vig * scan;
   color += head * glyph * vec3(0.55, 1.0, 0.88) * 0.4;
   color += grain;
-
-  float fog = u_progress * 0.1;
-  color = mix(color, phosphor * 0.05, fog);
 
   gl_FragColor = vec4(color, 1.0);
 }
