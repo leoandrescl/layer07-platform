@@ -31,6 +31,7 @@ export const COMMANDS = [
   "ls",
   "open",
   "cat",
+  "deck",
   "whoami",
   "stack",
   "contact",
@@ -69,7 +70,12 @@ export function bootLines(count: number): ShellLine[] {
     {
       id: count + 1,
       tone: "dim",
-      text: "present day, present time.     scroll · type help     / to focus",
+      text: "present day, present time.     help · deck · / to focus",
+    },
+    {
+      id: count + 2,
+      tone: "dim",
+      text: "NAVI // DECK idle  ·  type deck to open",
     },
   ];
 }
@@ -118,6 +124,7 @@ export function runCommand(
   clear?: boolean;
   exit?: boolean;
   attached?: SevenProcess | null;
+  deck?: boolean;
 } {
   const input = raw.trim();
   if (!input) return { lines: [] };
@@ -153,6 +160,7 @@ export function runCommand(
           out("  help                 this list"),
           out("  ps | ls              processes on layer 07"),
           out("  open | cat <name>    attach a process"),
+          out("  deck                 open NAVI // DECK"),
           out("  whoami               operator"),
           out("  stack                runtime"),
           out("  contact              handshake"),
@@ -226,6 +234,16 @@ export function runCommand(
       };
     case "clear":
       return { lines: [], clear: true, attached: null };
+    case "deck":
+    case "music":
+      return {
+        lines: [
+          echo,
+          out("NAVI // DECK  ·  duvet · track 44", "ok"),
+          out("play from the panel  ·  × to stow", "dim"),
+        ],
+        deck: true,
+      };
     case "exit":
       return { lines: [echo, out("detach → /labs", "dim")], exit: true };
     case "open":

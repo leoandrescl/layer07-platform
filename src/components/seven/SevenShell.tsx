@@ -17,6 +17,7 @@ import {
   type SevenProcess,
   type ShellLine,
 } from "./commands";
+import { setDeckOpen } from "./deck";
 import { cn } from "@/lib/cn";
 
 export type SevenShellHandle = {
@@ -35,7 +36,7 @@ export const SevenShell = forwardRef<SevenShellHandle, Props>(
     const router = useRouter();
     const inputRef = useRef<HTMLInputElement>(null);
     const logRef = useRef<HTMLDivElement>(null);
-    const idRef = useRef(2);
+    const idRef = useRef(3);
     const [value, setValue] = useState("");
     const [lines, setLines] = useState<ShellLine[]>(() => bootLines(0));
     const [history, setHistory] = useState<string[]>([]);
@@ -62,8 +63,9 @@ export const SevenShell = forwardRef<SevenShellHandle, Props>(
         router.push("/labs");
         return;
       }
+      if (result.deck) setDeckOpen(true);
       if (result.clear) {
-        idRef.current = 2;
+        idRef.current = 3;
         setLines(bootLines(0));
         setAttached(null);
       } else if (result.attached) {

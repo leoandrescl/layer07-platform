@@ -4,8 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import {
   TRACKS,
   getDeck,
+  setDeckOpen,
   setDeckPlaying,
   setDeckTrack,
+  subscribeDeck,
   type TrackId,
 } from "./deck";
 
@@ -18,13 +20,17 @@ function fmt(seconds: number) {
 
 export function DuvetPlayer() {
   const audioRef = useRef<HTMLAudioElement>(null);
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(() => getDeck().open);
   const [trackId, setTrackId] = useState<TrackId>(getDeck().trackId);
   const [playing, setPlaying] = useState(false);
   const [current, setCurrent] = useState(0);
   const [duration, setDuration] = useState(0);
 
   const active = TRACKS.find((track) => track.id === trackId) ?? TRACKS[0];
+
+  useEffect(() => {
+    return subscribeDeck((state) => setOpen(state.open));
+  }, []);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -101,7 +107,7 @@ export function DuvetPlayer() {
         <button
           type="button"
           data-no-shot
-          onClick={() => setOpen(true)}
+          onClick={() => setDeckOpen(true)}
           aria-expanded={false}
           aria-label="Mostrar deck"
           className="border border-dashed border-[#00ff66]/40 bg-black/75 px-2.5 py-1.5 font-mono text-[9px] tracking-[0.28em] text-[#00ff66] uppercase backdrop-blur-[2px] hover:bg-[#00ff66]/10"
@@ -126,7 +132,7 @@ export function DuvetPlayer() {
             <button
               type="button"
               data-no-shot
-              onClick={() => setOpen(false)}
+              onClick={() => setDeckOpen(false)}
               aria-expanded={true}
               aria-label="Ocultar deck"
               className="grid size-7 shrink-0 place-items-center border border-[#00ff66]/50 text-[14px] leading-none hover:bg-[#00ff66]/10"

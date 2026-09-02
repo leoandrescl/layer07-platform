@@ -20,16 +20,18 @@ export type TrackId = (typeof TRACKS)[number]["id"];
 type DeckState = {
   trackId: TrackId;
   playing: boolean;
+  open: boolean;
 };
 
 type Listener = (state: DeckState) => void;
 
 let trackId: TrackId = "duvet";
 let playing = false;
+let open = false;
 const listeners = new Set<Listener>();
 
 export function getDeck(): DeckState {
-  return { trackId, playing };
+  return { trackId, playing, open };
 }
 
 export function subscribeDeck(listener: Listener) {
@@ -53,6 +55,12 @@ export function setDeckTrack(id: TrackId) {
 export function setDeckPlaying(on: boolean) {
   if (playing === on) return;
   playing = on;
+  emit();
+}
+
+export function setDeckOpen(on: boolean) {
+  if (open === on) return;
+  open = on;
   emit();
 }
 
