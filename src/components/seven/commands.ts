@@ -67,7 +67,7 @@ export function bootLines(count: number): ShellLine[] {
     {
       id: count + 1,
       tone: "dim",
-      text: "type help     / or ` to focus     tab to complete",
+      text: "click a process     type help     / to focus",
     },
   ];
 }
@@ -110,7 +110,12 @@ export function runCommand(
   raw: string,
   processes: SevenProcess[],
   nextId: number,
-): { lines: ShellLine[]; clear?: boolean; exit?: boolean } {
+): {
+  lines: ShellLine[];
+  clear?: boolean;
+  exit?: boolean;
+  attached?: SevenProcess | null;
+} {
   const input = raw.trim();
   if (!input) return { lines: [] };
 
@@ -141,6 +146,7 @@ export function runCommand(
         lines: [
           echo,
           out("commands", "dim"),
+          out("  click a process      same as open"),
           out("  help                 this list"),
           out("  ps | ls              processes on layer 07"),
           out("  open | cat <name>    attach a process"),
@@ -216,7 +222,7 @@ export function runCommand(
         ],
       };
     case "clear":
-      return { lines: [], clear: true };
+      return { lines: [], clear: true, attached: null };
     case "exit":
       return { lines: [echo, out("detach → /labs", "dim")], exit: true };
     case "open":
@@ -257,7 +263,7 @@ export function runCommand(
       if (proc.liveUrl) lines.push(link(`live  ${proc.liveUrl}`, proc.liveUrl));
       if (proc.repoUrl) lines.push(link(`repo  ${proc.repoUrl}`, proc.repoUrl));
       lines.push(link(`case  /portafolio/${proc.slug}`, `/portafolio/${proc.slug}`));
-      return { lines };
+      return { lines, attached: proc };
     }
     default:
       return {

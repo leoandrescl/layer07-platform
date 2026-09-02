@@ -259,7 +259,7 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
               Application
             </p>
             <p className="mt-4 font-mono text-[11px] tracking-[0.22em] text-[#94a3b8] uppercase">
-              attach tty — type help
+              click a process — or type
             </p>
           </div>
 
