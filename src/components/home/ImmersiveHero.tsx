@@ -139,7 +139,7 @@ export function ImmersiveHero() {
 
   if (reducedMotion) {
     return (
-      <section className="relative overflow-hidden border-b border-dashed border-[#00ff66]/25">
+      <section className="relative overflow-hidden border-b border-dashed border-[#00ff66]/25 bg-[#030b0c]">
         <HeroBackdrop reduced />
         <div className="relative mx-auto flex min-h-[calc(100dvh-4rem)] max-w-5xl items-center px-4 py-16 sm:px-6">
           <HeroContent phase={PHASES[0]} showCta active />
@@ -309,7 +309,7 @@ function HeroContent({
     <div className="w-full text-center sm:text-left">
       <p
         className={cn(
-          "font-mono text-[11px] tracking-[0.28em]",
+          "font-mono text-xs tracking-[0.28em] sm:text-sm",
           accentText[phase.accent],
         )}
       >
@@ -318,19 +318,19 @@ function HeroContent({
 
       {lockup ? (
         <>
-          <h1 className="font-sans lain-glow relative mt-6 text-[clamp(2.2rem,10vw,6.4rem)] leading-none font-normal tracking-[0.06em] text-[#e8fff8] lowercase">
+          <h1 className="font-sans lain-glow relative mt-6 text-[clamp(2.6rem,11vw,7.2rem)] leading-none font-normal tracking-[0.06em] text-[#e8fff8] lowercase">
             <GlitchWord text="layer07" />
           </h1>
-          <p className="mt-5 max-w-xl font-mono text-[11px] leading-relaxed tracking-[0.16em] text-[#8fb8b0] sm:text-xs">
+          <p className="mt-6 max-w-2xl font-mono text-base leading-relaxed tracking-[0.04em] text-[#8fb8b0] sm:text-lg md:text-xl">
             {phase.body}
           </p>
         </>
       ) : (
         <>
-          <h1 className="font-sans mt-4 text-3xl leading-[1.1] font-normal tracking-[0.06em] text-[#e8fff8] lowercase sm:text-4xl lg:text-[2.75rem]">
+          <h1 className="font-sans mt-4 text-4xl leading-[1.1] font-normal tracking-[0.06em] text-[#e8fff8] lowercase sm:text-5xl lg:text-6xl">
             {phase.title}
           </h1>
-          <p className="mx-auto mt-5 max-w-xl font-mono text-sm leading-relaxed text-[#8fb8b0] sm:mx-0 sm:text-base">
+          <p className="mx-auto mt-5 max-w-2xl font-mono text-base leading-relaxed text-[#8fb8b0] sm:mx-0 sm:text-lg">
             {phase.body}
           </p>
         </>
@@ -340,7 +340,7 @@ function HeroContent({
         <div className="mt-8 flex flex-wrap justify-center gap-8 sm:justify-start">
           {phase.metrics.map((m) => (
             <div key={m.label} className="text-center sm:text-left">
-              <p className="font-mono text-2xl text-[#7fffd4] text-glow-neon sm:text-3xl">
+              <p className="font-mono text-3xl text-[#7fffd4] text-glow-neon sm:text-4xl">
                 {m.value}
               </p>
               <p className="mt-1 font-mono text-[10px] tracking-[0.2em] text-[#8fb8b0] uppercase">
@@ -355,7 +355,7 @@ function HeroContent({
         {active ? (
           <TypeLine key={phase.id} text={phase.command} startDelayMs={120} />
         ) : (
-          <p className="font-mono text-sm text-[#8fb8b0]">
+          <p className="font-mono text-base text-[#8fb8b0] sm:text-lg">
             <span className="text-[#00ff66]">guest@layer07</span>
             <span className="text-[#00f0ff]">:~$</span> {phase.command}
           </p>
@@ -371,9 +371,11 @@ function HeroContent({
         </div>
       ) : null}
 
-      <p className="mt-8 font-mono text-[10px] tracking-[0.22em] text-[#8fb8b0]">
-        a body in Santiago · a ghost in the Wired
-      </p>
+      {lockup ? (
+        <p className="mt-8 font-mono text-xs tracking-[0.22em] text-[#8fb8b0] sm:text-sm">
+          a body in Santiago · a ghost in the Wired
+        </p>
+      ) : null}
     </div>
   );
 }

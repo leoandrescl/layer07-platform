@@ -28,11 +28,11 @@ export function PageHero({
             {kicker}
           </p>
         ) : null}
-        <h1 className="font-sans lain-glow mt-4 max-w-3xl text-3xl font-normal tracking-[0.06em] text-[#e8fff8] lowercase sm:text-4xl">
+        <h1 className="font-sans lain-glow mt-4 max-w-3xl text-4xl font-normal tracking-[0.06em] text-[#e8fff8] lowercase sm:text-5xl lg:text-6xl">
           {title}
         </h1>
         {description ? (
-          <p className="mt-5 max-w-2xl font-mono text-sm leading-relaxed text-[#8fb8b0] sm:text-base">
+          <p className="mt-5 max-w-2xl font-mono text-base leading-relaxed text-[#8fb8b0] sm:text-lg">
             {description}
           </p>
         ) : null}
