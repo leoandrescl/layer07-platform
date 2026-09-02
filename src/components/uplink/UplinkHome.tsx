@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { SITE, whatsappUrl } from "@/lib/site";
-import { ScrambleText } from "./ScrambleText";
-import { SignalField } from "./SignalField";
+import { ContourScan } from "./ContourScan";
+import { GlitchText } from "./GlitchText";
 
 export type UplinkWork = {
   slug: string;
@@ -59,16 +59,9 @@ export function UplinkHome({
 
   return (
     <div className="relative overflow-x-hidden">
-      <div
-        className="pointer-events-none fixed inset-0 opacity-[0.07]"
-        style={{
-          backgroundImage:
-            "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='4'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='.55'/></svg>\")",
-        }}
-        aria-hidden
-      />
+      <ContourScan />
 
-      <div className="overflow-hidden border-b border-[#00ff66]/20 bg-black py-2">
+      <div className="relative z-10 overflow-hidden border-b border-[#00ff66]/20 bg-black/55 py-2 backdrop-blur-[2px]">
         <div className="flex w-max animate-marquee font-mono text-[10px] tracking-[0.28em] text-[#00ff66] uppercase">
           {ticker.map((item, i) => (
             <span key={`${item}-${i}`} className="px-6">
@@ -107,49 +100,41 @@ export function UplinkHome({
         </Link>
       </header>
 
-      <section className="relative z-10 mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 sm:px-8 lg:grid-cols-[1.05fr_0.95fr] lg:py-20">
-        <div>
-          <p className="font-mono text-[11px] tracking-[0.32em] text-[#00ff66] uppercase">
-            uplink established · santiago
-          </p>
-          <ScrambleText
-            as="h1"
-            playOnMount
-            text="Software que se siente producto."
-            className="mt-5 max-w-xl text-4xl leading-[1.05] font-semibold tracking-tight text-white sm:text-6xl"
-          />
-          <p className="mt-6 max-w-lg text-base leading-relaxed text-[#cbd5e1]">
-            {SITE.founder.name}, {SITE.founder.role}. {SITE.founder.years} años
-            armando sistemas a medida, storefronts headless e integraciones API
-            — con el código y la infra en un solo nodo.
-            <span className="ml-1 inline-block h-4 w-2 translate-y-0.5 animate-pulse bg-[#00ff66] align-middle" />
-          </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Link
-              href="/contacto"
-              className="rounded-full bg-white px-5 py-2.5 text-sm font-medium text-black hover:bg-[#00ff66]"
-            >
-              Iniciar conexión
-            </Link>
-            <Link
-              href={whatsappUrl()}
-              target="_blank"
-              rel="noreferrer"
-              className="rounded-full border border-white/30 px-5 py-2.5 text-sm text-white hover:border-[#00ff66] hover:text-[#00ff66]"
-            >
-              WhatsApp
-            </Link>
-            <a
-              href="#work"
-              className="rounded-full border border-[#00ff66]/50 px-5 py-2.5 font-mono text-[11px] tracking-[0.18em] text-[#00ff66] uppercase"
-            >
-              ver sistemas ↗
-            </a>
-          </div>
-        </div>
-        <div className="relative h-[320px] overflow-hidden border border-[#00ff66]/20 bg-black/40 sm:h-[420px]">
-          <SignalField />
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_55%,rgba(3,3,3,0.45)_100%)]" />
+      <section className="relative z-10 mx-auto max-w-6xl px-4 py-16 sm:px-8 lg:py-24">
+        <p className="font-mono text-[11px] tracking-[0.32em] text-[#00ff66] uppercase">
+          uplink established · santiago
+        </p>
+        <GlitchText
+          text="Software que se siente producto."
+          className="mt-5 max-w-xl text-4xl leading-[1.05] font-semibold tracking-tight text-white sm:text-6xl"
+        />
+        <p className="mt-6 max-w-lg text-base leading-relaxed text-[#cbd5e1]">
+          {SITE.founder.name}, {SITE.founder.role}. {SITE.founder.years} años
+          armando sistemas a medida, storefronts headless e integraciones API
+          — con el código y la infra en un solo nodo.
+          <span className="ml-1 inline-block h-4 w-2 translate-y-0.5 animate-pulse bg-[#00ff66] align-middle" />
+        </p>
+        <div className="mt-8 flex flex-wrap gap-3">
+          <Link
+            href="/contacto"
+            className="rounded-full bg-white px-5 py-2.5 text-sm font-medium text-black hover:bg-[#00ff66]"
+          >
+            Iniciar conexión
+          </Link>
+          <Link
+            href={whatsappUrl()}
+            target="_blank"
+            rel="noreferrer"
+            className="rounded-full border border-white/30 px-5 py-2.5 text-sm text-white hover:border-[#00ff66] hover:text-[#00ff66]"
+          >
+            WhatsApp
+          </Link>
+          <a
+            href="#work"
+            className="rounded-full border border-[#00ff66]/50 px-5 py-2.5 font-mono text-[11px] tracking-[0.18em] text-[#00ff66] uppercase"
+          >
+            ver sistemas ↗
+          </a>
         </div>
       </section>
 
@@ -164,7 +149,7 @@ export function UplinkHome({
             },
             { label: "Nodo", value: "SCL" },
           ].map((stat) => (
-            <div key={stat.label} className="bg-[#030303] px-4 py-6 sm:px-8">
+            <div key={stat.label} className="bg-[#030303]/80 px-4 py-6 backdrop-blur-[2px] sm:px-8">
               <p className="font-mono text-2xl text-[#00ff66] sm:text-3xl">
                 {stat.value}
               </p>
@@ -196,7 +181,7 @@ export function UplinkHome({
             <Link
               key={offer.code}
               href="/servicios"
-              className="border border-white/10 bg-black/30 p-5 transition-colors hover:border-[#00ff66]/40"
+              className="border border-white/10 bg-black/45 p-5 backdrop-blur-[2px] transition-colors hover:border-[#00ff66]/40"
             >
               <p className="font-mono text-[11px] text-[#00ff66]">{offer.code}</p>
               <h3 className="mt-3 text-lg text-white">{offer.title}</h3>
@@ -221,7 +206,7 @@ export function UplinkHome({
         <ol className="mt-10 space-y-3">
           {featured.map((item, index) => (
             <li key={item.slug}>
-              <article className="border border-white/10 bg-black/25 p-5 transition-colors hover:border-[#00f0ff]/35 sm:p-6">
+              <article className="border border-white/10 bg-black/45 p-5 backdrop-blur-[2px] transition-colors hover:border-[#00f0ff]/35 sm:p-6">
                 <p className="font-mono text-[11px] text-[#00f0ff]">
                   {String(index + 1).padStart(2, "0")} · {item.category} ·{" "}
                   {item.year}
@@ -275,7 +260,7 @@ export function UplinkHome({
 
       <section
         id="stack"
-        className="relative z-10 border-y border-white/10 py-10"
+        className="relative z-10 border-y border-white/10 bg-black/25 py-10"
       >
         <p className="mb-6 px-4 font-mono text-[11px] tracking-[0.28em] text-[#00ff66] uppercase sm:px-8">
           03 / runtime
