@@ -1,0 +1,31 @@
+export type LabStatus = "smoke" | "draft" | "live";
+
+export type LabSite = {
+  slug: string;
+  name: string;
+  path: `/${string}`;
+  status: LabStatus;
+  summary: string;
+};
+
+/**
+ * Vitrinas aisladas del sitio marketing.
+ * Path canónico: /s/[slug]. Los subdominios se mapean después.
+ */
+export const labs: LabSite[] = [
+  {
+    slug: "hola",
+    name: "hola",
+    path: "/s/hola",
+    status: "smoke",
+    summary: "Prueba de aislamiento: una palabra, otro layout.",
+  },
+];
+
+export function getLabs() {
+  return labs;
+}
+
+export function getLabBySlug(slug: string) {
+  return labs.find((lab) => lab.slug === slug) ?? null;
+}
