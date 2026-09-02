@@ -348,6 +348,144 @@
     0 0 56px rgba(0, 140, 130, 0.22);
 }
 
+.seven-root .lain-glitch {
+  position: relative;
+  display: inline-block;
+  isolation: isolate;
+  animation: lain-glitch-shake 4.6s steps(2, end) infinite;
+}
+
+.seven-root .lain-glitch::before,
+.seven-root .lain-glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.seven-root .lain-glitch::before {
+  color: #7fffd4;
+  mix-blend-mode: screen;
+  animation: lain-glitch-cyan 4.6s steps(2, end) infinite;
+}
+
+.seven-root .lain-glitch::after {
+  color: #ff5ea8;
+  mix-blend-mode: screen;
+  animation: lain-glitch-mag 4.6s steps(2, end) infinite;
+}
+
+.seven-root .lain-glitch-late {
+  animation-delay: 0.7s;
+}
+
+.seven-root .lain-glitch-late::before,
+.seven-root .lain-glitch-late::after {
+  animation-delay: 0.7s;
+}
+
+@keyframes lain-glitch-shake {
+  0%,
+  8%,
+  51%,
+  60%,
+  100% {
+    transform: translate(0);
+  }
+  2% {
+    transform: translate(-3px, 1px) skewX(-9deg);
+  }
+  4% {
+    transform: translate(4px, -1px) skewX(7deg);
+  }
+  6% {
+    transform: translate(-2px, 0);
+  }
+  53% {
+    transform: translate(3px, 1px) skewX(8deg);
+  }
+  56% {
+    transform: translate(-3px, -1px);
+  }
+}
+
+@keyframes lain-glitch-cyan {
+  0%,
+  8%,
+  51%,
+  60%,
+  100% {
+    opacity: 0;
+    transform: translate(0);
+    clip-path: inset(0 0 0 0);
+  }
+  2% {
+    opacity: 0.85;
+    transform: translate(-7px, 1px);
+    clip-path: inset(10% 0 58% 0);
+  }
+  4% {
+    opacity: 0.7;
+    transform: translate(5px, -2px);
+    clip-path: inset(38% 0 18% 0);
+  }
+  6% {
+    opacity: 0.45;
+    transform: translate(-4px, 0);
+    clip-path: inset(0 0 72% 0);
+  }
+  53% {
+    opacity: 0.8;
+    transform: translate(-6px, 0);
+    clip-path: inset(22% 0 40% 0);
+  }
+  56% {
+    opacity: 0.5;
+    transform: translate(4px, 1px);
+    clip-path: inset(62% 0 4% 0);
+  }
+}
+
+@keyframes lain-glitch-mag {
+  0%,
+  8%,
+  51%,
+  60%,
+  100% {
+    opacity: 0;
+    transform: translate(0);
+    clip-path: inset(0 0 0 0);
+  }
+  2% {
+    opacity: 0.8;
+    transform: translate(7px, -1px);
+    clip-path: inset(54% 0 6% 0);
+  }
+  4% {
+    opacity: 0.65;
+    transform: translate(-5px, 2px);
+    clip-path: inset(16% 0 48% 0);
+  }
+  6% {
+    opacity: 0.4;
+    transform: translate(4px, 0);
+    clip-path: inset(70% 0 0 0);
+  }
+  53% {
+    opacity: 0.75;
+    transform: translate(6px, 1px);
+    clip-path: inset(0 0 55% 0);
+  }
+  56% {
+    opacity: 0.45;
+    transform: translate(-4px, 0);
+    clip-path: inset(44% 0 22% 0);
+  }
+}
+
 @keyframes lain-cursor {
   0%,
   45% {
@@ -438,7 +576,10 @@
   .uplink-glitch:focus-visible::before,
   .uplink-glitch:hover::after,
   .uplink-glitch:focus-visible::after,
-  .seven-root .lain-cursor::after {
+  .seven-root .lain-cursor::after,
+  .seven-root .lain-glitch,
+  .seven-root .lain-glitch::before,
+  .seven-root .lain-glitch::after {
     animation: none !important;
   }
 }

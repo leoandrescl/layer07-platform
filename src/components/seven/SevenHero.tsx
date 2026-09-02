@@ -242,7 +242,10 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
                 present day, present time.
               </p>
 
-              <h1 className="font-lain lain-glow relative mt-8 text-[clamp(2.4rem,12vw,8.4rem)] font-normal tracking-[0.06em] text-[#e8fff8] lowercase">
+              <h1
+                className="lain-glitch font-lain lain-glow relative mt-8 text-[clamp(2.4rem,12vw,8.4rem)] font-normal tracking-[0.06em] text-[#e8fff8] lowercase"
+                data-text="leonardo"
+              >
                 <span
                   ref={magRef}
                   className="absolute inset-0 block leading-[0.88] whitespace-nowrap text-[#5eead4]/50 mix-blend-screen"
@@ -262,7 +265,10 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
                 </span>
               </h1>
 
-              <p className="font-lain mt-1 text-[clamp(1.35rem,5.5vw,3.6rem)] tracking-[0.14em] text-[#c8efe6]/90 lowercase">
+              <p
+                className="lain-glitch lain-glitch-late font-lain mt-1 text-[clamp(1.35rem,5.5vw,3.6rem)] tracking-[0.14em] text-[#c8efe6]/90 lowercase"
+                data-text="contreras"
+              >
                 contreras
               </p>
               <p className="mt-7 max-w-xl font-mono text-[11px] leading-relaxed tracking-[0.18em] text-[#8fb8b0] sm:text-xs">
@@ -285,7 +291,10 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
               <p className="font-mono text-[10px] tracking-[0.28em] text-[#7fffd4]">
                 unpacking cipher-data...
               </p>
-              <p className="font-lain lain-glow mt-4 text-4xl tracking-[0.12em] text-[#e8fff8] lowercase sm:text-6xl">
+              <p
+                className="lain-glitch font-lain lain-glow mt-4 text-4xl tracking-[0.12em] text-[#e8fff8] lowercase sm:text-6xl"
+                data-text="connected"
+              >
                 connected
               </p>
               <p className="mt-4 font-mono text-[11px] tracking-[0.2em] text-[#8fb8b0]">
