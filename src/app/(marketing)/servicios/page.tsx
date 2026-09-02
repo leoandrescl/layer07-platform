@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Accordion } from "@/components/ui/Accordion";
 import { CtaTerminal } from "@/components/shared/CtaTerminal";
+import { PageHero } from "@/components/ui/PageHero";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { TerminalPanel } from "@/components/ui/TerminalPanel";
 
@@ -63,25 +64,18 @@ const faq = [
 export default function ServiciosPage() {
   return (
     <>
-      <section className="border-b border-border">
-        <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
-          <p className="font-mono text-[11px] tracking-[0.3em] text-neon uppercase">
-            /servicios
-          </p>
-          <h1 className="mt-4 max-w-3xl text-3xl tracking-tight text-foreground sm:text-4xl">
-            Ingeniería de software aplicada a producto y commerce
-          </h1>
-          <p className="mt-5 max-w-2xl text-sm leading-relaxed text-muted-dim sm:text-base">
-            Oferta centrada en sistemas que cargan rápido, integran bien y se
-            pueden operar en producción.
-          </p>
-        </div>
-      </section>
+      <PageHero
+        path="/servicios"
+        title="Ingeniería de software aplicada a producto y commerce"
+        description="Oferta centrada en sistemas que cargan rápido, integran bien y se pueden operar en producción."
+      />
 
       <section className="mx-auto grid max-w-6xl gap-4 px-4 py-16 sm:px-6 md:grid-cols-2">
         <TerminalPanel title="spec://ecommerce">
-          <h2 className="text-xl text-foreground">Software & E-commerce A Medida</h2>
-          <ul className="mt-4 space-y-2 text-sm text-muted-dim">
+          <h2 className="font-sans text-xl tracking-[0.04em] text-[#e8fff8] lowercase">
+            Software & E-commerce A Medida
+          </h2>
+          <ul className="mt-4 space-y-2 font-mono text-sm text-[#8fb8b0]">
             <li>• Next.js App Router storefronts</li>
             <li>• Shopify Liquid / Storefront API</li>
             <li>• WooCommerce custom</li>
@@ -89,8 +83,10 @@ export default function ServiciosPage() {
           </ul>
         </TerminalPanel>
         <TerminalPanel title="spec://performance">
-          <h2 className="text-xl text-foreground">Arquitectura Web & Performance</h2>
-          <ul className="mt-4 space-y-2 text-sm text-muted-dim">
+          <h2 className="font-sans text-xl tracking-[0.04em] text-[#e8fff8] lowercase">
+            Arquitectura Web & Performance
+          </h2>
+          <ul className="mt-4 space-y-2 font-mono text-sm text-[#8fb8b0]">
             <li>• Next.js + TypeScript + Tailwind</li>
             <li>• GraphQL / REST contracts</li>
             <li>• Core Web Vitals con LCP &lt; 1s</li>
@@ -99,19 +95,23 @@ export default function ServiciosPage() {
         </TerminalPanel>
       </section>
 
-      <section className="border-y border-border bg-surface/40">
+      <section className="border-y border-dashed border-[#00ff66]/25 bg-black/30">
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
           <SectionHeading
-            eyebrow="Metodología"
+            eyebrow="metodología"
             title="Workflow en 4 fases"
             description="De discovery a soporte sin saltos opacos."
           />
           <ol className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {process.map((p) => (
-              <li key={p.step} className="border border-border bg-background/60 p-5">
-                <p className="font-mono text-neon text-glow-neon">{p.step}</p>
-                <h3 className="mt-3 text-sm text-foreground">{p.title}</h3>
-                <p className="mt-2 text-xs leading-relaxed text-muted-dim">{p.body}</p>
+              <li key={p.step} className="wired-frame p-5">
+                <p className="font-mono text-[#7fffd4] text-glow-neon">{p.step}</p>
+                <h3 className="font-sans mt-3 text-sm tracking-[0.04em] text-[#e8fff8] lowercase">
+                  {p.title}
+                </h3>
+                <p className="mt-2 font-mono text-xs leading-relaxed text-[#8fb8b0]">
+                  {p.body}
+                </p>
               </li>
             ))}
           </ol>
@@ -120,7 +120,7 @@ export default function ServiciosPage() {
 
       <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
         <SectionHeading
-          eyebrow="FAQ"
+          eyebrow="faq"
           title="Preguntas frecuentes"
           description="Entregables, propiedad del código, SLA y alcance."
         />
@@ -130,7 +130,7 @@ export default function ServiciosPage() {
       <CtaTerminal
         title="Solicitar cotización técnica"
         command="quote --route /contacto"
-        cta="Cotizar ahora"
+        cta="cotizar ahora"
       />
     </>
   );

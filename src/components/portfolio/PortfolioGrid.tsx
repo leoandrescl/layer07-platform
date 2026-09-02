@@ -37,13 +37,13 @@ export function PortfolioGrid({ projects }: PortfolioGridProps) {
             type="button"
             onClick={() => setFilter(key)}
             className={cn(
-              "border cursor-pointer px-3 py-2 font-mono text-[10px] tracking-[0.16em] uppercase transition-all duration-200 hover:-translate-y-0.5",
+              "cursor-pointer border border-dashed px-3 py-2 font-mono text-[10px] tracking-[0.16em] lowercase transition-all duration-200 hover:-translate-y-0.5",
               filter === key
-                ? "border-neon text-neon shadow-neon"
-                : "border-border text-muted-dim hover:border-cyan hover:text-cyan hover:shadow-cyan",
+                ? "border-[#7fffd4]/70 text-[#7fffd4]"
+                : "border-[#00ff66]/25 text-[#8fb8b0] hover:border-[#00f0ff]/50 hover:text-[#00f0ff]",
             )}
           >
-            {key === "all" ? "Todos" : CATEGORY_LABELS[key]}
+            {key === "all" ? "todos" : CATEGORY_LABELS[key]}
           </button>
         ))}
       </div>
@@ -53,29 +53,31 @@ export function PortfolioGrid({ projects }: PortfolioGridProps) {
           <Link
             key={project.slug}
             href={`/portafolio/${project.slug}`}
-            className="group border border-border bg-surface/60 transition-shadow hover:border-neon/50 hover:shadow-neon"
+            className="group wired-frame transition-colors hover:border-[#7fffd4]/50"
           >
             <div
               className={`flex h-40 items-end bg-gradient-to-br ${project.coverGradient} p-4`}
             >
-              <span className="font-mono text-[10px] tracking-widest text-cyan uppercase">
+              <span className="font-mono text-[10px] tracking-widest text-[#7fffd4] uppercase">
                 {CATEGORY_LABELS[project.category]}
               </span>
             </div>
             <div className="space-y-3 p-5">
-              <div className="flex items-center justify-between gap-2 font-mono text-[10px] text-muted-dim">
+              <div className="flex items-center justify-between gap-2 font-mono text-[10px] text-[#8fb8b0]">
                 <span>{project.client}</span>
                 <span>{project.year}</span>
               </div>
-              <h3 className="text-base text-foreground group-hover:text-neon">
+              <h3 className="font-sans text-base tracking-[0.04em] text-[#e8fff8] lowercase group-hover:text-[#7fffd4]">
                 {project.title}
               </h3>
-              <p className="line-clamp-3 text-sm text-muted-dim">{project.excerpt}</p>
+              <p className="line-clamp-3 font-mono text-sm text-[#8fb8b0]">
+                {project.excerpt}
+              </p>
               <div className="flex flex-wrap gap-1.5 pt-1">
                 {project.stack.slice(0, 4).map((tech) => (
                   <span
                     key={tech}
-                    className="border border-border/80 px-1.5 py-0.5 text-[9px] tracking-wider text-muted-dim uppercase"
+                    className="border border-dashed border-[#00ff66]/25 px-1.5 py-0.5 font-mono text-[9px] tracking-wider text-[#8fb8b0] uppercase"
                   >
                     {tech}
                   </span>
@@ -87,7 +89,7 @@ export function PortfolioGrid({ projects }: PortfolioGridProps) {
       </div>
 
       {visible.length === 0 ? (
-        <p className="mt-8 font-mono text-sm text-muted-dim">
+        <p className="mt-8 font-mono text-sm text-[#8fb8b0]">
           &gt; No hay nodos en esta categoría.
         </p>
       ) : null}

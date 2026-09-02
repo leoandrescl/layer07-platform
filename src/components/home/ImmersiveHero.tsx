@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
+import { GlitchWord } from "@/components/seven/GlitchWord";
+import { RainGL, type Pointer } from "@/components/seven/RainGL";
 import { NeonButton } from "@/components/ui/NeonButton";
 import { TypeLine } from "@/components/ui/TypeLine";
 import { cn } from "@/lib/cn";
@@ -9,15 +11,16 @@ import { SITE } from "@/lib/site";
 const PHASES = [
   {
     id: "boot",
-    eyebrow: SITE.name,
+    eyebrow: "present day, present time.",
+    lockup: true,
     title: SITE.tagline,
     body: "Ingeniería full stack para sistemas a medida, e-commerce headless e integraciones API.",
     command: "boot --module engineering --mode production",
-    accent: "neon" as const,
+    accent: "aqua" as const,
   },
   {
     id: "systems",
-    eyebrow: "NODE // SYSTEMS",
+    eyebrow: "node // systems",
     title: "Sistemas & Web Apps A Medida",
     body: "Paneles, portales B2B, backends y flujos críticos con ownership total del código.",
     command: "load module:custom-architecture --stack next,ts,api",
@@ -25,19 +28,19 @@ const PHASES = [
   },
   {
     id: "commerce",
-    eyebrow: "NODE // COMMERCE",
+    eyebrow: "node // commerce",
     title: "Headless E-commerce & Storefronts",
     body: "Shopify Storefront API, WooCommerce custom y storefronts orientados a Core Web Vitals.",
     command: "load module:headless-storefront --target conversion",
-    accent: "magenta" as const,
+    accent: "aqua" as const,
   },
   {
     id: "metrics",
-    eyebrow: "HUD // METRICS",
+    eyebrow: "hud // metrics",
     title: "Performance en producción",
     body: "Arquitectura edge-ready, observabilidad y despliegues predecibles en cloud.",
     command: "status --lcp 0.9s --uptime 99.9% --years 8+",
-    accent: "neon" as const,
+    accent: "aqua" as const,
     metrics: [
       { label: "LCP", value: "< 1s" },
       { label: "Uptime", value: "99.9%" },
@@ -46,7 +49,7 @@ const PHASES = [
   },
   {
     id: "connect",
-    eyebrow: "LINK // READY",
+    eyebrow: "link // ready",
     title: "Establecer conexión",
     body: "Canal directo con el lead engineer. Sin intermediarios ni cajas negras.",
     command: "connect --to /contacto --priority high",
@@ -73,13 +76,14 @@ function phaseOpacity(index: number, progress: number) {
 }
 
 const accentText = {
-  neon: "text-neon text-glow-neon",
-  cyan: "text-cyan text-glow-cyan",
-  magenta: "text-magenta",
+  aqua: "text-[#7fffd4]",
+  cyan: "text-[#00f0ff]",
 } as const;
 
 export function ImmersiveHero() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const rainPaneRef = useRef<HTMLDivElement>(null);
+  const mouseRef = useRef<Pointer>({ x: 0.5, y: 0.5 });
   const [progress, setProgress] = useState(0);
   const [activeIndex, setActiveIndex] = useState(0);
   const [reducedMotion, setReducedMotion] = useState(false);
@@ -111,23 +115,32 @@ export function ImmersiveHero() {
       frame = requestAnimationFrame(update);
     };
 
+    const onPointer = (event: PointerEvent) => {
+      const pane = rainPaneRef.current;
+      if (!pane) return;
+      const rect = pane.getBoundingClientRect();
+      mouseRef.current = {
+        x: (event.clientX - rect.left) / Math.max(rect.width, 1),
+        y: (event.clientY - rect.top) / Math.max(rect.height, 1),
+      };
+    };
+
     update();
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll, { passive: true });
+    window.addEventListener("pointermove", onPointer);
     return () => {
       cancelAnimationFrame(frame);
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
+      window.removeEventListener("pointermove", onPointer);
     };
   }, [reducedMotion]);
 
-  const parallax = (factor: number) =>
-    reducedMotion ? 0 : (progress - 0.5) * factor;
-
   if (reducedMotion) {
     return (
-      <section className="relative overflow-hidden border-b border-border">
-        <HeroBackdrop progress={0} parallax={() => 0} />
+      <section className="relative overflow-hidden border-b border-dashed border-[#00ff66]/25">
+        <HeroBackdrop reduced />
         <div className="relative mx-auto flex min-h-[calc(100dvh-4rem)] max-w-5xl items-center px-4 py-16 sm:px-6">
           <HeroContent phase={PHASES[0]} showCta active />
         </div>
@@ -138,12 +151,15 @@ export function ImmersiveHero() {
   return (
     <section
       ref={containerRef}
-      className="relative border-b border-border"
+      className="relative border-b border-dashed border-[#00ff66]/25"
       style={{ height: `${SCROLL_HEIGHT_VH}vh` }}
       aria-label="Hero inmersivo"
     >
-      <div className="sticky top-16 flex h-[calc(100dvh-4rem)] items-center justify-center overflow-hidden">
-        <HeroBackdrop progress={progress} parallax={parallax} />
+      <div
+        ref={rainPaneRef}
+        className="sticky top-16 flex h-[calc(100dvh-4rem)] items-center justify-center overflow-hidden bg-[#030b0c]"
+      >
+        <HeroBackdrop reduced={false} mouseRef={mouseRef} />
 
         <HeroChrome
           activeIndex={activeIndex}
@@ -151,7 +167,6 @@ export function ImmersiveHero() {
           phaseCount={PHASE_COUNT}
         />
 
-        {/* Todas las fases en la misma celda → centrado real */}
         <div className="relative z-10 grid w-full max-w-5xl flex-1 place-items-center px-4 sm:px-6">
           {PHASES.map((phase, i) => {
             const opacity = phaseOpacity(i, progress);
@@ -203,81 +218,76 @@ function HeroChrome({
           <div
             key={p.id}
             className={cn(
-              "h-7 w-px origin-bottom bg-border transition-all duration-300",
-              i === activeIndex && "bg-neon shadow-neon",
+              "h-7 w-px origin-bottom bg-[#00ff66]/20 transition-all duration-300",
+              i === activeIndex && "bg-[#7fffd4] shadow-[0_0_10px_rgba(127,255,212,0.6)]",
             )}
             style={{ transform: `scaleY(${i === activeIndex ? 1 : 0.3})` }}
           />
         ))}
       </div>
 
-      <div className="absolute inset-x-0 bottom-0 z-20 h-px bg-border">
+      <div className="absolute inset-x-0 bottom-0 z-20 h-px bg-[#00ff66]/20">
         <div
-          className="h-full bg-gradient-to-r from-neon via-cyan to-magenta"
+          className="h-full bg-gradient-to-r from-[#00ff66] via-[#7fffd4] to-[#00f0ff]"
           style={{ width: `${progress * 100}%` }}
         />
       </div>
 
-      <p className="absolute bottom-5 left-4 z-20 font-mono text-[10px] tracking-[0.3em] text-muted-dim sm:left-6">
-        <span className="text-neon">
+      <p className="absolute bottom-5 left-4 z-20 font-mono text-[10px] tracking-[0.3em] text-[#8fb8b0] sm:left-6">
+        <span className="text-[#7fffd4]">
           {String(activeIndex + 1).padStart(2, "0")}
         </span>
-        <span className="text-border"> / </span>
+        <span className="text-[#00ff66]/30"> / </span>
         {String(phaseCount).padStart(2, "0")}
       </p>
 
-      <div
+      <p
         className={cn(
-          "absolute bottom-5 left-1/2 z-20 -translate-x-1/2 font-mono text-[10px] tracking-[0.25em] text-muted-dim uppercase transition-opacity duration-500",
+          "lain-cursor absolute bottom-5 left-1/2 z-20 -translate-x-1/2 font-mono text-[10px] tracking-[0.25em] text-[#7fffd4] lowercase transition-opacity duration-500",
           progress > 0.06 ? "opacity-0" : "opacity-100",
         )}
         aria-hidden
       >
-        <span className="animate-bounce-subtle block text-center">▼ scroll</span>
-      </div>
+        layer 07: de-cipher
+      </p>
     </>
   );
 }
 
 function HeroBackdrop({
-  progress,
-  parallax,
+  reduced,
+  mouseRef,
 }: {
-  progress: number;
-  parallax: (factor: number) => number;
+  reduced: boolean;
+  mouseRef?: RefObject<Pointer>;
 }) {
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
-      <div className="absolute inset-0 bg-background" />
+      {reduced || !mouseRef ? (
+        <div
+          className="absolute inset-0 opacity-40"
+          style={{
+            backgroundImage:
+              "repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,40,42,0.55) 3px, rgba(0,40,42,0.55) 4px)",
+          }}
+        />
+      ) : (
+        <RainGL mouseRef={mouseRef} />
+      )}
 
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(3,11,12,0.35)_55%,rgba(3,11,12,0.88)_100%)]" />
       <div
-        className="hero-perspective-grid absolute inset-x-0 bottom-0 h-[42%] opacity-40"
-        style={{ transform: `translateY(${parallax(-15)}px)` }}
+        className="absolute inset-0 z-[2] opacity-40 mix-blend-multiply"
+        style={{
+          backgroundImage:
+            "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.28) 2px, rgba(0,0,0,0.28) 3px)",
+        }}
       />
-
-      <div
-        className="absolute -top-1/4 left-1/4 size-[min(80vw,520px)] rounded-full bg-neon/8 blur-[100px]"
-        style={{ transform: `translate(${parallax(25)}px, ${parallax(15)}px)` }}
-      />
-      <div
-        className="absolute right-0 bottom-0 size-[min(70vw,400px)] rounded-full bg-cyan/8 blur-[90px]"
-        style={{ transform: `translate(${parallax(-20)}px, ${parallax(-10)}px)` }}
-      />
-
-      <div className="hero-nodes absolute inset-0 opacity-20" />
-      <div className="hero-scan-beam absolute inset-x-0 top-0 h-16 opacity-20" />
-      <div className="absolute inset-0 bg-scanlines opacity-20" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_50%,#050505_100%)]" />
 
       <div className="hero-hud-corner absolute top-5 left-4 sm:top-6 sm:left-6" />
       <div className="hero-hud-corner absolute top-5 right-4 rotate-90 sm:top-6 sm:right-6" />
       <div className="hero-hud-corner absolute bottom-14 left-4 -rotate-90 sm:bottom-16 sm:left-6" />
       <div className="hero-hud-corner absolute right-4 bottom-14 rotate-180 sm:right-6 sm:bottom-16" />
-
-      <div
-        className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-neon/50 to-transparent"
-        style={{ opacity: 0.4 + progress * 0.6 }}
-      />
     </div>
   );
 }
@@ -293,33 +303,47 @@ function HeroContent({
   showCta?: boolean;
   active?: boolean;
 }) {
+  const lockup = "lockup" in phase && phase.lockup;
+
   return (
     <div className="w-full text-center sm:text-left">
       <p
         className={cn(
-          "font-mono text-[11px] tracking-[0.35em] uppercase",
+          "font-mono text-[11px] tracking-[0.28em]",
           accentText[phase.accent],
         )}
       >
         {phase.eyebrow}
       </p>
 
-      <h1 className="mt-4 text-3xl leading-[1.1] font-medium tracking-tight text-foreground sm:text-4xl lg:text-[2.75rem]">
-        {phase.title}
-      </h1>
-
-      <p className="mx-auto mt-5 max-w-xl text-sm leading-relaxed text-muted-dim sm:mx-0 sm:text-base">
-        {phase.body}
-      </p>
+      {lockup ? (
+        <>
+          <h1 className="font-sans lain-glow relative mt-6 text-[clamp(2.2rem,10vw,6.4rem)] leading-none font-normal tracking-[0.06em] text-[#e8fff8] lowercase">
+            <GlitchWord text="layer07" />
+          </h1>
+          <p className="mt-5 max-w-xl font-mono text-[11px] leading-relaxed tracking-[0.16em] text-[#8fb8b0] sm:text-xs">
+            {phase.body}
+          </p>
+        </>
+      ) : (
+        <>
+          <h1 className="font-sans mt-4 text-3xl leading-[1.1] font-normal tracking-[0.06em] text-[#e8fff8] lowercase sm:text-4xl lg:text-[2.75rem]">
+            {phase.title}
+          </h1>
+          <p className="mx-auto mt-5 max-w-xl font-mono text-sm leading-relaxed text-[#8fb8b0] sm:mx-0 sm:text-base">
+            {phase.body}
+          </p>
+        </>
+      )}
 
       {"metrics" in phase && phase.metrics ? (
         <div className="mt-8 flex flex-wrap justify-center gap-8 sm:justify-start">
           {phase.metrics.map((m) => (
             <div key={m.label} className="text-center sm:text-left">
-              <p className="font-mono text-2xl text-neon text-glow-neon sm:text-3xl">
+              <p className="font-mono text-2xl text-[#7fffd4] text-glow-neon sm:text-3xl">
                 {m.value}
               </p>
-              <p className="mt-1 font-mono text-[10px] tracking-[0.2em] text-muted-dim uppercase">
+              <p className="mt-1 font-mono text-[10px] tracking-[0.2em] text-[#8fb8b0] uppercase">
                 {m.label}
               </p>
             </div>
@@ -331,24 +355,24 @@ function HeroContent({
         {active ? (
           <TypeLine key={phase.id} text={phase.command} startDelayMs={120} />
         ) : (
-          <p className="font-mono text-sm text-muted-dim">
-            <span className="text-neon">root@layer07</span>
-            <span className="text-cyan">:~$</span> {phase.command}
+          <p className="font-mono text-sm text-[#8fb8b0]">
+            <span className="text-[#00ff66]">guest@layer07</span>
+            <span className="text-[#00f0ff]">:~$</span> {phase.command}
           </p>
         )}
       </div>
 
       {showCta ? (
         <div className="mt-10 flex flex-wrap justify-center gap-4 sm:justify-start">
-          <NeonButton href="/contacto">Iniciar conexión</NeonButton>
+          <NeonButton href="/contacto">iniciar conexión</NeonButton>
           <NeonButton href="/portafolio" variant="ghost">
-            Ver nodos en producción
+            ver nodos en producción
           </NeonButton>
         </div>
       ) : null}
 
-      <p className="mt-8 font-mono text-[10px] tracking-widest text-muted-dim uppercase">
-        <span className="text-cyan">session</span> · dark · edge · scl
+      <p className="mt-8 font-mono text-[10px] tracking-[0.22em] text-[#8fb8b0]">
+        a body in Santiago · a ghost in the Wired
       </p>
     </div>
   );

@@ -11,11 +11,11 @@ type NeonButtonProps = {
 
 const variants = {
   neon:
-    "border-neon text-neon border-glow hover:bg-neon/15 hover:shadow-neon hover:brightness-110",
+    "border-[#00ff66]/50 text-[#7fffd4] hover:border-[#7fffd4] hover:bg-[#00ff66]/10 hover:text-white",
   cyan:
-    "border-cyan text-cyan border-glow-cyan hover:bg-cyan/15 hover:shadow-cyan hover:brightness-110",
+    "border-[#00f0ff]/40 text-[#00f0ff] hover:border-[#00f0ff] hover:bg-[#00f0ff]/10 hover:text-white",
   ghost:
-    "border-border text-muted hover:border-neon/60 hover:bg-neon/5 hover:text-neon hover:shadow-neon",
+    "border-white/15 text-[#8fb8b0] hover:border-[#7fffd4]/50 hover:bg-white/5 hover:text-[#e8fff8]",
 } as const;
 
 export function NeonButton({
@@ -26,7 +26,7 @@ export function NeonButton({
   external,
 }: NeonButtonProps) {
   const classes = cn(
-    "inline-flex cursor-pointer items-center justify-center gap-2 border px-5 py-3 font-mono text-xs tracking-[0.18em] uppercase transition-all duration-200 ease-out glitch-hover hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]",
+    "inline-flex cursor-pointer items-center justify-center gap-2 border border-dashed px-5 py-3 font-mono text-xs tracking-[0.18em] lowercase transition-all duration-200 ease-out hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]",
     variants[variant],
     className,
   );

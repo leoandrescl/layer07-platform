@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Accordion } from "@/components/ui/Accordion";
 import { ContactForm } from "@/components/contact/ContactForm";
+import { PageHero } from "@/components/ui/PageHero";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { SITE, whatsappUrl } from "@/lib/site";
 
@@ -34,72 +35,73 @@ const faq = [
 export default function ContactoPage() {
   return (
     <>
-      <section className="border-b border-border">
-        <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
-          <p className="font-mono text-[11px] tracking-[0.3em] text-neon uppercase">
-            /contacto
-          </p>
-          <h1 className="mt-4 max-w-3xl text-3xl tracking-tight text-foreground sm:text-4xl">
-            Establecer Comunicación Directa
-          </h1>
-          <p className="mt-5 max-w-2xl text-sm leading-relaxed text-muted-dim sm:text-base">
-            Formulario con Resend + validación en tiempo real. También canales
-            directos abajo.
-          </p>
-        </div>
-      </section>
+      <PageHero
+        path="/contacto"
+        title="Establecer Comunicación Directa"
+        description="Formulario con Resend + validación en tiempo real. También canales directos abajo."
+      />
 
       <section className="mx-auto grid max-w-6xl gap-10 px-4 py-16 sm:px-6 lg:grid-cols-2">
         <div>
-          <SectionHeading eyebrow="Form" title="Nueva transmisión" />
+          <SectionHeading eyebrow="form" title="Nueva transmisión" />
           <div className="mt-8">
             <ContactForm />
           </div>
         </div>
 
         <div>
-          <SectionHeading eyebrow="Canales" title="Datos corporativos" />
-          <ul className="mt-8 space-y-4 border border-border bg-surface/50 p-5 font-mono text-sm text-muted-dim">
+          <SectionHeading eyebrow="canales" title="Datos corporativos" />
+          <ul className="mt-8 space-y-4 wired-frame p-5 font-mono text-sm text-[#8fb8b0]">
             <li>
-              <span className="text-cyan">email</span> ·{" "}
-              <a href={`mailto:${SITE.email}`} className="hover:text-neon">
+              <span className="text-[#00f0ff]">email</span> ·{" "}
+              <a href={`mailto:${SITE.email}`} className="hover:text-[#7fffd4]">
                 {SITE.email}
               </a>
             </li>
             <li>
-              <span className="text-cyan">tel</span> ·{" "}
-              <a href={`tel:${SITE.phone}`} className="hover:text-neon">
+              <span className="text-[#00f0ff]">tel</span> ·{" "}
+              <a href={`tel:${SITE.phone}`} className="hover:text-[#7fffd4]">
                 {SITE.phoneDisplay}
               </a>
             </li>
             <li>
-              <span className="text-cyan">wa</span> ·{" "}
+              <span className="text-[#00f0ff]">wa</span> ·{" "}
               <a
                 href={whatsappUrl()}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-neon"
+                className="hover:text-[#7fffd4]"
               >
                 Abrir WhatsApp
               </a>
             </li>
             <li>
-              <span className="text-cyan">geo</span> · {SITE.location}
+              <span className="text-[#00f0ff]">geo</span> · {SITE.location}
             </li>
             <li>
-              <span className="text-cyan">net</span> ·{" "}
-              <a href={SITE.social.github} className="hover:text-neon" target="_blank" rel="noopener noreferrer">
+              <span className="text-[#00f0ff]">net</span> ·{" "}
+              <a
+                href={SITE.social.github}
+                className="hover:text-[#7fffd4]"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 GitHub
               </a>
               {" / "}
-              <a href={SITE.social.linkedin} className="hover:text-neon" target="_blank" rel="noopener noreferrer">
+              <a
+                href={SITE.social.linkedin}
+                className="hover:text-[#7fffd4]"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 LinkedIn
               </a>
             </li>
           </ul>
 
           <div className="mt-10">
-            <SectionHeading eyebrow="FAQ" title="Pre-contacto" />
+            <SectionHeading eyebrow="faq" title="Pre-contacto" />
             <Accordion className="mt-6" items={faq} />
           </div>
         </div>

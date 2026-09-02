@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { CtaTerminal } from "@/components/shared/CtaTerminal";
+import { PageHero } from "@/components/ui/PageHero";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { TerminalPanel } from "@/components/ui/TerminalPanel";
 import { SITE } from "@/lib/site";
@@ -32,45 +33,38 @@ const pillars = [
 export default function NosotrosPage() {
   return (
     <>
-      <section className="border-b border-border">
-        <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
-          <p className="font-mono text-[11px] tracking-[0.3em] text-neon uppercase">
-            /nosotros
-          </p>
-          <h1 className="mt-4 max-w-3xl text-3xl tracking-tight text-foreground sm:text-4xl">
-            Ingeniería independiente con ownership completo
-          </h1>
-          <p className="mt-5 max-w-2xl text-sm leading-relaxed text-muted-dim sm:text-base">
-            {SITE.name} es el estudio técnico de {SITE.founder.name}: Product
-            Engineer con foco en sistemas que sobreviven al lanzamiento.
-          </p>
-        </div>
-      </section>
+      <PageHero
+        path="/nosotros"
+        title="Ingeniería independiente con ownership completo"
+        description={`${SITE.name} es el estudio técnico de ${SITE.founder.name}: Product Engineer con foco en sistemas que sobreviven al lanzamiento.`}
+      />
 
       <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
         <SectionHeading
-          eyebrow="Historia"
+          eyebrow="historia"
           title="Visión de nodo"
           description={`${SITE.founder.years} años entregando software funcional en producción — no demos descartables.`}
         />
-        <p className="mt-8 max-w-3xl text-sm leading-relaxed text-muted-dim sm:text-base">
+        <p className="mt-8 max-w-3xl font-mono text-sm leading-relaxed text-[#8fb8b0] sm:text-base">
           De storefronts headless a torres de control operacionales: el hilo
           conductor es ownership. Un lead que une UI, backend, datos y cloud
           sin fragmentar la responsabilidad entre agencias.
         </p>
       </section>
 
-      <section className="border-y border-border bg-surface/40">
+      <section className="border-y border-dashed border-[#00ff66]/25 bg-black/30">
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-          <SectionHeading eyebrow="Manifiesto" title="Cuatro principios" />
+          <SectionHeading eyebrow="manifiesto" title="Cuatro principios" />
           <div className="mt-10 grid gap-4 sm:grid-cols-2">
             {pillars.map((p, i) => (
-              <div key={p.title} className="border border-border bg-background/50 p-5">
-                <p className="font-mono text-[10px] tracking-widest text-cyan">
+              <div key={p.title} className="wired-frame p-5">
+                <p className="font-mono text-[10px] tracking-widest text-[#00f0ff]">
                   PILLAR_{String(i + 1).padStart(2, "0")}
                 </p>
-                <h3 className="mt-3 text-foreground">{p.title}</h3>
-                <p className="mt-2 text-sm text-muted-dim">{p.body}</p>
+                <h3 className="font-sans mt-3 tracking-[0.04em] text-[#e8fff8] lowercase">
+                  {p.title}
+                </h3>
+                <p className="mt-2 font-mono text-sm text-[#8fb8b0]">{p.body}</p>
               </div>
             ))}
           </div>
@@ -79,19 +73,21 @@ export default function NosotrosPage() {
 
       <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
         <SectionHeading
-          eyebrow="Valor"
+          eyebrow="valor"
           title="Product Engineer, no intermediario"
           description="UI, backend, DB y cloud bajo un mismo criterio de calidad."
         />
         <TerminalPanel className="mt-10" title="user://leonardo-contreras">
           <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
             <div>
-              <p className="font-mono text-[10px] tracking-widest text-neon uppercase">
+              <p className="font-mono text-[10px] tracking-widest text-[#7fffd4] uppercase">
                 Lead Engineer
               </p>
-              <h2 className="mt-2 text-2xl text-foreground">{SITE.founder.name}</h2>
-              <p className="mt-2 text-sm text-muted-dim">{SITE.founder.role}</p>
-              <p className="mt-4 max-w-xl text-sm leading-relaxed text-muted-dim">
+              <h2 className="font-sans mt-2 text-2xl tracking-[0.06em] text-[#e8fff8] lowercase">
+                {SITE.founder.name}
+              </h2>
+              <p className="mt-2 font-mono text-sm text-[#8fb8b0]">{SITE.founder.role}</p>
+              <p className="mt-4 max-w-xl font-mono text-sm leading-relaxed text-[#8fb8b0]">
                 Especialista en Next.js, TypeScript, GraphQL, Shopify
                 (Liquid/Storefront API), WooCommerce a medida, AWS Lightsail y
                 DigitalOcean.
@@ -99,7 +95,7 @@ export default function NosotrosPage() {
               <div className="mt-5 flex flex-wrap gap-3 font-mono text-[11px]">
                 <a
                   href={SITE.social.github}
-                  className="text-cyan hover:text-neon"
+                  className="text-[#00f0ff] hover:text-[#7fffd4]"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -107,13 +103,13 @@ export default function NosotrosPage() {
                 </a>
                 <a
                   href={SITE.social.linkedin}
-                  className="text-cyan hover:text-neon"
+                  className="text-[#00f0ff] hover:text-[#7fffd4]"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
                   [LinkedIn]
                 </a>
-                <a href={`mailto:${SITE.email}`} className="text-cyan hover:text-neon">
+                <a href={`mailto:${SITE.email}`} className="text-[#00f0ff] hover:text-[#7fffd4]">
                   [Email]
                 </a>
               </div>
@@ -122,7 +118,7 @@ export default function NosotrosPage() {
               {SITE.founder.stack.map((tech) => (
                 <span
                   key={tech}
-                  className="border border-border px-2 py-1 text-[10px] tracking-wider text-muted-dim uppercase"
+                  className="border border-dashed border-[#00ff66]/25 px-2 py-1 font-mono text-[10px] tracking-wider text-[#8fb8b0] uppercase"
                 >
                   {tech}
                 </span>
@@ -132,7 +128,7 @@ export default function NosotrosPage() {
         </TerminalPanel>
       </section>
 
-      <CtaTerminal title="Hablar con el lead engineer" cta="Abrir contacto" />
+      <CtaTerminal title="Hablar con el lead engineer" cta="abrir contacto" />
     </>
   );
 }

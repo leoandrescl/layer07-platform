@@ -53,17 +53,17 @@ export function ContactForm() {
 
   if (status === "success") {
     return (
-      <div className="border border-neon/50 bg-surface p-6 font-mono text-sm shadow-neon">
-        <p className="text-neon">root@layer07:~$ send --status ok</p>
-        <p className="mt-3 text-muted">
+      <div className="wired-frame p-6 font-mono text-sm">
+        <p className="text-[#00ff66]">guest@layer07:~$ send --status ok</p>
+        <p className="mt-3 text-[#c8efe6]">
           Transmisión recibida. Responderemos por el canal indicado.
         </p>
         <button
           type="button"
-          className="mt-6 cursor-pointer border border-border px-4 py-2 text-[11px] tracking-widest text-cyan uppercase transition-all duration-200 hover:border-cyan hover:bg-cyan/10 hover:-translate-y-0.5"
+          className="mt-6 cursor-pointer border border-dashed border-[#00ff66]/35 px-4 py-2 text-[11px] tracking-widest text-[#00f0ff] lowercase transition-all duration-200 hover:border-[#00f0ff] hover:bg-[#00f0ff]/10 hover:-translate-y-0.5"
           onClick={() => setStatus("idle")}
         >
-          Nueva transmisión
+          nueva transmisión
         </button>
       </div>
     );
@@ -79,20 +79,20 @@ export function ContactForm() {
         ] as const
       ).map((field) => (
         <label key={field.name} className="block">
-          <span className="font-mono text-[10px] tracking-widest text-muted-dim uppercase">
+          <span className="font-mono text-[10px] tracking-widest text-[#8fb8b0] uppercase">
             {field.label}
           </span>
           <input
             type={field.type}
             className={cn(
-              "mt-2 w-full border bg-background px-3 py-3 font-mono text-sm text-foreground outline-none transition-colors placeholder:text-muted-dim/50 focus:border-neon",
-              errors[field.name] ? "border-magenta" : "border-border",
+              "mt-2 w-full border border-dashed bg-black/50 px-3 py-3 font-mono text-sm text-[#e8fff8] outline-none transition-colors placeholder:text-[#8fb8b0]/50 focus:border-[#7fffd4]",
+              errors[field.name] ? "border-[#ff0055]" : "border-[#00ff66]/30",
             )}
             placeholder={`> ${field.label.toLowerCase()}`}
             {...register(field.name)}
           />
           {errors[field.name] ? (
-            <span className="mt-1 block font-mono text-[11px] text-magenta">
+            <span className="mt-1 block font-mono text-[11px] text-[#ff0055]">
               {errors[field.name]?.message}
             </span>
           ) : null}
@@ -100,27 +100,27 @@ export function ContactForm() {
       ))}
 
       <label className="block">
-        <span className="font-mono text-[10px] tracking-widest text-muted-dim uppercase">
+        <span className="font-mono text-[10px] tracking-widest text-[#8fb8b0] uppercase">
           Mensaje
         </span>
         <textarea
           rows={5}
           className={cn(
-            "mt-2 w-full resize-y border bg-background px-3 py-3 font-mono text-sm text-foreground outline-none transition-colors placeholder:text-muted-dim/50 focus:border-neon",
-            errors.message ? "border-magenta" : "border-border",
+            "mt-2 w-full resize-y border border-dashed bg-black/50 px-3 py-3 font-mono text-sm text-[#e8fff8] outline-none transition-colors placeholder:text-[#8fb8b0]/50 focus:border-[#7fffd4]",
+            errors.message ? "border-[#ff0055]" : "border-[#00ff66]/30",
           )}
           placeholder="> describe el sistema, deadline e integraciones..."
           {...register("message")}
         />
         {errors.message ? (
-          <span className="mt-1 block font-mono text-[11px] text-magenta">
+          <span className="mt-1 block font-mono text-[11px] text-[#ff0055]">
             {errors.message.message}
           </span>
         ) : null}
       </label>
 
       {status === "error" ? (
-        <p className="font-mono text-xs text-magenta">
+        <p className="font-mono text-xs text-[#ff0055]">
           ERR: {serverMessage || "No se pudo enviar"}
         </p>
       ) : null}
@@ -128,9 +128,9 @@ export function ContactForm() {
       <button
         type="submit"
         disabled={status === "loading"}
-        className="w-full cursor-pointer border border-neon bg-neon/10 px-4 py-3 font-mono text-xs tracking-[0.2em] text-neon uppercase shadow-neon transition-all duration-200 hover:bg-neon/20 hover:-translate-y-0.5 hover:shadow-neon active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
+        className="w-full cursor-pointer border border-dashed border-[#00ff66]/50 bg-[#00ff66]/10 px-4 py-3 font-mono text-xs tracking-[0.2em] text-[#7fffd4] lowercase transition-all duration-200 hover:bg-[#00ff66]/20 hover:-translate-y-0.5 hover:text-white active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
       >
-        {status === "loading" ? "Transmitiendo..." : "Enviar transmisión"}
+        {status === "loading" ? "transmitiendo..." : "enviar transmisión"}
       </button>
     </form>
   );

@@ -45,8 +45,8 @@ export function TypeLine({ text, className, startDelayMs = 400 }: TypeLineProps)
 
   return (
     <p className={cn("font-mono text-sm text-muted-dim sm:text-base", className)}>
-      <span className="text-neon">root@layer07</span>
-      <span className="text-cyan">:~$</span> {visible}
+      <span className="text-[#00ff66]">guest@layer07</span>
+      <span className="text-[#00f0ff]">:~$</span> {visible}
       <span
         className={cn(
           "ml-0.5 inline-block h-[1.1em] w-[0.55ch] translate-y-[0.1em] bg-neon align-baseline",

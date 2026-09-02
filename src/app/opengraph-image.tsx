@@ -14,10 +14,10 @@ export default function OpenGraphImage() {
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          background: "#050505",
+          background: "#030b0c",
           padding: 64,
-          color: "#E2E8F0",
-          border: "2px solid #00FF66",
+          color: "#C8EFE6",
+          border: "1px dashed #00FF66",
         }}
       >
         <div
@@ -27,7 +27,7 @@ export default function OpenGraphImage() {
             alignItems: "center",
             fontSize: 22,
             letterSpacing: 6,
-            color: "#00FF66",
+            color: "#7FFFD4",
             textTransform: "uppercase",
           }}
         >
@@ -36,13 +36,13 @@ export default function OpenGraphImage() {
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-          <div style={{ fontSize: 72, fontWeight: 700, color: "#FFFFFF", lineHeight: 1.05 }}>
+          <div style={{ fontSize: 72, fontWeight: 700, color: "#E8FFF8", lineHeight: 1.05 }}>
             Full Stack Engineering
           </div>
-          <div style={{ fontSize: 36, color: "#00FF66" }}>
+          <div style={{ fontSize: 36, color: "#7FFFD4" }}>
             & High-Performance E-commerce
           </div>
-          <div style={{ fontSize: 24, color: "#94A3B8", marginTop: 8 }}>
+          <div style={{ fontSize: 24, color: "#8FB8B0", marginTop: 8 }}>
             Sistemas a medida · Headless · Integraciones API
           </div>
         </div>

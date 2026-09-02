@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Courier_Prime, Geist, Geist_Mono, Special_Elite } from "next/font/google";
 import { SITE } from "@/lib/site";
 import "./globals.css";
 
@@ -11,6 +11,18 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+const lainMono = Courier_Prime({
+  weight: ["400", "700"],
+  subsets: ["latin"],
+  variable: "--font-lain-mono",
+});
+
+const lainDisplay = Special_Elite({
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-lain-display",
 });
 
 export const metadata: Metadata = {
@@ -46,7 +58,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="es"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      data-scroll-behavior="smooth"
+      className={`${geistSans.variable} ${geistMono.variable} ${lainMono.variable} ${lainDisplay.variable} h-full antialiased`}
     >
       <body className="min-h-full font-mono text-foreground antialiased">
         {children}

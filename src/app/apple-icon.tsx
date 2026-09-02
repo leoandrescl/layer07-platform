@@ -14,9 +14,9 @@ export default function AppleIcon() {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          background: "#050505",
-          border: "6px solid #00FF66",
-          color: "#00FF66",
+          background: "#030b0c",
+          border: "4px dashed #7FFFD4",
+          color: "#7FFFD4",
         }}
       >
         <div style={{ fontSize: 28, letterSpacing: 4, color: "#00F0FF" }}>LAYER</div>

@@ -19,40 +19,48 @@ export default function LabsIndexPage() {
   const sites = getLabs();
 
   return (
-    <div className="bg-grid relative flex min-h-dvh flex-col">
-      <div className="mx-auto w-full max-w-3xl flex-1 px-4 py-16 sm:px-6 sm:py-20">
-        <p className="font-mono text-[11px] tracking-[0.3em] text-neon uppercase">
+    <div className="seven-root relative flex min-h-dvh flex-col bg-[#030b0c]">
+      <div
+        className="pointer-events-none absolute inset-0 opacity-40 mix-blend-multiply"
+        style={{
+          backgroundImage:
+            "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.28) 2px, rgba(0,0,0,0.28) 3px)",
+        }}
+        aria-hidden
+      />
+      <div className="relative mx-auto w-full max-w-3xl flex-1 px-4 py-16 sm:px-6 sm:py-20">
+        <p className="font-mono text-[11px] tracking-[0.28em] text-[#7fffd4]">
           /labs
         </p>
-        <h1 className="mt-4 text-3xl tracking-tight text-foreground sm:text-4xl">
-          Vitrinas
+        <h1 className="font-sans lain-glow mt-4 text-3xl tracking-[0.06em] text-[#e8fff8] lowercase sm:text-4xl">
+          vitrinas
         </h1>
-        <p className="mt-5 max-w-xl text-sm leading-relaxed text-muted-dim">
+        <p className="mt-5 max-w-xl font-mono text-sm leading-relaxed text-[#8fb8b0]">
           Sitios demo con layout propio. El estudio sigue en{" "}
-          <Link href="/" className="text-cyan hover:text-neon">
+          <Link href="/" className="text-[#00f0ff] hover:text-[#7fffd4]">
             {SITE.domain}
           </Link>
           ; estas rutas no heredan header, footer ni WhatsApp.
         </p>
 
-        <ul className="mt-12 divide-y divide-border border border-border">
+        <ul className="mt-12 divide-y divide-[#00ff66]/20 border border-dashed border-[#00ff66]/35">
           {sites.map((site) => (
             <li key={site.slug}>
               <Link
                 href={site.path}
-                className="flex items-baseline justify-between gap-4 px-4 py-4 hover:bg-surface/60"
+                className="flex items-baseline justify-between gap-4 px-4 py-4 hover:bg-white/5"
               >
                 <span>
-                  <span className="font-mono text-sm text-foreground">
+                  <span className="font-sans text-sm tracking-[0.04em] text-[#e8fff8] lowercase">
                     {site.name}
                   </span>
-                  <span className="mt-1 block font-mono text-[11px] text-muted-dim">
+                  <span className="mt-1 block font-mono text-[11px] text-[#8fb8b0]">
                     {site.path}
-                    <span className="mx-2 text-border">·</span>
+                    <span className="mx-2 text-[#00ff66]/30">·</span>
                     {site.summary}
                   </span>
                 </span>
-                <span className="shrink-0 font-mono text-[10px] tracking-widest text-cyan uppercase">
+                <span className="shrink-0 font-mono text-[10px] tracking-widest text-[#00f0ff] uppercase">
                   {STATUS_LABEL[site.status]}
                 </span>
               </Link>
