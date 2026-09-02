@@ -3,12 +3,22 @@
 import { useEffect, useRef } from "react";
 
 const CHARS = " .:=+*#%@";
-const SRC = "/seven/wired-face.png";
+
+const FRAMES = [
+  { src: "/seven/wired-face.png", sx: 1.13, minLum: 0.11 },
+  { src: "/seven/wired-build.png", sx: 1, minLum: 0.08 },
+] as const;
+
+const SWAP_MS = 7000;
+const SWAP_GLITCH_MS = 420;
+
+type Baked = HTMLCanvasElement;
 
 function bakeAscii(
   source: CanvasImageSource,
   cols: number,
   rows: number,
+  minLum: number,
 ) {
   const sample = document.createElement("canvas");
   sample.width = cols;
@@ -40,7 +50,7 @@ function bakeAscii(
       const g = pixels[i + 1] ?? 0;
       const b = pixels[i + 2] ?? 0;
       const lum = (0.22 * r + 0.55 * g + 0.23 * b) / 255;
-      if (lum < 0.11) continue;
+      if (lum < minLum) continue;
       const idx = Math.min(CHARS.length - 1, Math.floor(lum * CHARS.length));
       const cyan = Math.min(255, 90 + lum * 180);
       const green = Math.min(255, 40 + lum * 220);
@@ -50,6 +60,18 @@ function bakeAscii(
   }
 
   return baked;
+}
+
+function fitRect(
+  baked: Baked,
+  w: number,
+  h: number,
+  sx: number,
+) {
+  const scale = Math.min(w / (baked.width * sx), h / baked.height);
+  const dw = baked.width * scale * sx;
+  const dh = baked.height * scale;
+  return { dx: (w - dw) / 2, dy: (h - dh) / 2, dw, dh, scale };
 }
 
 export function AsciiFace({ reducedMotion }: { reducedMotion: boolean }) {
@@ -62,13 +84,22 @@ export function AsciiFace({ reducedMotion }: { reducedMotion: boolean }) {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    let baked: HTMLCanvasElement | null = null;
+    const baked: Array<Baked | null> = [null, null];
+    const images = FRAMES.map((frame) => {
+      const img = new Image();
+      img.src = frame.src;
+      return img;
+    });
+
+    let current = 0;
+    let next = 1;
     let raf = 0;
-    let wait = 0;
+    let idleWait = 0;
+    let swapWait = 0;
     let running = true;
     let glitchUntil = 0;
-    const img = new Image();
-    img.src = SRC;
+    let swapUntil = 0;
+    let swapStart = 0;
 
     const layout = () => {
       const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
@@ -83,92 +114,215 @@ export function AsciiFace({ reducedMotion }: { reducedMotion: boolean }) {
       return { w, h, dpr };
     };
 
-    const rebuild = () => {
-      if (!img.complete || img.naturalWidth === 0) return;
+    const rebuildOne = (index: number) => {
+      const img = images[index];
+      const frame = FRAMES[index];
+      if (!img || !frame || !img.complete || img.naturalWidth === 0) return;
       const { w } = layout();
-      const cols = Math.max(42, Math.min(86, Math.floor(w / 6.2)));
+      const cols = Math.max(42, Math.min(96, Math.floor(w / 6.2)));
       const rows = Math.round((cols * img.naturalHeight) / img.naturalWidth);
-      baked = bakeAscii(img, cols, rows);
+      baked[index] = bakeAscii(img, cols, rows, frame.minLum);
     };
 
-    const paint = (now: number, glitch: boolean) => {
+    const rebuild = () => {
+      rebuildOne(0);
+      rebuildOne(1);
+    };
+
+    const drawFitted = (frame: Baked, sx: number, w: number, h: number) => {
+      const r = fitRect(frame, w, h, sx);
+      ctx.drawImage(frame, r.dx, r.dy, r.dw, r.dh);
+    };
+
+    const drawStrips = (
+      frame: Baked,
+      sx: number,
+      w: number,
+      h: number,
+      strips: number,
+      jitterX: number,
+      jitterY: number,
+    ) => {
+      const r = fitRect(frame, w, h, sx);
+      const stripH = frame.height / strips;
+      for (let i = 0; i < strips; i += 1) {
+        const sy = i * stripH;
+        const ox = (Math.random() - 0.5) * jitterX;
+        const oy = (Math.random() - 0.5) * jitterY;
+        ctx.drawImage(
+          frame,
+          0,
+          sy,
+          frame.width,
+          stripH,
+          r.dx + ox,
+          r.dy + sy * r.scale + oy,
+          r.dw,
+          stripH * r.scale,
+        );
+      }
+    };
+
+    const paintIdle = (glitch: boolean) => {
       if (!running) return;
       const { w, h, dpr } = layout();
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.fillStyle = "#000000";
       ctx.fillRect(0, 0, w, h);
 
-      if (baked) {
-        const faceSx = 1.13;
-        const scale = Math.min(w / (baked.width * faceSx), h / baked.height);
-        const dw = baked.width * scale * faceSx;
-        const dh = baked.height * scale;
-        const dx = (w - dw) / 2;
-        const dy = (h - dh) / 2;
+      const frame = baked[current];
+      const sx = FRAMES[current]?.sx ?? 1;
+      if (!frame) return;
 
-        if (glitch) {
-          const strips = 9;
-          const stripH = baked.height / strips;
-          for (let i = 0; i < strips; i += 1) {
-            const sy = i * stripH;
-            const ox = (Math.random() - 0.5) * 18;
-            ctx.drawImage(
-              baked,
-              0,
-              sy,
-              baked.width,
-              stripH,
-              dx + ox,
-              dy + sy * scale,
-              dw,
-              stripH * scale,
-            );
-          }
-        } else {
-          ctx.drawImage(baked, dx, dy, dw, dh);
-        }
+      if (glitch) {
+        drawStrips(frame, sx, w, h, 9, 18, 0);
+      } else {
+        drawFitted(frame, sx, w, h);
       }
     };
 
-    const burst = (now: number) => {
+    const paintSwap = (now: number) => {
       if (!running) return;
-      paint(now, true);
+      const { w, h, dpr } = layout();
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.fillStyle = "#000000";
+      ctx.fillRect(0, 0, w, h);
+
+      const from = baked[current];
+      const to = baked[next];
+      const fromSx = FRAMES[current]?.sx ?? 1;
+      const toSx = FRAMES[next]?.sx ?? 1;
+      const t = Math.min(1, Math.max(0, (now - swapStart) / SWAP_GLITCH_MS));
+      const strips = 22;
+      const jitterX = 36 + t * 64;
+      const jitterY = 4 + t * 14;
+
+      if (from && (!to || Math.random() > t * 0.72)) {
+        drawStrips(from, fromSx, w, h, strips, jitterX, jitterY);
+      }
+      if (to) {
+        ctx.save();
+        ctx.globalAlpha = 0.35 + t * 0.65;
+        drawStrips(to, toSx, w, h, strips, jitterX * 1.15, jitterY);
+        ctx.restore();
+      }
+
+      ctx.save();
+      ctx.globalCompositeOperation = "screen";
+      ctx.globalAlpha = 0.28 + t * 0.22;
+      const chroma = from && Math.random() < 0.55 ? from : to;
+      const chromaSx = chroma === to ? toSx : fromSx;
+      if (chroma) {
+        const r = fitRect(chroma, w, h, chromaSx);
+        ctx.drawImage(chroma, r.dx + 10 + t * 8, r.dy, r.dw, r.dh);
+        ctx.drawImage(chroma, r.dx - 8 - t * 6, r.dy, r.dw, r.dh);
+      }
+      ctx.restore();
+
+      for (let i = 0; i < 3 + Math.floor(t * 4); i += 1) {
+        ctx.fillStyle = Math.random() < 0.4 ? "#00ff66" : "#000000";
+        ctx.globalAlpha = Math.random() < 0.4 ? 0.18 : 0.85;
+        ctx.fillRect(0, Math.random() * h, w, 2 + Math.random() * 16);
+      }
+      ctx.globalAlpha = 1;
+
+      if (Math.random() < 0.45) {
+        ctx.fillStyle = "rgba(0,240,255,0.07)";
+        ctx.fillRect(0, 0, w, h);
+      }
+    };
+
+    const idleBurst = (now: number) => {
+      if (!running) return;
+      if (swapUntil > 0) return;
+      paintIdle(true);
       if (now < glitchUntil) {
-        raf = requestAnimationFrame(burst);
+        raf = requestAnimationFrame(idleBurst);
         return;
       }
-      paint(now, false);
-      wait = window.setTimeout(() => {
+      paintIdle(false);
+      idleWait = window.setTimeout(() => {
         glitchUntil = performance.now() + 80 + Math.random() * 70;
-        raf = requestAnimationFrame(burst);
+        raf = requestAnimationFrame(idleBurst);
       }, 1800 + Math.random() * 2600);
     };
 
-    const onLoad = () => {
-      rebuild();
-      paint(performance.now(), false);
-      if (!reducedMotion) {
-        wait = window.setTimeout(() => {
-          glitchUntil = performance.now() + 90;
-          raf = requestAnimationFrame(burst);
-        }, 1400);
+    const swapBurst = (now: number) => {
+      if (!running) return;
+      paintSwap(now);
+      if (now < swapUntil) {
+        raf = requestAnimationFrame(swapBurst);
+        return;
       }
+      current = next;
+      next = 1 - current;
+      swapUntil = 0;
+      paintIdle(false);
+      scheduleIdle();
+      scheduleSwap();
     };
 
-    img.addEventListener("load", onLoad);
-    if (img.complete) onLoad();
+    const scheduleIdle = () => {
+      if (reducedMotion) return;
+      window.clearTimeout(idleWait);
+      idleWait = window.setTimeout(() => {
+        if (swapUntil > 0) return;
+        glitchUntil = performance.now() + 90;
+        raf = requestAnimationFrame(idleBurst);
+      }, 1400 + Math.random() * 800);
+    };
+
+    const beginSwap = () => {
+      if (!running) return;
+      if (!baked[0] || !baked[1]) {
+        scheduleSwap();
+        return;
+      }
+      window.clearTimeout(idleWait);
+      cancelAnimationFrame(raf);
+      next = 1 - current;
+      swapStart = performance.now();
+      if (reducedMotion) {
+        current = next;
+        next = 1 - current;
+        paintIdle(false);
+        scheduleSwap();
+        return;
+      }
+      swapUntil = swapStart + SWAP_GLITCH_MS + 80;
+      raf = requestAnimationFrame(swapBurst);
+    };
+
+    const scheduleSwap = () => {
+      window.clearTimeout(swapWait);
+      swapWait = window.setTimeout(beginSwap, SWAP_MS + Math.random() * 1800);
+    };
+
+    const tryStart = () => {
+      rebuild();
+      if (!baked[current]) return;
+      paintIdle(false);
+      scheduleIdle();
+      if (baked[0] && baked[1]) scheduleSwap();
+    };
 
     const onResize = () => {
       rebuild();
-      paint(performance.now(), false);
+      paintIdle(false);
     };
+
+    images.forEach((img) => {
+      img.addEventListener("load", tryStart);
+      if (img.complete) tryStart();
+    });
     window.addEventListener("resize", onResize);
 
     return () => {
       running = false;
       cancelAnimationFrame(raf);
-      window.clearTimeout(wait);
-      img.removeEventListener("load", onLoad);
+      window.clearTimeout(idleWait);
+      window.clearTimeout(swapWait);
+      images.forEach((img) => img.removeEventListener("load", tryStart));
       window.removeEventListener("resize", onResize);
     };
   }, [reducedMotion]);
