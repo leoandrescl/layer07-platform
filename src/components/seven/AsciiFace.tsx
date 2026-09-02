@@ -1,13 +1,17 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { isFaceLocked, subscribeDeck } from "./deck";
 
 const CHARS = " .:=+*#%@";
 
 const FRAMES = [
   { src: "/seven/wired-face.png", sx: 1.13, minLum: 0.11 },
   { src: "/seven/wired-build.png", sx: 1, minLum: 0.08 },
+  { src: "/seven/wired-track.png", sx: 1.08, minLum: 0.09 },
 ] as const;
+
+const LOCK_FRAME = 2;
 
 const SWAP_MS = 7000;
 const SWAP_GLITCH_MS = 420;
@@ -84,7 +88,7 @@ export function AsciiFace({ reducedMotion }: { reducedMotion: boolean }) {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const baked: Array<Baked | null> = [null, null];
+    const baked: Array<Baked | null> = FRAMES.map(() => null);
     const images = FRAMES.map((frame) => {
       const img = new Image();
       img.src = frame.src;
@@ -93,6 +97,7 @@ export function AsciiFace({ reducedMotion }: { reducedMotion: boolean }) {
 
     let current = 0;
     let next = 1;
+    let rotateIdx = 0;
     let raf = 0;
     let idleWait = 0;
     let swapWait = 0;
@@ -100,6 +105,7 @@ export function AsciiFace({ reducedMotion }: { reducedMotion: boolean }) {
     let glitchUntil = 0;
     let swapUntil = 0;
     let swapStart = 0;
+    let lockWanted = isFaceLocked();
 
     const layout = () => {
       const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
@@ -125,9 +131,10 @@ export function AsciiFace({ reducedMotion }: { reducedMotion: boolean }) {
     };
 
     const rebuild = () => {
-      rebuildOne(0);
-      rebuildOne(1);
+      FRAMES.forEach((_, index) => rebuildOne(index));
     };
+
+    const rotateTarget = () => (rotateIdx === 0 ? 1 : 0);
 
     const drawFitted = (frame: Baked, sx: number, w: number, h: number) => {
       const r = fitRect(frame, w, h, sx);
@@ -255,11 +262,19 @@ export function AsciiFace({ reducedMotion }: { reducedMotion: boolean }) {
         return;
       }
       current = next;
-      next = 1 - current;
       swapUntil = 0;
+      if (current !== LOCK_FRAME) rotateIdx = current;
       paintIdle(false);
+      if (lockWanted && current !== LOCK_FRAME) {
+        beginSwapTo(LOCK_FRAME);
+        return;
+      }
+      if (!lockWanted && current === LOCK_FRAME) {
+        beginSwapTo(rotateIdx === LOCK_FRAME ? 0 : rotateIdx);
+        return;
+      }
       scheduleIdle();
-      scheduleSwap();
+      if (current !== LOCK_FRAME) scheduleSwap();
     };
 
     const scheduleIdle = () => {
@@ -272,30 +287,51 @@ export function AsciiFace({ reducedMotion }: { reducedMotion: boolean }) {
       }, 1400 + Math.random() * 800);
     };
 
-    const beginSwap = () => {
+    const beginSwapTo = (target: number) => {
       if (!running) return;
-      if (!baked[0] || !baked[1]) {
-        scheduleSwap();
+      if (target === current && swapUntil === 0) return;
+      const dest = baked[target];
+      if (!dest) {
+        if (!lockWanted) scheduleSwap();
         return;
       }
       window.clearTimeout(idleWait);
       cancelAnimationFrame(raf);
-      next = 1 - current;
+      next = target;
       swapStart = performance.now();
       if (reducedMotion) {
-        current = next;
-        next = 1 - current;
+        current = target;
+        if (current !== LOCK_FRAME) rotateIdx = current;
+        swapUntil = 0;
         paintIdle(false);
-        scheduleSwap();
+        scheduleIdle();
+        if (current !== LOCK_FRAME && !lockWanted) scheduleSwap();
         return;
       }
       swapUntil = swapStart + SWAP_GLITCH_MS + 80;
       raf = requestAnimationFrame(swapBurst);
     };
 
+    const beginSwap = () => {
+      if (!running || lockWanted || current === LOCK_FRAME) return;
+      if (!baked[0] || !baked[1]) {
+        scheduleSwap();
+        return;
+      }
+      beginSwapTo(rotateTarget());
+    };
+
     const scheduleSwap = () => {
       window.clearTimeout(swapWait);
+      if (lockWanted || current === LOCK_FRAME) return;
       swapWait = window.setTimeout(beginSwap, SWAP_MS + Math.random() * 1800);
+    };
+
+    const syncLock = () => {
+      const want = isFaceLocked();
+      lockWanted = want;
+      if (want && current !== LOCK_FRAME) beginSwapTo(LOCK_FRAME);
+      else if (!want && current === LOCK_FRAME) beginSwapTo(rotateIdx);
     };
 
     const tryStart = () => {
@@ -303,13 +339,18 @@ export function AsciiFace({ reducedMotion }: { reducedMotion: boolean }) {
       if (!baked[current]) return;
       paintIdle(false);
       scheduleIdle();
-      if (baked[0] && baked[1]) scheduleSwap();
+      if (lockWanted && baked[LOCK_FRAME]) beginSwapTo(LOCK_FRAME);
+      else if (baked[0] && baked[1]) scheduleSwap();
     };
 
     const onResize = () => {
       rebuild();
       paintIdle(false);
     };
+
+    const unsubDeck = subscribeDeck(() => {
+      if (running) syncLock();
+    });
 
     images.forEach((img) => {
       img.addEventListener("load", tryStart);
@@ -319,6 +360,7 @@ export function AsciiFace({ reducedMotion }: { reducedMotion: boolean }) {
 
     return () => {
       running = false;
+      unsubDeck();
       cancelAnimationFrame(raf);
       window.clearTimeout(idleWait);
       window.clearTimeout(swapWait);
