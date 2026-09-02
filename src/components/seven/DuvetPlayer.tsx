@@ -129,9 +129,9 @@ export function DuvetPlayer() {
               onClick={() => setOpen(false)}
               aria-expanded={true}
               aria-label="Ocultar deck"
-              className="grid size-6 shrink-0 place-items-center border border-[#00ff66]/30 text-[11px] leading-none text-[#94a3b8] hover:border-[#00ff66]/60 hover:text-[#00ff66]"
+              className="grid size-7 shrink-0 place-items-center border border-[#00ff66]/50 text-[14px] leading-none hover:bg-[#00ff66]/10"
             >
-              ×
+              <span className="-mt-px">×</span>
             </button>
           </div>
           <ul className="mt-2 space-y-0.5">
