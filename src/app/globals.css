@@ -339,21 +339,6 @@
   --font-mono: var(--font-lain-mono), "Courier New", Courier, monospace;
   --font-sans: var(--font-lain-display), "Courier New", Courier, serif;
   font-family: var(--font-mono);
-  cursor: url("/seven/cursor-arrow.png") 2 2, auto;
-}
-
-.seven-root a,
-.seven-root button,
-.seven-root label,
-.seven-root [role="button"],
-.seven-root input[type="range"],
-.seven-root summary {
-  cursor: url("/seven/cursor-hand.png") 12 2, pointer;
-}
-
-.seven-root input:not([type="range"]):not([type="button"]):not([type="submit"]),
-.seven-root textarea {
-  cursor: url("/seven/cursor-ibeam.png") 9 14, text;
 }
 
 .seven-root .lain-glow {
