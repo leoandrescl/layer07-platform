@@ -174,7 +174,7 @@ export const SevenShell = forwardRef<SevenShellHandle, Props>(
             <div className="mt-3 flex min-h-0 flex-1 flex-col overflow-hidden border border-dashed border-white/15 bg-black/30">
               <ul
                 data-shot-ui
-                className="min-h-0 flex-1 space-y-1 overflow-y-auto p-2"
+                className="seven-scroll min-h-0 flex-1 space-y-1 overflow-y-auto p-2"
               >
                 {processes.map((proc) => {
                   const active = attached?.pid === proc.pid;
@@ -216,7 +216,7 @@ export const SevenShell = forwardRef<SevenShellHandle, Props>(
 
               <div
                 data-shot-ui
-                className="max-h-[42%] shrink-0 overflow-y-auto border-t border-dashed border-[#00ff66]/25 p-3 sm:p-4"
+                className="seven-scroll max-h-[calc(42%+18px)] shrink-0 overflow-y-auto border-t border-dashed border-[#00ff66]/25 p-3 sm:p-4"
               >
                 {attached ? (
                   <ProcessInspector process={attached} />
