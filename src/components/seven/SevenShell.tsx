@@ -112,7 +112,7 @@ export const SevenShell = forwardRef<SevenShellHandle, Props>(
     }
 
     return (
-      <div className="flex h-full min-h-0 flex-col px-4 pt-16 pb-3 sm:px-6">
+      <div className="pointer-events-none flex h-full min-h-0 flex-col px-4 pt-16 pb-3 sm:px-6">
         <p className="font-mono text-[10px] tracking-[0.32em] text-[#00f0ff] uppercase">
           APPLICATION // TTY0
         </p>
@@ -121,7 +121,7 @@ export const SevenShell = forwardRef<SevenShellHandle, Props>(
         </p>
 
         <div className="mt-4 grid min-h-0 flex-1 gap-3 md:grid-cols-[minmax(16rem,20rem)_1fr]">
-          <ul className="max-h-44 space-y-1 overflow-y-auto md:max-h-none">
+          <ul data-shot-ui className="max-h-44 space-y-1 overflow-y-auto md:max-h-none">
             {processes.map((proc) => {
               const active = attached?.pid === proc.pid;
               return (
@@ -160,7 +160,7 @@ export const SevenShell = forwardRef<SevenShellHandle, Props>(
             })}
           </ul>
 
-          <div className="flex min-h-0 flex-col border border-white/10 bg-black/30">
+          <div data-shot-ui className="flex min-h-0 flex-col border border-white/10 bg-black/30">
             <div className="min-h-0 flex-1 overflow-y-auto p-4">
               {attached ? (
                 <ProcessInspector process={attached} />
@@ -185,6 +185,7 @@ export const SevenShell = forwardRef<SevenShellHandle, Props>(
 
         <form
           className="mt-3 flex items-center gap-2 border-t border-white/10 pt-3 font-mono text-[12px] sm:text-[13px]"
+          data-shot-ui
           onSubmit={(event) => {
             event.preventDefault();
             const data = new FormData(event.currentTarget);

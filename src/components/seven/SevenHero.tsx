@@ -2,6 +2,13 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import {
+  FIRE_GAP_MS,
+  isUiTarget,
+  playShot,
+  pruneHits,
+  type ShotHit,
+} from "./fx";
 import { RainGL, type Pointer } from "./RainGL";
 import { SevenShell, type SevenShellHandle } from "./SevenShell";
 import type { SevenProcess } from "./commands";
@@ -29,8 +36,10 @@ function usePrefersReducedMotion() {
 export function SevenHero({ processes }: { processes: SevenProcess[] }) {
   const reducedMotion = usePrefersReducedMotion();
   const pinRef = useRef<HTMLElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
   const mouseRef = useRef<Pointer>({ x: 0.5, y: 0.5 });
   const progressRef = useRef(0);
+  const hitsRef = useRef<ShotHit[]>([]);
   const lockupRef = useRef<HTMLDivElement>(null);
   const cyanRef = useRef<HTMLSpanElement>(null);
   const magRef = useRef<HTMLSpanElement>(null);
@@ -39,7 +48,18 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
   const shellRef = useRef<HTMLDivElement>(null);
   const shellApi = useRef<SevenShellHandle>(null);
   const cursorRef = useRef<HTMLDivElement>(null);
+  const muzzleRef = useRef<HTMLSpanElement>(null);
+  const shockRef = useRef<HTMLSpanElement>(null);
   const cursorPos = useRef({ x: 0, y: 0, tx: 0, ty: 0, visible: false });
+  const gunRef = useRef({
+    flash: 0,
+    kickX: 0,
+    kickY: 0,
+    shakeX: 0,
+    shakeY: 0,
+    lastShot: 0,
+    holding: false,
+  });
   const typingRef = useRef(false);
   const didFocus = useRef(false);
 
@@ -78,7 +98,7 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
         const y = reducedMotion ? 0 : p * -80;
         lockup.style.opacity = String(fade);
         lockup.style.transform = `translate3d(0, ${y}px, 0)`;
-        lockup.style.pointerEvents = fade < 0.2 ? "none" : "auto";
+        lockup.style.pointerEvents = "none";
       }
 
       const split = (0.35 + p * 1.4) * 8;
@@ -108,23 +128,81 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
       if (shellRef.current) {
         const s = reducedMotion ? 1 : clamp((p - 0.8) / 0.12);
         shellRef.current.style.opacity = String(s);
-        shellRef.current.style.pointerEvents = s > 0.55 ? "auto" : "none";
+        shellRef.current.classList.toggle("is-live", s > 0.55);
         if (s > 0.85 && !didFocus.current && window.matchMedia("(pointer: fine)").matches) {
           didFocus.current = true;
           shellApi.current?.focus();
         }
       }
 
+      const gun = gunRef.current;
+      if (gun.holding && !reducedMotion) {
+        const now = performance.now();
+        if (now - gun.lastShot >= FIRE_GAP_MS) {
+          fireAt(cursorPos.current.tx, cursorPos.current.ty);
+        }
+      }
+      gun.flash *= 0.72;
+      gun.kickX *= 0.7;
+      gun.kickY *= 0.7;
+      gun.shakeX *= 0.76;
+      gun.shakeY *= 0.76;
+
+      if (stageRef.current) {
+        stageRef.current.style.transform = `translate3d(${gun.shakeX}px, ${gun.shakeY}px, 0)`;
+      }
+
       const c = cursorPos.current;
-      c.x += (c.tx - c.x) * 0.22;
-      c.y += (c.ty - c.y) * 0.22;
+      const follow = gun.flash > 0.15 ? 0.48 : 0.28;
+      c.x += (c.tx - c.x) * follow;
+      c.y += (c.ty - c.y) * follow;
       if (cursorRef.current) {
         cursorRef.current.style.opacity =
           c.visible && !typingRef.current ? "1" : "0";
-        cursorRef.current.style.transform = `translate3d(${c.x}px, ${c.y}px, 0)`;
+        cursorRef.current.style.transform = `translate3d(${c.x + gun.kickX}px, ${c.y + gun.kickY}px, 0)`;
+      }
+      if (muzzleRef.current) {
+        const bloom = gun.flash;
+        muzzleRef.current.style.opacity = String(bloom);
+        muzzleRef.current.style.transform = `translate(-50%, -50%) scale(${1 + bloom * 2.8})`;
+      }
+      if (shockRef.current) {
+        const since = (performance.now() - gun.lastShot) / 1000;
+        const live = gun.lastShot > 0 && since < 0.32;
+        shockRef.current.style.opacity = live ? String(1 - since / 0.32) : "0";
+        shockRef.current.style.transform = `translate(-50%, -50%) scale(${live ? 1 + since * 11 : 1})`;
       }
 
       raf = requestAnimationFrame(tick);
+    };
+
+    const fireAt = (clientX: number, clientY: number) => {
+      if (reducedMotion) return;
+      const now = performance.now();
+      const gun = gunRef.current;
+      if (now - gun.lastShot < FIRE_GAP_MS) return;
+
+      const w = Math.max(window.innerWidth, 1);
+      const h = Math.max(window.innerHeight, 1);
+      const hits = hitsRef.current;
+      pruneHits(hits, now);
+      hits.push({
+        x: clientX / w,
+        y: clientY / h,
+        t: now,
+        power: 0.78 + Math.random() * 0.35,
+      });
+
+      gun.lastShot = now;
+      gun.flash = 1;
+      gun.kickX += (Math.random() - 0.5) * 16;
+      gun.kickY += -9 - Math.random() * 11;
+      gun.shakeX += (Math.random() - 0.5) * 6;
+      gun.shakeY += (Math.random() - 0.5) * 5;
+      playShot();
+      if (typeof navigator !== "undefined" && navigator.vibrate) {
+        navigator.vibrate(14);
+      }
     };
 
     const onPointer = (event: PointerEvent) => {
@@ -139,6 +217,29 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
 
     const onLeave = () => {
       cursorPos.current.visible = false;
+      gunRef.current.holding = false;
+    };
+
+    const canShoot = (event: PointerEvent) => {
+      if (reducedMotion) return false;
+      if (event.button !== 0) return false;
+      if (isUiTarget(event.target)) return false;
+      return true;
+    };
+
+    const onDown = (event: PointerEvent) => {
+      if (!canShoot(event)) return;
+      event.preventDefault();
+      if (typingRef.current) {
+        const active = document.activeElement;
+        if (active instanceof HTMLElement) active.blur();
+      }
+      gunRef.current.holding = true;
+      fireAt(event.clientX, event.clientY);
+    };
+
+    const onUp = () => {
+      gunRef.current.holding = false;
     };
 
     const onHotkey = (event: KeyboardEvent) => {
@@ -159,6 +260,10 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
     window.addEventListener("scroll", readProgress, { passive: true });
     window.addEventListener("resize", readProgress, { passive: true });
     window.addEventListener("pointermove", onPointer);
+    window.addEventListener("pointerdown", onDown);
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onUp);
+    window.addEventListener("blur", onUp);
     window.addEventListener("keydown", onHotkey);
     document.documentElement.addEventListener("mouseleave", onLeave);
 
@@ -167,6 +272,10 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
       window.removeEventListener("scroll", readProgress);
       window.removeEventListener("resize", readProgress);
       window.removeEventListener("pointermove", onPointer);
+      window.removeEventListener("pointerdown", onDown);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onUp);
+      window.removeEventListener("blur", onUp);
       window.removeEventListener("keydown", onHotkey);
       document.documentElement.removeEventListener("mouseleave", onLeave);
     };
@@ -180,7 +289,10 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
         style={{ height: reducedMotion ? "100dvh" : `${SCROLL_VH}vh` }}
         aria-label="Hero inmersivo SEVEN"
       >
-        <div className="sticky top-0 h-dvh overflow-hidden bg-[#050505]">
+        <div
+          ref={stageRef}
+          className="sticky top-0 h-dvh overflow-hidden bg-[#050505] will-change-transform"
+        >
           {reducedMotion ? (
             <div
               className="absolute inset-0 opacity-40"
@@ -191,7 +303,7 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
               aria-hidden
             />
           ) : (
-            <RainGL mouseRef={mouseRef} progressRef={progressRef} />
+            <RainGL mouseRef={mouseRef} progressRef={progressRef} hitsRef={hitsRef} />
           )}
 
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(5,5,5,0.35)_70%,rgba(5,5,5,0.82)_100%)]" />
@@ -206,7 +318,7 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
 
           <div
             ref={lockupRef}
-            className="relative z-10 flex h-full select-none flex-col items-center justify-center px-4 text-center will-change-transform"
+            className="pointer-events-none relative z-10 flex h-full select-none flex-col items-center justify-center px-4 text-center will-change-transform"
           >
             <p className="font-mono text-[10px] tracking-[0.42em] text-[#00ff66] uppercase sm:text-[11px]">
               SYS.LAYER 7 // APPLICATION
@@ -244,7 +356,7 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
             ref={hintRef}
             className="pointer-events-none absolute bottom-8 left-1/2 z-10 -translate-x-1/2 font-mono text-[10px] tracking-[0.32em] text-[#00ff66] uppercase"
           >
-            scroll to jack in
+            click to fire · scroll to jack in
           </p>
 
           <div
@@ -265,8 +377,8 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
 
           <div
             ref={shellRef}
-            className="absolute inset-0 z-20 opacity-0"
-            style={reducedMotion ? { opacity: 1, pointerEvents: "auto" } : undefined}
+            className="pointer-events-none absolute inset-0 z-20 opacity-0"
+            style={reducedMotion ? { opacity: 1 } : undefined}
           >
             <SevenShell
               ref={shellApi}
@@ -284,12 +396,20 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
         className="pointer-events-none fixed top-0 left-0 z-50 hidden h-10 w-10 -translate-x-1/2 -translate-y-1/2 opacity-0 will-change-transform [@media(pointer:fine)]:block"
         aria-hidden
       >
+        <span
+          ref={muzzleRef}
+          className="absolute top-1/2 left-1/2 size-8 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(255,255,230,0.95)_0%,rgba(0,255,120,0.55)_38%,transparent_70%)] opacity-0"
+        />
+        <span
+          ref={shockRef}
+          className="absolute top-1/2 left-1/2 size-10 -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#00ff66] opacity-0"
+        />
         <span className="absolute inset-0 rounded-full border border-[#00ff66]/80" />
-        <span className="absolute top-1/2 left-1/2 size-1 -translate-x-1/2 -translate-y-1/2 bg-[#00ff66]" />
-        <span className="absolute top-0 left-1/2 h-2 w-px -translate-x-1/2 bg-[#00ff66]/70" />
-        <span className="absolute bottom-0 left-1/2 h-2 w-px -translate-x-1/2 bg-[#00ff66]/70" />
-        <span className="absolute top-1/2 left-0 h-px w-2 -translate-y-1/2 bg-[#00ff66]/70" />
-        <span className="absolute top-1/2 right-0 h-px w-2 -translate-y-1/2 bg-[#00ff66]/70" />
+        <span className="absolute top-1/2 left-1/2 size-1.5 -translate-x-1/2 -translate-y-1/2 bg-[#00ff66] shadow-[0_0_10px_#00ff66]" />
+        <span className="absolute top-0 left-1/2 h-2.5 w-px -translate-x-1/2 bg-[#00ff66]/80" />
+        <span className="absolute bottom-0 left-1/2 h-2.5 w-px -translate-x-1/2 bg-[#00ff66]/80" />
+        <span className="absolute top-1/2 left-0 h-px w-2.5 -translate-y-1/2 bg-[#00ff66]/80" />
+        <span className="absolute top-1/2 right-0 h-px w-2.5 -translate-y-1/2 bg-[#00ff66]/80" />
       </div>
     </>
   );
