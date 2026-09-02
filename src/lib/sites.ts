@@ -21,6 +21,13 @@ export const labs: LabSite[] = [
     summary: "Portafolio inmersivo: lluvia digital, hero cinematográfico, 8+ años.",
   },
   {
+    slug: "uplink",
+    name: "UPLINK",
+    path: "/s/uplink",
+    status: "draft",
+    summary: "Portafolio personal tipo beacon: scramble, señal SCL y sistemas en vivo.",
+  },
+  {
     slug: "hola",
     name: "hola",
     path: "/s/hola",
