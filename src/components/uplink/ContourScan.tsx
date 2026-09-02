@@ -14,12 +14,14 @@ export function ContourScan() {
   const hostRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const el = hostRef.current;
-    if (!el) return;
+    const host = hostRef.current;
+    if (!host) return;
 
     const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    const gfx = canvas.getContext("2d");
+    if (!gfx) return;
+    const el: HTMLDivElement = host;
+    const ctx: CanvasRenderingContext2D = gfx;
     el.appendChild(canvas);
     canvas.style.display = "block";
 
