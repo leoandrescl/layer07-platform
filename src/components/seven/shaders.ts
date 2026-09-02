@@ -66,7 +66,7 @@ void main() {
   uv += mdelta * warp;
   uv = fract(uv);
 
-  float densify = mix(1.0, 1.9, u_progress);
+  float densify = mix(1.0, 1.45, u_progress);
   float cols = max(u_grid.x, 8.0) * densify;
   float rows = max(u_grid.y, 8.0) * densify;
   vec2 grid = vec2(cols, rows);
@@ -75,7 +75,7 @@ void main() {
   local.y = 1.0 - local.y;
 
   float rnd = hash(cell.x + 13.0);
-  float speed = mix(0.35, 1.65, hash(cell.x + 41.0)) * mix(1.0, 2.6, u_progress);
+  float speed = mix(0.28, 1.05, hash(cell.x + 41.0)) * mix(1.0, 1.55, u_progress);
   speed *= 1.0 + scramble * 2.2;
   float headY = 1.0 - fract(u_time * speed * 0.22 + rnd * 2.0 + blast * 0.28);
   float raw = fract(headY - uv.y);

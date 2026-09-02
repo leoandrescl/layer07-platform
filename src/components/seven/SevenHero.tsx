@@ -7,13 +7,14 @@ import {
   isUiTarget,
   playShot,
   pruneHits,
+  setShotAudio,
   type ShotHit,
 } from "./fx";
 import { RainGL, type Pointer } from "./RainGL";
 import { SevenShell, type SevenShellHandle } from "./SevenShell";
 import type { SevenProcess } from "./commands";
 
-const SCROLL_VH = 280;
+const SCROLL_VH = 420;
 
 function clamp(value: number) {
   return Math.min(1, Math.max(0, value));
@@ -62,6 +63,7 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
   });
   const typingRef = useRef(false);
   const didFocus = useRef(false);
+  const [audioOn, setAudioOn] = useState(false);
 
   useEffect(() => {
     const pin = pinRef.current;
@@ -294,12 +296,27 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
           ref={stageRef}
           className="sticky top-0 h-dvh overflow-hidden bg-[#050505] will-change-transform select-none"
         >
-          <header className="pointer-events-auto absolute top-0 right-0 left-0 z-30 flex items-center justify-between px-4 py-4 font-mono text-[10px] tracking-[0.28em] text-[#00ff66]/80 uppercase sm:px-6">
+          <header className="pointer-events-auto absolute top-0 right-0 left-0 z-30 flex items-center justify-between gap-3 px-4 py-4 font-mono text-[10px] tracking-[0.28em] text-[#00ff66]/80 uppercase sm:px-6">
             <Link href="/labs" className="hover:text-white">
               ESC // LABS
             </Link>
-            <span>NODE // SCL</span>
-            <span className="text-[#00f0ff]">LAYER 07</span>
+            <span className="hidden sm:inline">NODE // SCL</span>
+            <div className="flex items-center gap-4">
+              <button
+                type="button"
+                data-no-shot
+                aria-pressed={audioOn}
+                onClick={() => {
+                  const next = !audioOn;
+                  setAudioOn(next);
+                  setShotAudio(next);
+                }}
+                className="cursor-pointer tracking-[0.28em] hover:text-white"
+              >
+                {audioOn ? "SND // ON" : "SND // OFF"}
+              </button>
+              <span className="text-[#00f0ff]">LAYER 07</span>
+            </div>
           </header>
 
           <div ref={rainPaneRef} className="relative h-full">

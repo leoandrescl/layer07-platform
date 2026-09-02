@@ -19,7 +19,7 @@ function bakeAscii(
   sctx.drawImage(source, 0, 0, cols, rows);
   const pixels = sctx.getImageData(0, 0, cols, rows).data;
 
-  const cellW = 7;
+  const cellW = 8;
   const cellH = 9;
   const baked = document.createElement("canvas");
   baked.width = cols * cellW;
@@ -27,7 +27,7 @@ function bakeAscii(
   const bctx = baked.getContext("2d");
   if (!bctx) return null;
 
-  bctx.fillStyle = "#02060a";
+  bctx.fillStyle = "#000000";
   bctx.fillRect(0, 0, baked.width, baked.height);
   bctx.font = `700 ${cellH}px "Geist Mono", ui-monospace, monospace`;
   bctx.textBaseline = "top";
@@ -40,7 +40,7 @@ function bakeAscii(
       const g = pixels[i + 1] ?? 0;
       const b = pixels[i + 2] ?? 0;
       const lum = (0.22 * r + 0.55 * g + 0.23 * b) / 255;
-      if (lum < 0.06) continue;
+      if (lum < 0.11) continue;
       const idx = Math.min(CHARS.length - 1, Math.floor(lum * CHARS.length));
       const cyan = Math.min(255, 90 + lum * 180);
       const green = Math.min(255, 40 + lum * 220);
@@ -95,12 +95,13 @@ export function AsciiFace({ reducedMotion }: { reducedMotion: boolean }) {
       if (!running) return;
       const { w, h, dpr } = layout();
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.fillStyle = "#02060a";
+      ctx.fillStyle = "#000000";
       ctx.fillRect(0, 0, w, h);
 
       if (baked) {
-        const scale = Math.min(w / baked.width, h / baked.height);
-        const dw = baked.width * scale;
+        const faceSx = 1.13;
+        const scale = Math.min(w / (baked.width * faceSx), h / baked.height);
+        const dw = baked.width * scale * faceSx;
         const dh = baked.height * scale;
         const dx = (w - dw) / 2;
         const dy = (h - dh) / 2;
@@ -173,7 +174,7 @@ export function AsciiFace({ reducedMotion }: { reducedMotion: boolean }) {
   }, [reducedMotion]);
 
   return (
-    <div className="relative h-full min-h-0 overflow-hidden bg-[#02060a]">
+    <div className="relative h-full min-h-0 overflow-hidden bg-black">
       <canvas
         ref={canvasRef}
         className="h-full w-full [filter:drop-shadow(2px_0_0_rgba(255,0,85,0.22))_drop-shadow(-1px_0_10px_rgba(0,240,255,0.28))]"
@@ -186,7 +187,7 @@ export function AsciiFace({ reducedMotion }: { reducedMotion: boolean }) {
             "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.28) 2px, rgba(0,0,0,0.28) 3px)",
         }}
       />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_35%,rgba(2,6,10,0.55)_100%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_35%,rgba(0,0,0,0.7)_100%)]" />
     </div>
   );
 }

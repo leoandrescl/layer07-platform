@@ -124,7 +124,7 @@ export const SevenShell = forwardRef<SevenShellHandle, Props>(
           </span>
         </div>
 
-        <div className="grid min-h-0 flex-1 lg:grid-cols-[minmax(16rem,40%)_1fr]">
+        <div className="grid min-h-0 flex-1 lg:grid-cols-[minmax(16rem,44%)_1fr]">
           <section
             aria-label="Retrato ASCII"
             className="flex min-h-0 flex-col border-b border-dashed border-[#00ff66]/25 lg:border-r lg:border-b-0"

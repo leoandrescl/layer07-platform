@@ -59,7 +59,14 @@ function disconnect(...nodes: AudioNode[]) {
   }
 }
 
+let shotAudio = false;
+
+export function setShotAudio(on: boolean) {
+  shotAudio = on;
+}
+
 export function playShot() {
+  if (!shotAudio) return;
   const now = performance.now();
   if (now < shotBusyUntil) return;
   shotBusyUntil = now + 90;
