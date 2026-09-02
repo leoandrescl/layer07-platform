@@ -171,10 +171,10 @@ export const SevenShell = forwardRef<SevenShellHandle, Props>(
               {processes.length} processes · click to attach · or type
             </p>
 
-            <div className="mt-3 grid min-h-0 flex-1 gap-3 md:grid-cols-[minmax(14rem,18rem)_1fr]">
+            <div className="mt-3 grid min-h-0 flex-1 gap-3 md:grid-cols-[1fr_minmax(14rem,18rem)]">
               <ul
                 data-shot-ui
-                className="max-h-40 space-y-1 overflow-y-auto md:max-h-none"
+                className="max-h-40 space-y-1 overflow-y-auto md:order-2 md:max-h-none md:border-l md:border-dashed md:border-[#00ff66]/25 md:pl-3"
               >
                 {processes.map((proc) => {
                   const active = attached?.pid === proc.pid;
@@ -216,14 +216,14 @@ export const SevenShell = forwardRef<SevenShellHandle, Props>(
 
               <div
                 data-shot-ui
-                className="flex min-h-0 flex-col border border-dashed border-white/15 bg-black/30"
+                className="flex min-h-0 flex-col border border-dashed border-white/15 bg-black/30 md:order-1"
               >
                 <div className="min-h-0 flex-1 overflow-hidden p-3 sm:p-4">
                   {attached ? (
                     <ProcessInspector process={attached} />
                   ) : (
                     <p className="font-mono text-[12px] leading-relaxed text-[#64748b]">
-                      Selecciona un proceso a la izquierda, o escribe{" "}
+                      Selecciona un proceso a la derecha, o escribe{" "}
                       <span className="text-[#00ff66]">open chanchi</span>.
                     </p>
                   )}
