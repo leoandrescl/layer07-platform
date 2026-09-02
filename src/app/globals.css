@@ -352,12 +352,16 @@
   position: relative;
   display: inline-block;
   isolation: isolate;
+  padding: 0.2em 0.42em;
+  overflow: visible;
 }
 
-.seven-root .lain-glitch-sizer {
+.seven-root .lain-glitch-base {
+  position: relative;
+  z-index: 2;
   display: block;
-  visibility: hidden;
   white-space: nowrap;
+  animation: lain-glitch-hold 4.6s steps(2, end) infinite;
 }
 
 .seven-root .lain-glitch-slice,
@@ -365,9 +369,12 @@
   position: absolute;
   inset: 0;
   display: block;
-  overflow: hidden;
+  padding: inherit;
+  overflow: visible;
   white-space: nowrap;
   pointer-events: none;
+  text-shadow: none;
+  opacity: 0;
 }
 
 .seven-root .lain-glitch-s1 {
@@ -385,16 +392,33 @@
   animation: lain-slice-3 4.6s steps(2, end) infinite;
 }
 
+.seven-root .lain-glitch-red {
+  color: #ff3355;
+  mix-blend-mode: screen;
+  animation: lain-rgb-red 4.6s steps(2, end) infinite;
+}
+
 .seven-root .lain-glitch-cyan {
-  color: #5b8cff;
+  color: #67f0ff;
   mix-blend-mode: screen;
   animation: lain-rgb-cyan 4.6s steps(2, end) infinite;
 }
 
-.seven-root .lain-glitch-mag {
-  color: #ff4d6d;
-  mix-blend-mode: screen;
-  animation: lain-rgb-mag 4.6s steps(2, end) infinite;
+@keyframes lain-glitch-hold {
+  0%,
+  8%,
+  51%,
+  60%,
+  100% {
+    opacity: 1;
+  }
+  2%,
+  4%,
+  6%,
+  53%,
+  56% {
+    opacity: 0;
+  }
 }
 
 @keyframes lain-slice-1 {
@@ -403,21 +427,27 @@
   51%,
   60%,
   100% {
+    opacity: 0;
     transform: translateX(0);
   }
   2% {
+    opacity: 1;
     transform: translateX(8px);
   }
   4% {
+    opacity: 1;
     transform: translateX(-5px);
   }
   6% {
+    opacity: 1;
     transform: translateX(3px);
   }
   53% {
+    opacity: 1;
     transform: translateX(-7px);
   }
   56% {
+    opacity: 1;
     transform: translateX(5px);
   }
 }
@@ -428,21 +458,27 @@
   51%,
   60%,
   100% {
+    opacity: 0;
     transform: translateX(0);
   }
   2% {
+    opacity: 1;
     transform: translateX(-12px);
   }
   4% {
+    opacity: 1;
     transform: translateX(9px);
   }
   6% {
+    opacity: 1;
     transform: translateX(-6px);
   }
   53% {
+    opacity: 1;
     transform: translateX(11px);
   }
   56% {
+    opacity: 1;
     transform: translateX(-8px);
   }
 }
@@ -453,22 +489,59 @@
   51%,
   60%,
   100% {
+    opacity: 0;
     transform: translateX(0);
   }
   2% {
+    opacity: 1;
     transform: translateX(6px);
   }
   4% {
+    opacity: 1;
     transform: translateX(-9px);
   }
   6% {
+    opacity: 1;
     transform: translateX(4px);
   }
   53% {
+    opacity: 1;
     transform: translateX(-5px);
   }
   56% {
+    opacity: 1;
     transform: translateX(7px);
+  }
+}
+
+@keyframes lain-rgb-red {
+  0%,
+  8%,
+  51%,
+  60%,
+  100% {
+    opacity: 0;
+    transform: translateX(0);
+  }
+  2% {
+    opacity: 0.75;
+    transform: translateX(-9px);
+  }
+  4% {
+    opacity: 0.45;
+    transform: translateX(-6px);
+  }
+  6% {
+    opacity: 0.3;
+    transform: translateX(-5px);
+  }
+  53% {
+    opacity: 0.7;
+    transform: translateX(-8px);
+  }
+  56% {
+    opacity: 0.35;
+    transform: translateX(-5px);
   }
 }
 
@@ -482,55 +555,24 @@
     transform: translateX(0);
   }
   2% {
-    opacity: 0.7;
-    transform: translateX(-10px);
-  }
-  4% {
-    opacity: 0.45;
-    transform: translateX(7px);
-  }
-  6% {
-    opacity: 0.3;
-    transform: translateX(-6px);
-  }
-  53% {
-    opacity: 0.65;
-    transform: translateX(-9px);
-  }
-  56% {
-    opacity: 0.35;
-    transform: translateX(6px);
-  }
-}
-
-@keyframes lain-rgb-mag {
-  0%,
-  8%,
-  51%,
-  60%,
-  100% {
-    opacity: 0;
-    transform: translateX(0);
-  }
-  2% {
-    opacity: 0.7;
-    transform: translateX(10px);
-  }
-  4% {
-    opacity: 0.45;
-    transform: translateX(-7px);
-  }
-  6% {
-    opacity: 0.3;
-    transform: translateX(6px);
-  }
-  53% {
-    opacity: 0.65;
+    opacity: 0.75;
     transform: translateX(9px);
   }
+  4% {
+    opacity: 0.45;
+    transform: translateX(6px);
+  }
+  6% {
+    opacity: 0.3;
+    transform: translateX(5px);
+  }
+  53% {
+    opacity: 0.7;
+    transform: translateX(8px);
+  }
   56% {
     opacity: 0.35;
-    transform: translateX(-6px);
+    transform: translateX(5px);
   }
 }
 
@@ -625,6 +667,7 @@
   .uplink-glitch:hover::after,
   .uplink-glitch:focus-visible::after,
   .seven-root .lain-cursor::after,
+  .seven-root .lain-glitch-base,
   .seven-root .lain-glitch-slice,
   .seven-root .lain-glitch-rgb {
     animation: none !important;
