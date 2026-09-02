@@ -3,8 +3,14 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { RainGL, type Pointer } from "./RainGL";
+import { SevenShell, type SevenShellHandle } from "./SevenShell";
+import type { SevenProcess } from "./commands";
 
 const SCROLL_VH = 280;
+
+function clamp(value: number) {
+  return Math.min(1, Math.max(0, value));
+}
 
 function usePrefersReducedMotion() {
   const [reduced, setReduced] = useState(false);
@@ -20,7 +26,7 @@ function usePrefersReducedMotion() {
   return reduced;
 }
 
-export function SevenHero() {
+export function SevenHero({ processes }: { processes: SevenProcess[] }) {
   const reducedMotion = usePrefersReducedMotion();
   const pinRef = useRef<HTMLElement>(null);
   const mouseRef = useRef<Pointer>({ x: 0.5, y: 0.5 });
@@ -30,8 +36,12 @@ export function SevenHero() {
   const magRef = useRef<HTMLSpanElement>(null);
   const hintRef = useRef<HTMLParagraphElement>(null);
   const arrivalRef = useRef<HTMLDivElement>(null);
+  const shellRef = useRef<HTMLDivElement>(null);
+  const shellApi = useRef<SevenShellHandle>(null);
   const cursorRef = useRef<HTMLDivElement>(null);
   const cursorPos = useRef({ x: 0, y: 0, tx: 0, ty: 0, visible: false });
+  const typingRef = useRef(false);
+  const didFocus = useRef(false);
 
   useEffect(() => {
     const pin = pinRef.current;
@@ -60,8 +70,12 @@ export function SevenHero() {
 
       const lockup = lockupRef.current;
       if (lockup) {
-        const fade = p < 0.42 ? 1 : Math.max(0, 1 - (p - 0.42) / 0.28);
-        const y = p * -80;
+        const fade = reducedMotion
+          ? 0
+          : p < 0.42
+            ? 1
+            : Math.max(0, 1 - (p - 0.42) / 0.28);
+        const y = reducedMotion ? 0 : p * -80;
         lockup.style.opacity = String(fade);
         lockup.style.transform = `translate3d(0, ${y}px, 0)`;
         lockup.style.pointerEvents = fade < 0.2 ? "none" : "auto";
@@ -78,20 +92,35 @@ export function SevenHero() {
       }
 
       if (hintRef.current) {
-        hintRef.current.style.opacity = String(p < 0.18 ? 0.85 : Math.max(0, 1 - p / 0.32));
+        hintRef.current.style.opacity = reducedMotion
+          ? "0"
+          : String(p < 0.18 ? 0.85 : Math.max(0, 1 - p / 0.32));
       }
 
       if (arrivalRef.current) {
-        const a = Math.max(0, (p - 0.72) / 0.22);
+        const enter = clamp((p - 0.66) / 0.1);
+        const leave = p > 0.8 ? clamp(1 - (p - 0.8) / 0.08) : 1;
+        const a = reducedMotion ? 0 : enter * leave;
         arrivalRef.current.style.opacity = String(a);
         arrivalRef.current.style.transform = `translate3d(0, ${(1 - a) * 28}px, 0)`;
+      }
+
+      if (shellRef.current) {
+        const s = reducedMotion ? 1 : clamp((p - 0.8) / 0.12);
+        shellRef.current.style.opacity = String(s);
+        shellRef.current.style.pointerEvents = s > 0.55 ? "auto" : "none";
+        if (s > 0.85 && !didFocus.current && window.matchMedia("(pointer: fine)").matches) {
+          didFocus.current = true;
+          shellApi.current?.focus();
+        }
       }
 
       const c = cursorPos.current;
       c.x += (c.tx - c.x) * 0.22;
       c.y += (c.ty - c.y) * 0.22;
       if (cursorRef.current) {
-        cursorRef.current.style.opacity = c.visible ? "1" : "0";
+        cursorRef.current.style.opacity =
+          c.visible && !typingRef.current ? "1" : "0";
         cursorRef.current.style.transform = `translate3d(${c.x}px, ${c.y}px, 0)`;
       }
 
@@ -112,11 +141,25 @@ export function SevenHero() {
       cursorPos.current.visible = false;
     };
 
+    const onHotkey = (event: KeyboardEvent) => {
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
+      const target = event.target as HTMLElement | null;
+      const inField =
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement;
+
+      if ((event.key === "/" || event.key === "`") && !inField) {
+        event.preventDefault();
+        shellApi.current?.focus();
+      }
+    };
+
     readProgress();
     raf = requestAnimationFrame(tick);
     window.addEventListener("scroll", readProgress, { passive: true });
     window.addEventListener("resize", readProgress, { passive: true });
     window.addEventListener("pointermove", onPointer);
+    window.addEventListener("keydown", onHotkey);
     document.documentElement.addEventListener("mouseleave", onLeave);
 
     return () => {
@@ -124,6 +167,7 @@ export function SevenHero() {
       window.removeEventListener("scroll", readProgress);
       window.removeEventListener("resize", readProgress);
       window.removeEventListener("pointermove", onPointer);
+      window.removeEventListener("keydown", onHotkey);
       document.documentElement.removeEventListener("mouseleave", onLeave);
     };
   }, [reducedMotion]);
@@ -132,7 +176,7 @@ export function SevenHero() {
     <>
       <section
         ref={pinRef}
-        className="relative select-none"
+        className="relative"
         style={{ height: reducedMotion ? "100dvh" : `${SCROLL_VH}vh` }}
         aria-label="Hero inmersivo SEVEN"
       >
@@ -162,7 +206,7 @@ export function SevenHero() {
 
           <div
             ref={lockupRef}
-            className="relative z-10 flex h-full flex-col items-center justify-center px-4 text-center will-change-transform"
+            className="relative z-10 flex h-full select-none flex-col items-center justify-center px-4 text-center will-change-transform"
           >
             <p className="font-mono text-[10px] tracking-[0.42em] text-[#00ff66] uppercase sm:text-[11px]">
               SYS.LAYER 7 // APPLICATION
@@ -215,8 +259,22 @@ export function SevenHero() {
               Application
             </p>
             <p className="mt-4 font-mono text-[11px] tracking-[0.22em] text-[#94a3b8] uppercase">
-              procesos en producción — siguiente escena
+              attach tty — type help
             </p>
+          </div>
+
+          <div
+            ref={shellRef}
+            className="absolute inset-0 z-20 opacity-0"
+            style={reducedMotion ? { opacity: 1, pointerEvents: "auto" } : undefined}
+          >
+            <SevenShell
+              ref={shellApi}
+              processes={processes}
+              onFocusChange={(focused) => {
+                typingRef.current = focused;
+              }}
+            />
           </div>
         </div>
       </section>

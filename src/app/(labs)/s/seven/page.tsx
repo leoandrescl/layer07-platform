@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { SevenHero } from "@/components/seven/SevenHero";
+import { toProcesses } from "@/components/seven/commands";
+import { getProjects } from "@/lib/data/content";
 
 export const metadata: Metadata = {
   title: "SEVEN",
@@ -8,5 +10,5 @@ export const metadata: Metadata = {
 };
 
 export default function SevenPage() {
-  return <SevenHero />;
+  return <SevenHero processes={toProcesses(getProjects())} />;
 }
