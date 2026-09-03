@@ -5,6 +5,7 @@ import {
 import { SITE, whatsappUrl } from "@/lib/site";
 
 export type SevenProcess = {
+  kind: "project";
   pid: number;
   slug: string;
   title: string;
@@ -17,6 +18,56 @@ export type SevenProcess = {
   repoUrl?: string;
   status: "LIVE" | "IDLE";
 };
+
+export type SevenSysSlug = "operator" | "stack" | "contact";
+
+export type SevenSysPanel = {
+  kind: "sys";
+  pid: number;
+  slug: SevenSysSlug;
+  title: string;
+  hint: string;
+  status: "SYS";
+};
+
+export type SevenAttach = SevenProcess | SevenSysPanel;
+
+export const SYS_PANELS: SevenSysPanel[] = [
+  {
+    kind: "sys",
+    pid: 7,
+    slug: "operator",
+    title: "operator",
+    hint: "whoami",
+    status: "SYS",
+  },
+  {
+    kind: "sys",
+    pid: 8,
+    slug: "stack",
+    title: "stack",
+    hint: "services",
+    status: "SYS",
+  },
+  {
+    kind: "sys",
+    pid: 9,
+    slug: "contact",
+    title: "contact",
+    hint: "handshake",
+    status: "SYS",
+  },
+];
+
+export function isSysPanel(node: SevenAttach): node is SevenSysPanel {
+  return node.kind === "sys";
+}
+
+export function getSysPanel(slug: SevenSysSlug) {
+  const panel = SYS_PANELS.find((item) => item.slug === slug);
+  if (!panel) throw new Error(`missing SYS panel ${slug}`);
+  return panel;
+}
 
 export type ShellLine = {
   id: number;
@@ -46,6 +97,7 @@ export function toProcesses(projects: Project[]): SevenProcess[] {
   return [...projects]
     .sort((a, b) => a.title.localeCompare(b.title, "es", { sensitivity: "base" }))
     .map((project, index) => ({
+      kind: "project" as const,
       pid: 1001 + index,
       slug: project.slug,
       title: project.title,
@@ -70,7 +122,7 @@ export function bootLines(count: number): ShellLine[] {
     {
       id: count + 1,
       tone: "dim",
-      text: "present day, present time.     help · deck · / to focus",
+      text: "present day, present time.     SYS · help · / to focus",
     },
     {
       id: count + 2,
@@ -91,6 +143,24 @@ function matchesProcess(proc: SevenProcess, query: string) {
   );
 }
 
+const SYS_ALIASES: Record<SevenSysSlug, string[]> = {
+  operator: ["whoami", "me", "leonardo"],
+  stack: ["services", "capabilities", "skills"],
+  contact: ["handshake", "hire", "mail"],
+};
+
+function matchesSys(panel: SevenSysPanel, query: string) {
+  const q = query.toLowerCase();
+  return (
+    panel.slug === q ||
+    panel.slug.startsWith(q) ||
+    panel.title.toLowerCase().includes(q) ||
+    panel.hint.toLowerCase().includes(q) ||
+    String(panel.pid) === q ||
+    SYS_ALIASES[panel.slug].includes(q)
+  );
+}
+
 export function completeToken(buffer: string, processes: SevenProcess[]) {
   const trimmed = buffer.trimStart();
   const parts = trimmed.split(/\s+/);
@@ -104,6 +174,11 @@ export function completeToken(buffer: string, processes: SevenProcess[]) {
   const cmd = parts[0];
   if (cmd === "open" || cmd === "cat") {
     const prefix = endsWithSpace ? "" : (parts[1] ?? "");
+    const sysHit = SYS_PANELS.find(
+      (panel) =>
+        panel.slug.startsWith(prefix) || panel.slug.includes(prefix),
+    );
+    if (sysHit) return `${cmd} ${sysHit.slug}`;
     const hit = processes.find(
       (proc) =>
         proc.slug.startsWith(prefix) || proc.slug.includes(prefix),
@@ -123,7 +198,7 @@ export function runCommand(
   lines: ShellLine[];
   clear?: boolean;
   exit?: boolean;
-  attached?: SevenProcess | null;
+  attached?: SevenAttach | null;
   deck?: boolean;
 } {
   const input = raw.trim();
@@ -156,13 +231,13 @@ export function runCommand(
         lines: [
           echo,
           out("commands", "dim"),
-          out("  click a process      same as open"),
+          out("  click SYS / process  same as open"),
           out("  help                 this list"),
-          out("  ps | ls              processes on layer 07"),
-          out("  open | cat <name>    attach a process"),
+          out("  ps | ls              SYS + processes"),
+          out("  open | cat <name>    attach SYS or process"),
           out("  deck                 open NAVI // DECK"),
-          out("  whoami               operator"),
-          out("  stack                runtime"),
+          out("  whoami               operator panel"),
+          out("  stack                capabilities"),
           out("  contact              handshake"),
           out("  github | linkedin    net"),
           out("  layers               osi map"),
@@ -180,12 +255,20 @@ export function runCommand(
             `${pad("PID", 6)} ${pad("STAT", 6)} ${pad("PROCESS", 28)} TYPE`,
             "dim",
           ),
+          ...SYS_PANELS.map((panel) =>
+            out(
+              `${pad(String(panel.pid), 6)} ${pad(panel.status, 6)} ${pad(panel.slug, 28)} ${panel.hint}`,
+            ),
+          ),
           ...processes.map((proc) =>
             out(
               `${pad(String(proc.pid), 6)} ${pad(proc.status, 6)} ${pad(proc.slug, 28)} ${proc.category}`,
             ),
           ),
-          out(`${processes.length} processes  ·  open <slug>`, "dim"),
+          out(
+            `${SYS_PANELS.length} sys  ·  ${processes.length} processes  ·  open <slug>`,
+            "dim",
+          ),
         ],
       };
     case "whoami":
@@ -196,6 +279,7 @@ export function runCommand(
           out(`${SITE.founder.role}  ·  ${SITE.founder.years} yrs  ·  ${SITE.location}`),
           out("uid=1000(leonardo)  gid=layer07  tty=seven"),
         ],
+        attached: getSysPanel("operator"),
       };
     case "stack":
       return {
@@ -204,6 +288,7 @@ export function runCommand(
           out(SITE.founder.stack.join("  ·  ")),
           out("runtime  next.js 16  ·  webgl rain  ·  osi layer 07", "dim"),
         ],
+        attached: getSysPanel("stack"),
       };
     case "contact":
       return {
@@ -214,6 +299,7 @@ export function runCommand(
           link("whatsapp", whatsappUrl()),
           link("/contacto", "/contacto"),
         ],
+        attached: getSysPanel("contact"),
       };
     case "github":
       return { lines: [echo, link(SITE.social.github, SITE.social.github)] };
@@ -250,35 +336,60 @@ export function runCommand(
     case "cat": {
       if (!arg) {
         return {
-          lines: [echo, out("usage: open <process>  —  try ps", "err")],
+          lines: [echo, out("usage: open <name>  —  try ps", "err")],
         };
       }
-      const hits = processes.filter((proc) => matchesProcess(proc, arg));
+      const q = arg.toLowerCase();
+      const exactSys = SYS_PANELS.find((panel) => panel.slug === q);
+      if (exactSys) {
+        return {
+          lines: [
+            echo,
+            out(`attached pid ${exactSys.pid}  SYS  ·  ${exactSys.slug}`, "ok"),
+          ],
+          attached: exactSys,
+        };
+      }
+      const exactProc = processes.find((proc) => proc.slug.toLowerCase() === q);
+      if (exactProc) {
+        return {
+          lines: [
+            echo,
+            out(
+              `attached pid ${exactProc.pid}  ${exactProc.status}  ·  ${exactProc.slug}`,
+              "ok",
+            ),
+          ],
+          attached: exactProc,
+        };
+      }
+      const sysHits = SYS_PANELS.filter((panel) => matchesSys(panel, arg));
+      const procHits = processes.filter((proc) => matchesProcess(proc, arg));
+      const hits: SevenAttach[] = [...sysHits, ...procHits];
       if (hits.length === 0) {
         return {
           lines: [echo, out(`no process matches '${arg}'`, "err")],
         };
       }
-      if (hits.length > 1 && !hits.some((proc) => proc.slug === arg)) {
+      if (hits.length > 1) {
         return {
           lines: [
             echo,
             out("ambiguous — pick one:", "err"),
-            ...hits.map((proc) => out(`  ${proc.pid}  ${proc.slug}`)),
+            ...hits.map((item) => out(`  ${item.pid}  ${item.slug}`)),
           ],
         };
       }
-      const proc =
-        hits.find((item) => item.slug === arg) ?? hits[0];
-      if (!proc) {
+      const node = hits[0];
+      if (!node) {
         return { lines: [echo, out("attach failed", "err")] };
       }
       return {
         lines: [
           echo,
-          out(`attached pid ${proc.pid}  ${proc.status}  ·  ${proc.slug}`, "ok"),
+          out(`attached pid ${node.pid}  ${node.status}  ·  ${node.slug}`, "ok"),
         ],
-        attached: proc,
+        attached: node,
       };
     }
     default:
