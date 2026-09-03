@@ -3,8 +3,9 @@ import { CtaTerminal } from "@/components/shared/CtaTerminal";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { TerminalPanel } from "@/components/ui/TerminalPanel";
 import { ImmersiveHero } from "@/components/home/ImmersiveHero";
+import { NeonButton } from "@/components/ui/NeonButton";
 import { getFeaturedProjects, getTestimonials } from "@/lib/data/content";
-import { SITE } from "@/lib/site";
+import { SITE, WIRED } from "@/lib/site";
 
 const services = [
   {
@@ -51,6 +52,26 @@ export default function HomePage() {
   return (
     <>
       <ImmersiveHero />
+
+      <section className="border-b border-dashed border-[#00ff66]/25 bg-black/30">
+        <div className="mx-auto flex max-w-6xl flex-col gap-5 px-4 py-10 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+          <div>
+            <p className="font-mono text-[10px] tracking-[0.28em] text-[#00f0ff] uppercase">
+              protocol 7
+            </p>
+            <h2 className="font-sans mt-2 text-xl tracking-[0.06em] text-[#e8fff8] lowercase sm:text-2xl">
+              {WIRED.invite}
+            </h2>
+            <p className="mt-2 max-w-xl font-mono text-sm leading-relaxed text-[#8fb8b0]">
+              La firma inmersiva: NAVI, procesos en producción y handshake. El
+              estudio queda aquí.
+            </p>
+          </div>
+          <NeonButton href={WIRED.href} variant="ghost">
+            open NAVI
+          </NeonButton>
+        </div>
+      </section>
 
       <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
         <SectionHeading

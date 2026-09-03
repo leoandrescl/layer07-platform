@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { NAV_LINKS, SITE } from "@/lib/site";
+import { NAV_LINKS, SITE, WIRED } from "@/lib/site";
 import { cn } from "@/lib/cn";
 
 export function Header() {
@@ -13,18 +13,24 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 border-b border-dashed border-[#00ff66]/25 bg-[#030b0c]/80 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
-        <Link
-          href="/"
-          className="group flex items-baseline gap-2"
-          onClick={() => setOpen(false)}
-        >
-          <span className="font-sans lain-glow text-lg tracking-[0.08em] text-[#e8fff8] lowercase sm:text-xl">
-            {SITE.name}
-          </span>
-          <span className="hidden font-mono text-[10px] tracking-[0.22em] text-[#7fffd4]/70 sm:inline">
-            the Wired
-          </span>
-        </Link>
+        <div className="flex items-baseline gap-2">
+          <Link
+            href="/"
+            className="group"
+            onClick={() => setOpen(false)}
+          >
+            <span className="font-sans lain-glow text-lg tracking-[0.08em] text-[#e8fff8] lowercase sm:text-xl">
+              {SITE.name}
+            </span>
+          </Link>
+          <Link
+            href={WIRED.href}
+            className="hidden font-mono text-[10px] tracking-[0.22em] text-[#7fffd4]/70 hover:text-[#7fffd4] sm:inline"
+            onClick={() => setOpen(false)}
+          >
+            {WIRED.label}
+          </Link>
+        </div>
 
         <div className="hidden items-center gap-2 font-mono text-[10px] tracking-[0.22em] text-[#8fb8b0] md:flex">
           <span className="inline-flex size-1.5 animate-pulse-online rounded-full bg-[#00ff66]" />
@@ -87,6 +93,13 @@ export function Header() {
                 <span className="text-[#00ff66]">&gt;</span> {link.label.toLowerCase()}
               </Link>
             ))}
+            <Link
+              href={WIRED.href}
+              className="border-b border-dashed border-[#00ff66]/15 py-3 font-mono text-sm tracking-wide text-[#7fffd4] hover:text-white"
+              onClick={() => setOpen(false)}
+            >
+              <span className="text-[#00ff66]">&gt;</span> {WIRED.invite}
+            </Link>
           </nav>
         </div>
       ) : null}

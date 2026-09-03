@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { NAV_LINKS, SITE } from "@/lib/site";
+import { NAV_LINKS, SITE, WIRED } from "@/lib/site";
 
 export function Footer() {
   const year = new Date().getFullYear();
@@ -32,6 +32,11 @@ export function Footer() {
                 </Link>
               </li>
             ))}
+            <li>
+              <Link href={WIRED.href} className="hover:text-[#7fffd4]">
+                {WIRED.label}
+              </Link>
+            </li>
           </ul>
         </div>
 

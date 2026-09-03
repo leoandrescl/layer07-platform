@@ -42,6 +42,14 @@ export const NAV_LINKS = [
   { href: "/contacto", label: "Contacto" },
 ] as const;
 
+/** Firma inmersiva — no es un lab. */
+export const WIRED = {
+  href: "/seven",
+  name: "SEVEN",
+  label: "the Wired",
+  invite: "enter the Wired",
+} as const;
+
 export function whatsappUrl(message?: string) {
   const text =
     message ??

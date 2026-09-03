@@ -88,7 +88,7 @@ export function UplinkHome({
           <a href="#contact" className="hover:text-[#00ff66]">
             Contacto
           </a>
-          <Link href="/s/seven" className="hover:text-[#00f0ff]">
+          <Link href="/seven" className="hover:text-[#00f0ff]">
             Seven
           </Link>
         </nav>
@@ -317,7 +317,7 @@ export function UplinkHome({
           <Link href={SITE.social.linkedin} className="hover:text-[#00ff66]">
             LinkedIn
           </Link>
-          <Link href="/s/seven" className="hover:text-[#00f0ff]">
+          <Link href="/seven" className="hover:text-[#00f0ff]">
             Seven
           </Link>
         </span>

@@ -40,7 +40,11 @@ export default function LabsIndexPage() {
           <Link href="/" className="text-[#00f0ff] hover:text-[#7fffd4]">
             {SITE.domain}
           </Link>
-          ; estas rutas no heredan header, footer ni WhatsApp.
+          ; Seven vive en{" "}
+          <Link href="/seven" className="text-[#00f0ff] hover:text-[#7fffd4]">
+            /seven
+          </Link>
+          . Estas rutas no heredan header, footer ni WhatsApp.
         </p>
 
         <ul className="mt-12 divide-y divide-[#00ff66]/20 border border-dashed border-[#00ff66]/35">

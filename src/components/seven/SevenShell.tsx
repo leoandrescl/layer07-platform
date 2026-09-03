@@ -65,7 +65,7 @@ export const SevenShell = forwardRef<SevenShellHandle, Props>(
     function submit(raw: string) {
       const result = runCommand(raw, processes, idRef.current);
       if (result.exit) {
-        router.push("/labs");
+        router.push("/");
         return;
       }
       if (result.deck) setDeckOpen(true);
@@ -143,7 +143,7 @@ export const SevenShell = forwardRef<SevenShellHandle, Props>(
             aria-hidden
           />
           <span className="truncate font-mono text-[11px] text-[#94a3b8]">
-            NAVI · guest@layer07 ~ /s/seven
+            NAVI · guest@layer07 ~ /seven
           </span>
           <span
             className="h-[7px] min-w-4 flex-1 bg-[repeating-linear-gradient(to_bottom,#00ff66_0_1px,transparent_1px_2px)] opacity-35"

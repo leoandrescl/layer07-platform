@@ -4,7 +4,7 @@ import { toProcesses } from "@/components/seven/commands";
 import { getProjects } from "@/lib/data/content";
 
 export const metadata: Metadata = {
-  title: "SEVEN",
+  title: "the Wired",
   description:
     "Portafolio inmersivo de Leonardo Contreras — Full Stack Engineer, 8+ años. Sistemas a medida, headless e-commerce e integraciones.",
 };

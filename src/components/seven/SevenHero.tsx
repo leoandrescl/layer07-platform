@@ -187,11 +187,13 @@ export function SevenHero({ processes }: { processes: SevenProcess[] }) {
           className="sticky top-0 h-dvh overflow-hidden bg-[#030b0c] will-change-transform select-none"
         >
           <header className="pointer-events-auto absolute top-0 right-0 left-0 z-30 flex items-center justify-between gap-3 px-4 py-4 font-mono text-[10px] tracking-[0.22em] text-[#7fffd4]/80 sm:px-6">
-            <Link href="/labs" className="hover:text-white">
+            <Link href="/" className="hover:text-white">
               close the world
             </Link>
             <span className="hidden sm:inline">the Wired</span>
-            <span className="text-[#7fffd4]">LAYER 07</span>
+            <Link href="/" className="text-[#7fffd4] hover:text-white">
+              LAYER 07
+            </Link>
           </header>
 
           <div className="pointer-events-auto absolute right-3 bottom-3 z-40 sm:right-5 sm:bottom-4">

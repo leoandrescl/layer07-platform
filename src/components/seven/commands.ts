@@ -242,7 +242,7 @@ export function runCommand(
           out("  github | linkedin    net"),
           out("  layers               osi map"),
           out("  clear                reset tty"),
-          out("  exit                 /labs"),
+          out("  exit                 /"),
         ],
       };
     case "ps":
@@ -331,7 +331,7 @@ export function runCommand(
         deck: true,
       };
     case "exit":
-      return { lines: [echo, out("detach → /labs", "dim")], exit: true };
+      return { lines: [echo, out("detach → /", "dim")], exit: true };
     case "open":
     case "cat": {
       if (!arg) {
