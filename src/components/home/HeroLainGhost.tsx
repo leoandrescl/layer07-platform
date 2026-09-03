@@ -213,7 +213,7 @@ export function HeroLainGhost({
 
       const cx = look.x * w;
       const cy = look.y * h;
-      const radius = Math.min(w, h) * 0.2;
+      const radius = Math.min(w, h) * 0.4;
 
       sctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       sctx.clearRect(0, 0, w, h);
