@@ -15,6 +15,11 @@ uniform sampler2D u_atlas;
 uniform vec2 u_atlas_grid;
 uniform float u_glyph_count;
 uniform vec2 u_grid;
+uniform float u_gain;
+uniform float u_darken;
+uniform sampler2D u_face;
+uniform float u_has_face;
+uniform float u_face_mix;
 
 float hash(float n) {
   return fract(sin(n) * 43758.5453123);
@@ -72,10 +77,26 @@ void main() {
   float scan = 0.78 + 0.22 * sin(gl_FragCoord.y * 2.4 + u_time * 3.2);
   float grain = (hash2(gl_FragCoord.xy * 0.7 + u_time * 8.0) - 0.5) * 0.06;
 
-  vec3 bg = vec3(0.012, 0.035, 0.038);
-  vec3 color = bg + tone * signal * vig * scan;
-  color += head * glyph * vec3(0.55, 1.0, 0.88) * 0.4;
-  color += grain;
+  vec2 fuv = vec2(
+    (uv0.x - 0.5 - (u_mouse.x - 0.5) * 0.028) / 0.56,
+    (uv0.y - 0.05 + (u_mouse.y - 0.5) * 0.02) / 0.9
+  );
+  float faceEdge = smoothstep(0.0, 0.12, fuv.x) * smoothstep(1.0, 0.88, fuv.x)
+    * smoothstep(0.0, 0.1, fuv.y) * smoothstep(1.0, 0.9, fuv.y);
+  float face = texture2D(u_face, vec2(clamp(fuv.x, 0.0, 1.0), 1.0 - clamp(fuv.y, 0.0, 1.0))).r;
+  face *= faceEdge * u_has_face * u_face_mix;
+
+  float reveal = exp(-md * 5.2);
+  float localAmp = mix(1.0, mix(0.82, 1.18, reveal), u_has_face);
+  float faceLit = face * mix(0.4, 1.2, reveal);
+
+  vec3 bg = mix(vec3(0.012, 0.035, 0.038), vec3(0.0, 0.002, 0.004), u_darken);
+  float amp = u_gain * mix(1.0, mix(0.55, 1.05, faceLit), u_has_face);
+  vec3 color = bg + tone * signal * vig * scan * amp * localAmp;
+  color += head * glyph * vec3(0.55, 1.0, 0.88) * 0.4 * amp;
+  color += faceLit * glyph * vec3(0.22, 0.95, 1.0) * 1.15;
+  color += faceLit * vec3(0.04, 0.18, 0.22) * 0.55;
+  color += grain * mix(1.0, 0.35, u_darken);
 
   gl_FragColor = vec4(color, 1.0);
 }

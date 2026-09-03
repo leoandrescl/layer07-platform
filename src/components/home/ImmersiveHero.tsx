@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type RefObject } from "react";
 import { GlitchWord } from "@/components/seven/GlitchWord";
 import { RainGL, type Pointer } from "@/components/seven/RainGL";
+import { HeroLainGhost } from "@/components/home/HeroLainGhost";
 import { NeonButton } from "@/components/ui/NeonButton";
 import { TypeLine } from "@/components/ui/TypeLine";
 import { cn } from "@/lib/cn";
@@ -84,6 +85,7 @@ export function ImmersiveHero() {
   const containerRef = useRef<HTMLDivElement>(null);
   const rainPaneRef = useRef<HTMLDivElement>(null);
   const mouseRef = useRef<Pointer>({ x: 0.5, y: 0.5 });
+  const faceMixRef = useRef(1);
   const [progress, setProgress] = useState(0);
   const [activeIndex, setActiveIndex] = useState(0);
   const [reducedMotion, setReducedMotion] = useState(false);
@@ -137,10 +139,12 @@ export function ImmersiveHero() {
     };
   }, [reducedMotion]);
 
+  faceMixRef.current = Math.max(0, 1 - progress / 0.26);
+
   if (reducedMotion) {
     return (
-      <section className="relative overflow-hidden border-b border-dashed border-[#00ff66]/25 bg-[#030b0c]">
-        <HeroBackdrop reduced />
+      <section className="relative overflow-hidden border-b border-dashed border-[#00ff66]/25 bg-[#000204]">
+        <HeroBackdrop reduced presence={1} />
         <div className="relative mx-auto flex min-h-[calc(100dvh-4rem)] max-w-5xl items-center px-4 py-16 sm:px-6">
           <HeroContent phase={PHASES[0]} showCta active />
         </div>
@@ -157,9 +161,14 @@ export function ImmersiveHero() {
     >
       <div
         ref={rainPaneRef}
-        className="sticky top-16 flex h-[calc(100dvh-4rem)] items-center justify-center overflow-hidden bg-[#030b0c]"
+        className="sticky top-16 flex h-[calc(100dvh-4rem)] items-center justify-center overflow-hidden bg-[#000204]"
       >
-        <HeroBackdrop reduced={false} mouseRef={mouseRef} />
+        <HeroBackdrop
+          reduced={false}
+          mouseRef={mouseRef}
+          faceMixRef={faceMixRef}
+          presence={Math.max(0, 1 - progress / 0.26)}
+        />
 
         <HeroChrome
           activeIndex={activeIndex}
@@ -257,30 +266,47 @@ function HeroChrome({
 function HeroBackdrop({
   reduced,
   mouseRef,
+  faceMixRef,
+  presence = 1,
 }: {
   reduced: boolean;
   mouseRef?: RefObject<Pointer>;
+  faceMixRef?: RefObject<number>;
+  presence?: number;
 }) {
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
       {reduced || !mouseRef ? (
         <div
-          className="absolute inset-0 opacity-40"
+          className="absolute inset-0 opacity-22"
           style={{
             backgroundImage:
-              "repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,40,42,0.55) 3px, rgba(0,40,42,0.55) 4px)",
+              "repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,8,10,0.78) 3px, rgba(0,8,10,0.78) 4px)",
           }}
         />
       ) : (
-        <RainGL mouseRef={mouseRef} />
+        <RainGL
+          mouseRef={mouseRef}
+          gain={0.22}
+          darken={1}
+          faceSrc="/seven/wired-face.png"
+          faceMixRef={faceMixRef}
+        />
       )}
 
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(3,11,12,0.35)_55%,rgba(3,11,12,0.88)_100%)]" />
+      <HeroLainGhost
+        mouseRef={mouseRef}
+        presence={presence}
+        reducedMotion={reduced}
+      />
+
+      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,2,4,0.9)_0%,rgba(0,2,4,0.55)_30%,rgba(0,2,4,0.08)_58%,rgba(0,2,4,0.14)_100%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_90%_76%_at_36%_48%,transparent_20%,rgba(0,2,4,0.42)_100%)]" />
       <div
-        className="absolute inset-0 z-[2] opacity-40 mix-blend-multiply"
+        className="absolute inset-0 z-[2] opacity-28 mix-blend-multiply"
         style={{
           backgroundImage:
-            "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.28) 2px, rgba(0,0,0,0.28) 3px)",
+            "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.42) 2px, rgba(0,0,0,0.42) 3px)",
         }}
       />
 
@@ -318,10 +344,10 @@ function HeroContent({
 
       {lockup ? (
         <>
-          <h1 className="font-sans lain-glow relative mt-6 text-[clamp(2.6rem,11vw,7.2rem)] leading-none font-normal tracking-[0.06em] text-[#e8fff8] lowercase">
+          <h1 className="font-sans lain-glow relative mt-6 text-[clamp(2.6rem,11vw,7.2rem)] leading-none font-normal tracking-[0.06em] text-[#e8fff8] lowercase [text-shadow:0_2px_28px_rgba(0,0,0,0.9)]">
             <GlitchWord text="layer07" />
           </h1>
-          <p className="mt-6 max-w-2xl font-mono text-base leading-relaxed tracking-[0.04em] text-[#8fb8b0] sm:text-lg md:text-xl">
+          <p className="mt-6 max-w-2xl font-mono text-base leading-relaxed tracking-[0.04em] text-[#d5efe6] sm:text-lg md:text-xl [text-shadow:0_2px_18px_rgba(0,0,0,0.85)]">
             {phase.body}
           </p>
         </>
@@ -330,7 +356,7 @@ function HeroContent({
           <h1 className="font-sans mt-4 text-4xl leading-[1.1] font-normal tracking-[0.06em] text-[#e8fff8] lowercase sm:text-5xl lg:text-6xl">
             {phase.title}
           </h1>
-          <p className="mx-auto mt-5 max-w-2xl font-mono text-base leading-relaxed text-[#8fb8b0] sm:mx-0 sm:text-lg">
+          <p className="mx-auto mt-5 max-w-2xl font-mono text-base leading-relaxed text-[#d5efe6] sm:mx-0 sm:text-lg [text-shadow:0_2px_18px_rgba(0,0,0,0.85)]">
             {phase.body}
           </p>
         </>
