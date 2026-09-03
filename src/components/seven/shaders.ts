@@ -39,7 +39,7 @@ void main() {
   float md = length(mdelta);
   vec2 aspect = vec2(u_res.x / max(u_res.y, 1.0), 1.0);
   float spot = length((uv0 - mouse) * aspect);
-  float warp = mix(0.038 * exp(-md * 7.5), 0.016 * exp(-spot * 22.0), u_has_face);
+  float warp = mix(0.038 * exp(-md * 7.5), 0.016 * exp(-spot * 11.0), u_has_face);
   uv += mdelta * warp;
   uv = fract(uv);
 
@@ -88,7 +88,7 @@ void main() {
   float face = texture2D(u_face, vec2(clamp(fuv.x, 0.0, 1.0), 1.0 - clamp(fuv.y, 0.0, 1.0))).r;
   face *= faceEdge * u_has_face * u_face_mix;
 
-  float reveal = exp(-pow(spot * 16.0, 2.0));
+  float reveal = exp(-pow(spot * 8.0, 2.0));
   float localAmp = mix(1.0, mix(1.0, 1.28, reveal), u_has_face);
   float faceLit = face * mix(0.4, 1.15, reveal);
 
