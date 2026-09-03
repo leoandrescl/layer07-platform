@@ -92,6 +92,10 @@ export function HeroLainGhost({
         canvas.width = pw;
         canvas.height = ph;
       }
+      if (spot.width !== pw || spot.height !== ph) {
+        spot.width = pw;
+        spot.height = ph;
+      }
       return { w, h, dpr };
     };
 
@@ -119,7 +123,12 @@ export function HeroLainGhost({
       };
     };
 
+    const spot = document.createElement("canvas");
+    const sctx = spot.getContext("2d");
+    if (!sctx) return;
+
     const drawFace = (
+      target: CanvasRenderingContext2D,
       w: number,
       h: number,
       ox: number,
@@ -131,14 +140,14 @@ export function HeroLainGhost({
       const r = fit(w, h);
       if (!r) return;
       if (strips <= 1 || jitter <= 0) {
-        ctx.drawImage(baked, r.dx + ox, r.dy + oy, r.dw, r.dh);
+        target.drawImage(baked, r.dx + ox, r.dy + oy, r.dw, r.dh);
         return;
       }
       const stripH = baked.height / strips;
       for (let i = 0; i < strips; i += 1) {
         const sy = i * stripH;
         const jx = (Math.random() - 0.5) * jitter;
-        ctx.drawImage(
+        target.drawImage(
           baked,
           0,
           sy,
@@ -184,8 +193,8 @@ export function HeroLainGhost({
       }
 
       const target = mouseRef?.current ?? { x: 0.68, y: 0.48 };
-      look.x += (target.x - look.x) * 0.05;
-      look.y += (target.y - look.y) * 0.05;
+      look.x += (target.x - look.x) * 0.16;
+      look.y += (target.y - look.y) * 0.16;
 
       const px = (look.x - 0.5) * -22;
       const py = (look.y - 0.5) * -14;
@@ -199,18 +208,38 @@ export function HeroLainGhost({
       ctx.save();
       ctx.globalCompositeOperation = "screen";
       ctx.globalAlpha = 0.2 + focus * 0.1;
-      drawFace(w, h, px * 0.3, py * 0.3, 1, 0);
-
-      ctx.beginPath();
-      const radius = Math.max(w, h) * (0.24 + focus * 0.2);
-      ctx.arc(look.x * w, look.y * h, radius, 0, Math.PI * 2);
-      ctx.clip();
-      ctx.globalAlpha = 0.42 + focus * 0.32;
-      drawFace(w, h, px, py, strips, jitter);
-
-      ctx.globalAlpha = 0.16;
-      drawFace(w, h, px + 4, py, strips, jitter * 0.4);
+      drawFace(ctx, w, h, px * 0.3, py * 0.3, 1, 0);
       ctx.restore();
+
+      const cx = look.x * w;
+      const cy = look.y * h;
+      const radius = Math.min(w, h) * 0.1;
+
+      sctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      sctx.clearRect(0, 0, w, h);
+      sctx.globalCompositeOperation = "source-over";
+      sctx.globalAlpha = 0.62 + focus * 0.22;
+      drawFace(sctx, w, h, px, py, strips, jitter);
+      sctx.globalAlpha = 0.18;
+      drawFace(sctx, w, h, px + 4, py, strips, jitter * 0.4);
+
+      const lamp = sctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
+      lamp.addColorStop(0, "rgba(0,0,0,1)");
+      lamp.addColorStop(0.18, "rgba(0,0,0,0.82)");
+      lamp.addColorStop(0.42, "rgba(0,0,0,0.42)");
+      lamp.addColorStop(0.68, "rgba(0,0,0,0.14)");
+      lamp.addColorStop(0.88, "rgba(0,0,0,0.04)");
+      lamp.addColorStop(1, "rgba(0,0,0,0)");
+      sctx.globalCompositeOperation = "destination-in";
+      sctx.globalAlpha = 1;
+      sctx.fillStyle = lamp;
+      sctx.fillRect(0, 0, w, h);
+
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.globalCompositeOperation = "screen";
+      ctx.globalAlpha = 1;
+      ctx.drawImage(spot, 0, 0);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
       fadeMask(w, h);
 

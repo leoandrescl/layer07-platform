@@ -37,7 +37,9 @@ void main() {
 
   vec2 mdelta = uv - mouse;
   float md = length(mdelta);
-  float warp = 0.038 * exp(-md * 7.5);
+  vec2 aspect = vec2(u_res.x / max(u_res.y, 1.0), 1.0);
+  float spot = length((uv0 - mouse) * aspect);
+  float warp = mix(0.038 * exp(-md * 7.5), 0.016 * exp(-spot * 22.0), u_has_face);
   uv += mdelta * warp;
   uv = fract(uv);
 
@@ -86,9 +88,9 @@ void main() {
   float face = texture2D(u_face, vec2(clamp(fuv.x, 0.0, 1.0), 1.0 - clamp(fuv.y, 0.0, 1.0))).r;
   face *= faceEdge * u_has_face * u_face_mix;
 
-  float reveal = exp(-md * 5.2);
-  float localAmp = mix(1.0, mix(0.82, 1.18, reveal), u_has_face);
-  float faceLit = face * mix(0.4, 1.2, reveal);
+  float reveal = exp(-pow(spot * 16.0, 2.0));
+  float localAmp = mix(1.0, mix(1.0, 1.28, reveal), u_has_face);
+  float faceLit = face * mix(0.4, 1.15, reveal);
 
   vec3 bg = mix(vec3(0.012, 0.035, 0.038), vec3(0.0, 0.002, 0.004), u_darken);
   float amp = u_gain * mix(1.0, mix(0.55, 1.05, faceLit), u_has_face);
@@ -96,6 +98,8 @@ void main() {
   color += head * glyph * vec3(0.55, 1.0, 0.88) * 0.4 * amp;
   color += faceLit * glyph * vec3(0.22, 0.95, 1.0) * 1.15;
   color += faceLit * vec3(0.04, 0.18, 0.22) * 0.55;
+  color += reveal * u_has_face * signal * vec3(0.12, 0.55, 0.58) * 0.35;
+  color += reveal * u_has_face * vec3(0.02, 0.07, 0.08) * 0.4;
   color += grain * mix(1.0, 0.35, u_darken);
 
   gl_FragColor = vec4(color, 1.0);
