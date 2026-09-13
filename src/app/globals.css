@@ -760,6 +760,104 @@
   pointer-events: auto;
 }
 
+/* LAYER07 / SYSTEMS — light in the dark (scoped under .sys-root). */
+.sys-root {
+  --sys-ink: #050506;
+  --sys-bone: #ecece6;
+  --sys-steel: #8b9094;
+  --sys-warm: #ffaa60;
+  --sys-warm-deep: #ff7a28;
+  font-family: var(--font-sys-mono), "IBM Plex Mono", ui-monospace, monospace;
+  color: var(--sys-bone);
+}
+
+.sys-root .font-sys-sans {
+  font-family: var(--font-sys-sans), "Space Grotesk", ui-sans-serif, system-ui,
+    sans-serif;
+}
+
+.sys-root .font-sys-mono {
+  font-family: var(--font-sys-mono), "IBM Plex Mono", ui-monospace, monospace;
+}
+
+.sys-root .font-sys-serif {
+  font-family: var(--font-sys-serif), "Instrument Serif", ui-serif, Georgia, serif;
+}
+
+.sys-root .sys-vignette {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(5, 5, 6, 0) 42%,
+    rgba(5, 5, 6, 0.6) 100%
+  );
+}
+
+@keyframes sys-hint {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+.sys-root .sys-hint {
+  animation: sys-hint 2.6s ease-in-out infinite;
+}
+
+/* PARTICLE GENESIS — particle lab (scoped under .pg-root). */
+.pg-root {
+  --font-mono: var(--font-lain-mono), "Courier New", Courier, monospace;
+  --font-sans: var(--font-lain-display), "Courier New", Courier, serif;
+  font-family: var(--font-mono);
+}
+
+.pg-root .pg-glow {
+  text-shadow:
+    0 0 14px rgba(127, 255, 212, 0.6),
+    0 0 36px rgba(0, 230, 204, 0.22),
+    0 0 64px rgba(0, 140, 130, 0.14);
+}
+
+.pg-root .pg-hint {
+  animation: pg-hint 2.6s ease-in-out infinite;
+}
+
+@keyframes pg-hint {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pg-root .pg-hint {
+    animation: none !important;
+  }
+}
+
+/* Lenis smooth-scroll normalization. */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
 @keyframes bounce-subtle {
   0%,
   100% {
@@ -802,7 +900,8 @@
   .seven-root .lain-cursor::after,
   .seven-root .lain-glitch-base,
   .seven-root .lain-glitch-slice,
-  .seven-root .lain-glitch-rgb {
+  .seven-root .lain-glitch-rgb,
+  .sys-root .sys-hint {
     animation: none !important;
   }
 }
