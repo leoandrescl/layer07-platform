@@ -30,6 +30,21 @@ function smoothstep(edge0: number, edge1: number, x: number) {
   return t * t * (3 - 2 * t);
 }
 
+const TIERS = CONFIG.particles.tiers;
+const TIER_WEIGHTS = CONFIG.particles.tierWeights;
+
+function pickSizeTier(coreStar: boolean): number {
+  if (coreStar) {
+    return TIERS[4] + Math.random() * (TIERS[5] - TIERS[4]);
+  }
+  let r = Math.random();
+  for (let t = 0; t < TIER_WEIGHTS.length; t += 1) {
+    if (r < TIER_WEIGHTS[t]) return TIERS[t];
+    r -= TIER_WEIGHTS[t];
+  }
+  return TIERS[TIERS.length - 1];
+}
+
 function perspective(fovY: number, aspect: number, near: number, far: number) {
   const f = 1 / Math.tan(fovY / 2);
   const nf = 1 / (near - far);
@@ -154,14 +169,10 @@ export function ParticleGenesisExperience() {
         z: gp.pos.z + rand(-0.2, 0.2),
       });
 
-      // size: power-law so MOST particles are tiny dust and a few are brighter
-      // "stars". Core stars are always the largest; arm/tail stars stay smaller.
-      const starRoll = Math.random();
-      const starBoost = gp.coreStar
-        ? rand(2.8, 3.6)
-        : starRoll > 0.93
-          ? rand(1.3, 1.8)
-          : rand(0.4, 1.0);
+      // size: pick one of 6 discrete tiers so sizes read clearly distinct.
+      // Core stars always use the largest tiers; arm/tail particles use the
+      // weighted distribution (mostly small dust, few larger stars).
+      const tier = pickSizeTier(gp.coreStar);
       const base = CONFIG.particles.minSize + (CONFIG.particles.maxSize - CONFIG.particles.minSize) * gp.brightness;
       const radNorm = clamp(gp.radius / CONFIG.galaxy.radius, 0, 1);
       particles[i] = {
@@ -170,10 +181,10 @@ export function ParticleGenesisExperience() {
         radial,
         rand: Math.random(),
         phase: rand(0, Math.PI * 2),
-        size: starBoost * base,
+        size: tier * base,
         alpha: gp.coreStar
           ? 0.9
-          : clamp(0.12 + gp.brightness * 0.7, 0, 1) * (starRoll > 0.93 ? 0.85 : rand(0.4, 0.8)),
+          : clamp(0.12 + gp.brightness * 0.7, 0, 1) * (tier >= 2.6 ? 0.85 : rand(0.4, 0.8)),
         tint: gp.tint,
         radius: gp.radius,
         orbitSpeed: (1.4 - radNorm * 1.15) * rand(0.7, 1.4),

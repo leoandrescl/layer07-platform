@@ -7,6 +7,11 @@ export const CONFIG = {
     countMobile: 14000,
     minSize: 0.12,
     maxSize: 0.9,
+    // 6 discrete size tiers (multipliers, smallest first). Distribution is
+    // weighted toward smaller particles. The largest tiers are reserved for
+    // central stars.
+    tiers: [0.5, 0.8, 1.2, 1.8, 2.6, 3.6],
+    tierWeights: [0.46, 0.24, 0.14, 0.09, 0.05, 0.02],
   },
 
   galaxy: {
