@@ -49,8 +49,8 @@ export function generateGalaxy(count: number): GalaxyPoint[] {
     let armIndex: number;
     let coreStar = false;
 
-    if (zoneRoll < 0.04) {
-      // central "giant stars": a bright white-hot cluster at the core
+    if (zoneRoll < 0.015) {
+      // a few scattered central stars, bigger than the rest — never a disc
       zone = "core";
       armIndex = 0;
       coreStar = true;
@@ -69,9 +69,10 @@ export function generateGalaxy(count: number): GalaxyPoint[] {
     let thickness: number;
 
     if (zone === "core") {
-      // few bright stars scattered within a small central region
-      radius = Math.pow(Math.random(), 0.75) * g.coreRadius;
-      thickness = randGauss() * g.thickness * 0.4;
+      // gaussian falloff around the center: dense middle, no hard rim, no
+      // fixed-looking disc edge
+      radius = Math.abs(randGauss()) * g.coreRadius * 0.55;
+      thickness = randGauss() * g.thickness * 0.5;
     } else if (zone === "arm") {
       const t = Math.random();
       // bias toward mid arms so the whirl is dense along its length
@@ -108,19 +109,20 @@ export function generateGalaxy(count: number): GalaxyPoint[] {
 
     const radial = clamp01(radius / g.radius);
     let brightness: number;
-    if (zone === "core") brightness = 1;
-    else if (zone === "arm") brightness = clamp01(0.82 - radial * 0.4) * (0.8 + Math.random() * 0.2);
-    else if (zone === "periphery") brightness = clamp01(0.5 - radial * 0.2) * (0.55 + Math.random() * 0.4);
-    else brightness = clamp01(0.28 - radial * 0.12) * (0.35 + Math.random() * 0.5);
+    if (zone === "core") brightness = 0.9;
+    else if (zone === "arm") brightness = clamp01(0.68 - radial * 0.35) * (0.7 + Math.random() * 0.3);
+    else if (zone === "periphery") brightness = clamp01(0.42 - radial * 0.18) * (0.5 + Math.random() * 0.4);
+    else brightness = clamp01(0.24 - radial * 0.1) * (0.3 + Math.random() * 0.5);
 
-    // tint: hue across the full star palette (blue/cyan/violet/magenta/red/
-    // orange/white). Scatter broadly so reds and blues coexist, while core
-    // stars skew warm/white.
+    // tint: mostly cool blue/cyan/white like the reference, with sparse warm
+    // amber accents. Core stars skew warm white.
     let tint: number;
     if (coreStar) {
       tint = 0.8 + Math.random() * 0.2; // warm white / orange core stars
+    } else if (Math.random() < 0.16) {
+      tint = 0.68 + Math.random() * 0.32; // amber accent stars
     } else {
-      tint = clamp01(0.35 + radial * 0.5 + randGauss() * 0.28);
+      tint = Math.random() * 0.36; // cool blue -> cyan -> violet
     }
 
     points[i] = {

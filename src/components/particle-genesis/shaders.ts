@@ -35,11 +35,12 @@ void main() {
   vec2 c = gl_PointCoord - 0.5;
   float d2 = dot(c, c);
 
-  // glowing star: hot bright core + mid glow + wide soft halo. Large
-  // particles bloom into big soft stars, small ones stay as crisp dust.
-  float core = exp(-d2 * 60.0);
-  float glow = exp(-d2 * 16.0) * 0.35;
-  float halo = exp(-d2 * 5.5) * 0.1;
+  // glowing star: hot bright core + restrained mid glow + faint halo.
+  // Kept dim on purpose: additive blending stacks overlaps, so each
+  // particle must stay dark enough that arms never blow out to white.
+  float core = exp(-d2 * 70.0);
+  float glow = exp(-d2 * 18.0) * 0.22;
+  float halo = exp(-d2 * 6.0) * 0.06;
   float a = (core + glow + halo) * v_alpha;
   if (a < 0.004) discard;
 
@@ -69,9 +70,9 @@ void main() {
     color = mix(orange, white, (t - 0.833) / 0.166);
   }
 
-  // white-hot center: the core burns toward white regardless of tint,
-  // exactly like a real glowing star
-  vec3 hot = mix(color, vec3(1.0, 0.98, 0.96), clamp(core * 1.2, 0.0, 1.0) * 0.85);
+  // warm center: only the very brightest pixel leans toward white so the
+  // tint (mostly cool blue, some amber) survives everywhere else
+  vec3 hot = mix(color, vec3(1.0, 0.98, 0.96), clamp(core * 1.4 - 0.45, 0.0, 1.0) * 0.7);
 
   gl_FragColor = vec4(hot, a);
 }

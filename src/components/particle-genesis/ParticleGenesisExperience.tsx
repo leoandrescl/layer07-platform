@@ -45,7 +45,8 @@ const TIER_WEIGHTS = CONFIG.particles.tierWeights;
 
 function pickSizeTier(coreStar: boolean): number {
   if (coreStar) {
-    return TIERS[6] + Math.random() * (TIERS[7] - TIERS[6]);
+    // a step above the crowd, not giants: clearly bigger than the rest
+    return TIERS[5] + Math.random() * (TIERS[6] - TIERS[5]);
   }
   let r = Math.random();
   for (let t = 0; t < TIER_WEIGHTS.length; t += 1) {
@@ -193,8 +194,8 @@ export function ParticleGenesisExperience() {
         phase: rand(0, Math.PI * 2),
         size: tier * (1 + gp.brightness * CONFIG.particles.brightnessSize),
         alpha: gp.coreStar
-          ? 0.95
-          : clamp(0.25 + gp.brightness * 0.75, 0, 1) * (tier >= 0.62 ? 0.9 : rand(0.55, 1.0)),
+          ? 0.85
+          : clamp(0.16 + gp.brightness * 0.6, 0, 1) * (tier >= 0.62 ? 0.75 : rand(0.45, 0.85)),
         tint: gp.tint,
         radius: gp.radius,
         orbitSpeed: (1.4 - radNorm * 1.15) * rand(0.7, 1.4),
