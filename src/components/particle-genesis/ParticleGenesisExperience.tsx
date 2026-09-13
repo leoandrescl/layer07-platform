@@ -31,6 +31,8 @@ interface Particle {
   spreadTerm: number;
   /** arm/periphery particles drift toward the core along the log-spiral */
   flowing: boolean;
+  /** central star (orbits the core + twinkles instead of flowing inward) */
+  core: boolean;
   /** skip position smoothing for one frame (after a radius respawn) */
   snap: boolean;
 }
@@ -45,8 +47,8 @@ const TIER_WEIGHTS = CONFIG.particles.tierWeights;
 
 function pickSizeTier(coreStar: boolean): number {
   if (coreStar) {
-    // a step above the crowd, not giants: clearly bigger than the rest
-    return TIERS[5] + Math.random() * (TIERS[6] - TIERS[5]);
+    // considerably bigger than the rest: the top tiers
+    return TIERS[6] + Math.random() * (TIERS[7] - TIERS[6]);
   }
   let r = Math.random();
   for (let t = 0; t < TIER_WEIGHTS.length; t += 1) {
@@ -155,6 +157,7 @@ export function ParticleGenesisExperience() {
     // ---- build particles ----
     const galaxyPoints = generateGalaxy(particleCount);
     const particles: Particle[] = new Array(particleCount);
+    const twinkleIdx: number[] = [];
 
     const spaceRadius = CONFIG.galaxy.radius * 2.4;
     for (let i = 0; i < particleCount; i += 1) {
@@ -195,7 +198,7 @@ export function ParticleGenesisExperience() {
         size: tier * (1 + gp.brightness * CONFIG.particles.brightnessSize),
         alpha: gp.coreStar
           ? 0.85
-          : clamp(0.16 + gp.brightness * 0.6, 0, 1) * (tier >= 0.62 ? 0.75 : rand(0.45, 0.85)),
+          : clamp(0.16 + gp.brightness * 0.6, 0, 1) * (tier >= 0.78 ? 0.75 : rand(0.45, 0.85)),
         tint: gp.tint,
         radius: gp.radius,
         orbitSpeed: (1.4 - radNorm * 1.15) * rand(0.7, 1.4),
@@ -204,8 +207,11 @@ export function ParticleGenesisExperience() {
         arm: gp.armIndex,
         spreadTerm: gp.armSpread,
         flowing,
+        core: gp.coreStar,
         snap: false,
       };
+      // central stars + the largest arm stars twinkle (alpha animated per frame)
+      if (gp.coreStar || tier >= 1.1) twinkleIdx.push(i);
     }
 
     // ---- buffers ----
@@ -235,7 +241,8 @@ export function ParticleGenesisExperience() {
 
     const alphaBuf = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, alphaBuf);
-    gl.bufferData(gl.ARRAY_BUFFER, alphaArray, gl.STATIC_DRAW);
+    // dynamic: central + giant stars twinkle every frame
+    gl.bufferData(gl.ARRAY_BUFFER, alphaArray, gl.DYNAMIC_DRAW);
 
     const tintBuf = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, tintBuf);
@@ -418,10 +425,23 @@ export function ParticleGenesisExperience() {
             pt.curR = gRadius * (0.9 + Math.random() * 0.22);
             pt.snap = true;
           }
+          // angle derives from the radius (arms stay intact) plus a very slow
+          // counter-clockwise drift in the same sense as the inward flow
           const ang =
-            pt.arm * armStep + (pt.curR / gRadius) * totalTurn + pt.spreadTerm / Math.max(pt.curR, 0.35);
+            pt.arm * armStep +
+            (pt.curR / gRadius) * totalTurn +
+            pt.spreadTerm / Math.max(pt.curR, 0.35) -
+            timeNow * CONFIG.galaxy.driftSpeed;
           gx = Math.cos(ang) * pt.curR;
           gz = Math.sin(ang) * pt.curR;
+        } else if (pt.core) {
+          // central stars orbit the core counter-clockwise so the center
+          // feels alive instead of static
+          const ca = -timeNow * CONFIG.galaxy.coreOrbitSpeed;
+          const cc = Math.cos(ca);
+          const cs = Math.sin(ca);
+          gx = pt.galaxy.x * cc - pt.galaxy.z * cs;
+          gz = pt.galaxy.x * cs + pt.galaxy.z * cc;
         } else {
           gx = pt.galaxy.x;
           gz = pt.galaxy.z;
@@ -486,6 +506,15 @@ export function ParticleGenesisExperience() {
 
       gl.bindBuffer(gl.ARRAY_BUFFER, posBuf);
       gl.bufferSubData(gl.ARRAY_BUFFER, 0, posArray);
+
+      // twinkle: central + giant stars breathe in brightness
+      for (let k = 0; k < twinkleIdx.length; k += 1) {
+        const idx = twinkleIdx[k];
+        const pt = particles[idx];
+        alphaArray[idx] = pt.alpha * (0.62 + 0.38 * Math.sin(timeNow * (0.8 + pt.wobble) + pt.phase * 2.0));
+      }
+      gl.bindBuffer(gl.ARRAY_BUFFER, alphaBuf);
+      gl.bufferSubData(gl.ARRAY_BUFFER, 0, alphaArray);
 
       // ---- camera matrices ----
       const aspect = view.w / view.h;

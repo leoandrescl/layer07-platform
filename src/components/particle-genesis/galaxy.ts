@@ -49,7 +49,7 @@ export function generateGalaxy(count: number): GalaxyPoint[] {
     let armIndex: number;
     let coreStar = false;
 
-    if (zoneRoll < 0.015) {
+    if (zoneRoll < 0.01) {
       // a few scattered central stars, bigger than the rest — never a disc
       zone = "core";
       armIndex = 0;

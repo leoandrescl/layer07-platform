@@ -6,10 +6,10 @@ export const CONFIG = {
     countTablet: 6000,
     countMobile: 3500,
     // 8 absolute size tiers (world units, smallest first): from fine dust to
-    // giant glowing stars. Distribution is weighted toward smaller particles.
-    // The largest tiers are reserved for central stars.
-    tiers: [0.1, 0.15, 0.22, 0.32, 0.45, 0.62, 0.8, 1.05],
-    tierWeights: [0.3, 0.24, 0.18, 0.12, 0.08, 0.045, 0.025, 0.01],
+    // giant glowing stars. Wide geometric gaps so the size variety reads
+    // clearly; upper tiers are common enough to dot the arms with big stars.
+    tiers: [0.09, 0.14, 0.22, 0.34, 0.52, 0.78, 1.1, 1.5],
+    tierWeights: [0.28, 0.22, 0.17, 0.12, 0.09, 0.06, 0.04, 0.02],
     // brightness scales size mildly so bright stars read slightly larger
     brightnessSize: 0.55,
   },
@@ -24,6 +24,11 @@ export const CONFIG = {
     // inward radial flow speed (units/s) — particles drift toward the core
     // instead of the whole galaxy rigidly rotating
     flowSpeed: 0.5,
+    // very slow global counter-clockwise drift (rad/s), same sense as the
+    // inward flow — just enough to feel alive without winding the arms
+    driftSpeed: 0.025,
+    // central stars orbit slightly faster than the global drift
+    coreOrbitSpeed: 0.08,
     armWidth: 0.2,
   },
 
