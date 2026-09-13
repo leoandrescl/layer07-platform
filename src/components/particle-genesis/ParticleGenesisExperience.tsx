@@ -20,6 +20,9 @@ interface Particle {
   size: number;
   alpha: number;
   tint: number;
+  radius: number;
+  orbitSpeed: number;
+  wobble: number;
 }
 
 function smoothstep(edge0: number, edge1: number, x: number) {
@@ -76,12 +79,6 @@ function compile(gl: WebGL2RenderingContext, type: number, src: string) {
     return null;
   }
   return shader;
-}
-
-function buildSpinMat(angle: number) {
-  const c = Math.cos(angle);
-  const s = Math.sin(angle);
-  return (p: V3): V3 => ({ x: p.x * c - p.z * s, y: p.y, z: p.x * s + p.z * c });
 }
 
 const TOTAL_VH = 220;
@@ -157,7 +154,8 @@ export function ParticleGenesisExperience() {
         z: gp.pos.z + rand(-0.2, 0.2),
       });
 
-      const sizeJitter = rand(0.7, 1.4);
+      const sizeJitter = rand(0.6, 1.6);
+      const radNorm = clamp(gp.radius / CONFIG.galaxy.radius, 0, 1);
       particles[i] = {
         galaxy: gp.pos,
         dispersed,
@@ -165,8 +163,12 @@ export function ParticleGenesisExperience() {
         rand: Math.random(),
         phase: rand(0, Math.PI * 2),
         size: sizeJitter * (CONFIG.particles.minSize + (CONFIG.particles.maxSize - CONFIG.particles.minSize) * gp.brightness),
-        alpha: clamp(0.22 + gp.brightness * 0.78, 0, 1) * rand(0.75, 1),
+        alpha: clamp(0.18 + gp.brightness * 0.82, 0, 1) * rand(0.7, 1),
         tint: gp.tint,
+        radius: gp.radius,
+        // differential orbit: inner particles revolve faster
+        orbitSpeed: (1.4 - radNorm * 1.15) * rand(0.7, 1.4),
+        wobble: rand(0.5, 2.0),
       };
     }
 
@@ -232,14 +234,11 @@ export function ParticleGenesisExperience() {
       targetYaw: CONFIG.camera.yaw,
       targetPitch: CONFIG.camera.pitch,
     };
-    const pointerNDC = { x: 0, y: 0 };
     let dragging = false;
     let lastDragX = 0;
     let lastDragY = 0;
 
     const onPointerMove = (e: PointerEvent) => {
-      pointerNDC.x = (e.clientX / window.innerWidth) * 2 - 1;
-      pointerNDC.y = (e.clientY / window.innerHeight) * 2 - 1;
       if (dragging) {
         const dx = (e.clientX - lastDragX) / window.innerWidth;
         const dy = (e.clientY - lastDragY) / window.innerHeight;
@@ -333,25 +332,34 @@ export function ParticleGenesisExperience() {
       const dispersionT = smoothstep(SC.dispersionStart, SC.scattered, p);
       const timeNow = time / 1000;
 
-      // galaxy sways a touch over time so it never feels rigid
-      const spinFn = buildSpinMat(timeNow * CONFIG.galaxy.rotationSpeed);
-
       for (let i = 0; i < particleCount; i += 1) {
         const pt = particles[i];
 
-        // orbital rotation of the galaxy
-        const gSpin = spinFn(pt.galaxy);
+        // --- orbital revolution (differential by radius) ---
+        const orbitAngle = timeNow * CONFIG.galaxy.rotationSpeed * pt.orbitSpeed + pt.phase * 0.4;
+        const ca = Math.cos(orbitAngle);
+        const sa = Math.sin(orbitAngle);
+        const gx = pt.galaxy.x * ca - pt.galaxy.z * sa;
+        const gz = pt.galaxy.x * sa + pt.galaxy.z * ca;
+        const gy = pt.galaxy.y;
 
-        // centrifugal burst target
+        // --- organic drift: independent radial breathing + vertical shimmer ---
+        const breatheT = timeNow * pt.wobble + pt.phase;
+        const breathe = 1 + Math.sin(breatheT) * 0.035;
+        const ox = gx * breathe + Math.sin(breatheT * 1.7) * 0.12;
+        const oz = gz * breathe + Math.cos(breatheT * 1.3) * 0.12;
+        const oy = gy + Math.sin(breatheT * 0.8 + pt.phase) * CONFIG.galaxy.thickness * 0.55;
+
+        // --- centrifugal burst target (used during dispersion) ---
         const burst = CONFIG.scatter.speed * (0.4 + pt.rand * 1.4);
-        const dispX = gSpin.x + pt.radial.x * burst;
-        const dispY = gSpin.y + pt.radial.y * burst * 0.6;
-        const dispZ = gSpin.z + pt.radial.z * burst;
+        const dispX = ox + pt.radial.x * burst;
+        const dispY = oy + pt.radial.y * burst * 0.5;
+        const dispZ = oz + pt.radial.z * burst;
 
-        // blend: galaxy (with dispersion influence) vs dispersed
-        const targetX = lerp(gSpin.x, pt.dispersed.x, dw);
-        const targetY = lerp(gSpin.y, pt.dispersed.y, dw);
-        const targetZ = lerp(gSpin.z, pt.dispersed.z, dw);
+        // blend: galaxy motion vs dispersed target
+        const targetX = lerp(ox, pt.dispersed.x, dw);
+        const targetY = lerp(oy, pt.dispersed.y, dw);
+        const targetZ = lerp(oz, pt.dispersed.z, dw);
 
         let tx = targetX;
         let ty = targetY;
@@ -365,9 +373,9 @@ export function ParticleGenesisExperience() {
           tz = lerp(tz, dispZ, mix * 0.55);
         }
 
-        // subtle living noise (stronger when dispersed)
+        // subtle living noise (ambient flicker, stronger when dispersed)
         const noiseT = timeNow * 0.6 + pt.phase;
-        const noiseAmp = 0.015 + dw * 0.06;
+        const noiseAmp = 0.02 + dw * 0.08;
         tx += Math.sin(noiseT) * noiseAmp;
         ty += Math.cos(noiseT * 1.3) * noiseAmp;
         tz += Math.sin(noiseT * 0.7) * noiseAmp;
@@ -383,8 +391,9 @@ export function ParticleGenesisExperience() {
 
       // ---- camera matrices ----
       const aspect = view.w / view.h;
-      const yaw = cam.yaw + pointerNDC.x * CONFIG.camera.parallax * (dragging ? 0 : 1);
-      const pitch = cam.pitch + pointerNDC.y * CONFIG.camera.parallax * (dragging ? 0 : 1);
+      // camera only rotates while dragging — no free mouse-follow
+      const yaw = cam.yaw;
+      const pitch = cam.pitch;
 
       // eye orbits the galaxy; high pitch = top-down view of the spiral
       const eye: V3 = {

@@ -84,9 +84,10 @@ export function generateGalaxy(count: number): GalaxyPoint[] {
     else if (zone === "periphery") brightness = clamp01(0.55 - radial * 0.2) * (0.6 + Math.random() * 0.4);
     else brightness = clamp01(0.3 - radial * 0.15) * (0.4 + Math.random() * 0.5);
 
-    // tint: 0 = cool blue-violet (outer), 1 = warm white (core)
+    // tint drives the shader palette: low = blue/cyan (outer arms),
+    // high = warm white (core). Spread across the full range for richness.
     const tint = clamp01(
-      0.42 + randGauss() * 0.2 + (zone === "core" ? 0.22 : 0) - radial * 0.18,
+      0.12 + radial * 0.85 + randGauss() * 0.14 + (zone === "core" ? 0.1 : 0),
     );
 
     points[i] = {

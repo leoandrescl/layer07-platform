@@ -41,12 +41,24 @@ void main() {
   float a = (core + halo) * v_alpha;
   if (a < 0.0015) discard;
 
-  // palette: cool blue-violet (outer) -> warm white (core)
-  vec3 blue = vec3(0.55, 0.62, 0.95);
-  vec3 violet = vec3(0.78, 0.68, 1.0);
-  vec3 white = vec3(0.98, 0.98, 1.0);
-  vec3 color = mix(blue, violet, smoothstep(0.0, 0.5, v_tint));
-  color = mix(color, white, smoothstep(0.5, 1.0, v_tint));
+  // richer, cooler palette that still reads elegant:
+  // deep blue -> cyan -> violet -> warm white (core)
+  vec3 cyan   = vec3(0.40, 0.72, 1.0);
+  vec3 blue   = vec3(0.45, 0.55, 0.95);
+  vec3 violet = vec3(0.72, 0.60, 1.0);
+  vec3 rose   = vec3(0.95, 0.82, 1.0);
+  vec3 white  = vec3(1.0, 0.99, 1.0);
+
+  vec3 color;
+  if (v_tint < 0.25) {
+    color = mix(blue, cyan, v_tint / 0.25);
+  } else if (v_tint < 0.5) {
+    color = mix(cyan, violet, (v_tint - 0.25) / 0.25);
+  } else if (v_tint < 0.75) {
+    color = mix(violet, rose, (v_tint - 0.5) / 0.25);
+  } else {
+    color = mix(rose, white, (v_tint - 0.75) / 0.25);
+  }
 
   gl_FragColor = vec4(color, a);
 }
