@@ -21,17 +21,23 @@ export const CONFIG = {
     twist: 4.6,
     coreRadius: 1.15,
     thickness: 0.2,
-    rotationSpeed: 0.045,
+    // inward radial flow speed (units/s) — particles drift toward the core
+    // instead of the whole galaxy rigidly rotating
+    flowSpeed: 0.5,
     armWidth: 0.2,
   },
 
   animation: {
-    formationDuration: 2.2,
+    formationDelay: 2.0,
+    formationDuration: 3.8,
     formationAuto: true,
+    // exponential position smoothing rate (1/s) — lower = gentler, lazier
+    // motion for scroll-driven dispersion/regroup
+    positionSmoothing: 2.6,
   },
 
   scatter: {
-    speed: 12.0,
+    speed: 5.0,
   },
 
   // camera: yaw rotates around the vertical axis, pitch is the elevation
@@ -46,16 +52,19 @@ export const CONFIG = {
     dragSensitivityPitch: 2.0,
     parallax: 0.06,
     damping: 0.06,
+    // stiffer damping while the user is actively dragging, so the camera
+    // feels responsive instead of heavy
+    dragDamping: 0.28,
   },
 
   // normalized scroll progress keyframes (0 -> 1)
   scroll: {
-    galaxyEnd: 0.14, // galaxy fully settled, rotating
-    dispersionStart: 0.2,
-    scattered: 0.4, // center cleared; content readable
+    galaxyEnd: 0.14, // galaxy fully settled
+    dispersionStart: 0.16,
+    scattered: 0.42, // center cleared; content readable
     contentHold: 0.55, // dispersed/ambient while reading
     regroupStart: 0.62,
-    regrouped: 0.85, // galaxy re-formed
+    regrouped: 0.88, // galaxy re-formed
   },
 
   interaction: {

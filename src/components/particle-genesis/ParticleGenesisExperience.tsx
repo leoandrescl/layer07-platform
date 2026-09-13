@@ -23,6 +23,16 @@ interface Particle {
   radius: number;
   orbitSpeed: number;
   wobble: number;
+  /** current radius while flowing inward (mutable) */
+  curR: number;
+  /** spiral arm index (for flowing particles) */
+  arm: number;
+  /** raw angular spread perpendicular to the arm */
+  spreadTerm: number;
+  /** arm/periphery particles drift toward the core along the log-spiral */
+  flowing: boolean;
+  /** skip position smoothing for one frame (after a radius respawn) */
+  snap: boolean;
 }
 
 function smoothstep(edge0: number, edge1: number, x: number) {
@@ -175,6 +185,7 @@ export function ParticleGenesisExperience() {
       const tier = pickSizeTier(gp.coreStar);
       const base = CONFIG.particles.minSize + (CONFIG.particles.maxSize - CONFIG.particles.minSize) * gp.brightness;
       const radNorm = clamp(gp.radius / CONFIG.galaxy.radius, 0, 1);
+      const flowing = gp.zone === "arm" || gp.zone === "periphery";
       particles[i] = {
         galaxy: gp.pos,
         dispersed,
@@ -189,6 +200,11 @@ export function ParticleGenesisExperience() {
         radius: gp.radius,
         orbitSpeed: (1.4 - radNorm * 1.15) * rand(0.7, 1.4),
         wobble: rand(0.5, 2.0),
+        curR: gp.radius,
+        arm: gp.armIndex,
+        spreadTerm: gp.armSpread,
+        flowing,
+        snap: false,
       };
     }
 
@@ -202,6 +218,11 @@ export function ParticleGenesisExperience() {
       sizeArray[i] = particles[i].size;
       alphaArray[i] = particles[i].alpha;
       tintArray[i] = particles[i].tint;
+      // particles start as a scattered starfield; the intro formation pulls
+      // them inward into the galaxy after a short delay
+      posArray[i * 3] = particles[i].dispersed.x;
+      posArray[i * 3 + 1] = particles[i].dispersed.y;
+      posArray[i * 3 + 2] = particles[i].dispersed.z;
     }
 
     const posBuf = gl.createBuffer();
@@ -279,6 +300,9 @@ export function ParticleGenesisExperience() {
     };
     const onPointerDown = (e: PointerEvent) => {
       if (e.pointerType === "touch") return;
+      if (e.button !== 0) return;
+      // don't hijack drags that start on interactive elements (nav links)
+      if (e.target instanceof Element && e.target.closest("a, button")) return;
       dragging = true;
       lastDragX = e.clientX;
       lastDragY = e.clientY;
@@ -346,9 +370,13 @@ export function ParticleGenesisExperience() {
       let p = clamp(window.scrollY / scrollable);
       if (reduced) p = Math.max(p, 0.55);
 
-      // camera damping + idle micro parallax
-      cam.yaw = lerp(cam.yaw, cam.targetYaw, CONFIG.camera.damping + dtSec);
-      cam.pitch = lerp(cam.pitch, cam.targetPitch, CONFIG.camera.damping + dtSec);
+      // camera damping (stiffer while dragging so it feels responsive)
+      const damp = Math.min(
+        1,
+        (dragging ? CONFIG.camera.dragDamping : CONFIG.camera.damping) + dtSec * 2,
+      );
+      cam.yaw = lerp(cam.yaw, cam.targetYaw, damp);
+      cam.pitch = lerp(cam.pitch, cam.targetPitch, damp);
 
       const tw = galaxyWeight(p);
       const dw = dispersedWeight(p);
@@ -357,19 +385,47 @@ export function ParticleGenesisExperience() {
       const dispersionT = smoothstep(SC.dispersionStart, SC.scattered, p);
       const timeNow = time / 1000;
 
-      // coherent galaxy spin: counter-clockwise when viewed from above.
-      // A single angle applied to every particle so the spiral never winds up.
-      const spinAngle = -timeNow * CONFIG.galaxy.rotationSpeed;
-      const cosA = Math.cos(spinAngle);
-      const sinA = Math.sin(spinAngle);
+      // ---- intro formation: scattered starfield -> galaxy ----
+      // stars hang in space for a moment, then automatically flow toward the
+      // center and wind up into the spiral
+      const introRaw = reduced
+        ? 1
+        : clamp((timeNow - CONFIG.animation.formationDelay) / CONFIG.animation.formationDuration);
+      const introK = introRaw * introRaw * (3 - 2 * introRaw);
+
+      // flow constants
+      const gRadius = CONFIG.galaxy.radius;
+      const armStep = (Math.PI * 2) / CONFIG.galaxy.arms;
+      const totalTurn = CONFIG.galaxy.twist;
+      // exponential smoothing: every motion glides instead of snapping
+      const smoothA = dtSec > 0 ? 1 - Math.exp(-dtSec * CONFIG.animation.positionSmoothing) : 1;
 
       for (let i = 0; i < particleCount; i += 1) {
         const pt = particles[i];
 
-        // --- coherent rigid rotation: ONE angle for the whole galaxy so the
-        // spiral arms stay perfectly intact forever (no winding-up). ---
-        const gx = pt.galaxy.x * cosA - pt.galaxy.z * sinA;
-        const gz = pt.galaxy.x * sinA + pt.galaxy.z * cosA;
+        // --- inward flow along the log-spiral (no rigid rotation): each arm
+        // particle drifts toward the core; its angle derives from the current
+        // radius, so the arms stay intact while matter streams inward ---
+        let gx: number;
+        let gz: number;
+        if (pt.flowing) {
+          const rn = clamp(pt.curR / gRadius);
+          const flowSpd = CONFIG.galaxy.flowSpeed * (0.7 + pt.rand * 0.6);
+          const speedFactor = 0.35 + 0.85 * (1 - rn);
+          pt.curR -= flowSpd * speedFactor * dtSec;
+          if (pt.curR < 0.3) {
+            // reached the core: recycle to the outer edge
+            pt.curR = gRadius * (0.9 + Math.random() * 0.22);
+            pt.snap = true;
+          }
+          const ang =
+            pt.arm * armStep + (pt.curR / gRadius) * totalTurn + pt.spreadTerm / Math.max(pt.curR, 0.35);
+          gx = Math.cos(ang) * pt.curR;
+          gz = Math.sin(ang) * pt.curR;
+        } else {
+          gx = pt.galaxy.x;
+          gz = pt.galaxy.z;
+        }
         const gy = pt.galaxy.y;
 
         // --- tiny independent shimmer so it feels alive, not rigid (kept small
@@ -379,33 +435,53 @@ export function ParticleGenesisExperience() {
         const oz = gz + Math.cos(timeNow * 0.5 + pt.phase) * 0.015;
         const oy = gy + Math.sin(timeNow * 0.4 + pt.phase) * CONFIG.galaxy.thickness * 0.25;
 
-        // --- centrifugal burst target (used during dispersion) ---
-        const burst = CONFIG.scatter.speed * (0.4 + pt.rand * 1.4);
-        const dispX = ox + pt.radial.x * burst;
-        const dispY = oy + pt.radial.y * burst * 0.5;
-        const dispZ = oz + pt.radial.z * burst;
-
-        // blend: galaxy motion vs dispersed target
-        const targetX = lerp(ox, pt.dispersed.x, dw);
-        const targetY = lerp(oy, pt.dispersed.y, dw);
-        const targetZ = lerp(oz, pt.dispersed.z, dw);
-
-        let tx = targetX;
-        let ty = targetY;
-        let tz = targetZ;
-
-        // transient outward burst during dispersion
-        if (dw > 0.001) {
-          const mix = dispersionT * (1 - smoothstep(SC.regroupStart, SC.regrouped, p));
-          tx = lerp(tx, dispX, mix * 0.55);
-          ty = lerp(ty, dispY, mix * 0.55);
-          tz = lerp(tz, dispZ, mix * 0.55);
+        // --- intro blend: scattered starfield -> galaxy, with a gentle swirl
+        // so the approach curves softly inward rather than moving straight ---
+        let ix: number;
+        let iy: number;
+        let iz: number;
+        if (introK < 1) {
+          const sw = -1.1 * (1 - introK);
+          const cs = Math.cos(sw);
+          const sn = Math.sin(sw);
+          const sx = pt.dispersed.x * cs - pt.dispersed.z * sn;
+          const sz = pt.dispersed.x * sn + pt.dispersed.z * cs;
+          ix = lerp(sx, ox, introK);
+          iy = lerp(pt.dispersed.y, oy, introK);
+          iz = lerp(sz, oz, introK);
+        } else {
+          ix = ox;
+          iy = oy;
+          iz = oz;
         }
 
-        // write directly (no per-frame lerp needed; weights already smooth)
-        posArray[i * 3] = tx;
-        posArray[i * 3 + 1] = ty;
-        posArray[i * 3 + 2] = tz;
+        // blend: galaxy motion vs dispersed target
+        let tx = lerp(ix, pt.dispersed.x, dw);
+        let ty = lerp(iy, pt.dispersed.y, dw);
+        let tz = lerp(iz, pt.dispersed.z, dw);
+
+        // gentle transient outward burst during dispersion
+        if (dw > 0.001) {
+          const mix = dispersionT * (1 - smoothstep(SC.regroupStart, SC.regrouped, p));
+          const burst = CONFIG.scatter.speed * (0.4 + pt.rand * 1.4);
+          tx = lerp(tx, ix + pt.radial.x * burst, mix * 0.35);
+          ty = lerp(ty, iy + pt.radial.y * burst * 0.5, mix * 0.35);
+          tz = lerp(tz, iz + pt.radial.z * burst, mix * 0.35);
+        }
+
+        // exponential smoothing toward the target (bypassed right after a
+        // radius respawn so recycled particles don't streak across the scene)
+        const idx = i * 3;
+        if (pt.snap || smoothA >= 1) {
+          posArray[idx] = tx;
+          posArray[idx + 1] = ty;
+          posArray[idx + 2] = tz;
+          pt.snap = false;
+        } else {
+          posArray[idx] += (tx - posArray[idx]) * smoothA;
+          posArray[idx + 1] += (ty - posArray[idx + 1]) * smoothA;
+          posArray[idx + 2] += (tz - posArray[idx + 2]) * smoothA;
+        }
       }
 
       gl.bindBuffer(gl.ARRAY_BUFFER, posBuf);
@@ -494,8 +570,12 @@ export function ParticleGenesisExperience() {
   }, []);
 
   return (
-    <div className="pg-root relative">
-      <canvas ref={canvasRef} className="fixed inset-0 z-0 h-full w-full" aria-hidden />
+    <div className="pg-root relative select-none">
+      <canvas
+        ref={canvasRef}
+        className="fixed inset-0 z-0 h-full w-full cursor-grab active:cursor-grabbing"
+        aria-hidden
+      />
 
       {DEBUG && (
         <div

@@ -14,6 +14,10 @@ export interface GalaxyPoint {
   tint: number;
   /** true for the sparse, large "giant stars" near the center */
   coreStar: boolean;
+  /** spiral arm index (0 for core/halo) */
+  armIndex: number;
+  /** raw angular spread added perpendicular to the arm (divide by radius) */
+  armSpread: number;
 }
 
 function clamp01(v: number) {
@@ -86,13 +90,14 @@ export function generateGalaxy(count: number): GalaxyPoint[] {
     const spiralAngle = radialNorm * totalTurn;
 
     let angle: number;
+    let armSpread = 0;
     if (zone === "core") {
       angle = Math.random() * Math.PI * 2;
     } else if (zone === "arm" || zone === "periphery") {
       angle = armIndex * armStep + spiralAngle;
       // narrow gaussian spread perpendicular to the arm (keeps the arms crisp)
-      const spread = randGauss() * g.armWidth;
-      angle += spread / Math.max(radius, 0.35);
+      armSpread = randGauss() * g.armWidth;
+      angle += armSpread / Math.max(radius, 0.35);
     } else {
       angle = Math.random() * Math.PI * 2;
     }
@@ -125,6 +130,8 @@ export function generateGalaxy(count: number): GalaxyPoint[] {
       brightness,
       tint,
       coreStar,
+      armIndex,
+      armSpread,
     };
   }
 
