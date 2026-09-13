@@ -154,9 +154,14 @@ export function ParticleGenesisExperience() {
         z: gp.pos.z + rand(-0.2, 0.2),
       });
 
-      // size: power-law so MOST particles are tiny dust and a few are bright stars
+      // size: power-law so MOST particles are tiny dust and a few are bright stars.
+      // core stars are the sparse, large "giant stars" marking the nucleus.
       const starRoll = Math.random();
-      const starBoost = starRoll > 0.93 ? rand(1.6, 2.6) : rand(0.55, 1.25);
+      const starBoost = gp.coreStar
+        ? rand(2.6, 3.6)
+        : starRoll > 0.93
+          ? rand(1.6, 2.6)
+          : rand(0.5, 1.2);
       const radNorm = clamp(gp.radius / CONFIG.galaxy.radius, 0, 1);
       particles[i] = {
         galaxy: gp.pos,
@@ -165,10 +170,11 @@ export function ParticleGenesisExperience() {
         rand: Math.random(),
         phase: rand(0, Math.PI * 2),
         size: starBoost * (CONFIG.particles.minSize + (CONFIG.particles.maxSize - CONFIG.particles.minSize) * gp.brightness),
-        alpha: clamp(0.16 + gp.brightness * 0.84, 0, 1) * (starRoll > 0.93 ? 1 : rand(0.6, 0.95)),
+        alpha: gp.coreStar
+          ? 1
+          : clamp(0.16 + gp.brightness * 0.84, 0, 1) * (starRoll > 0.93 ? 1 : rand(0.6, 0.95)),
         tint: gp.tint,
         radius: gp.radius,
-        // differential orbit: inner particles revolve faster
         orbitSpeed: (1.4 - radNorm * 1.15) * rand(0.7, 1.4),
         wobble: rand(0.5, 2.0),
       };
@@ -339,24 +345,27 @@ export function ParticleGenesisExperience() {
       const dispersionT = smoothstep(SC.dispersionStart, SC.scattered, p);
       const timeNow = time / 1000;
 
+      // coherent galaxy spin: counter-clockwise when viewed from above.
+      // A single angle applied to every particle so the spiral never winds up.
+      const spinAngle = -timeNow * CONFIG.galaxy.rotationSpeed;
+      const cosA = Math.cos(spinAngle);
+      const sinA = Math.sin(spinAngle);
+
       for (let i = 0; i < particleCount; i += 1) {
         const pt = particles[i];
 
-        // --- orbital revolution (coherent; slight differential by radius so
-        // inner particles revolve a touch faster, but the spiral stays intact) ---
-        const orbitAngle =
-          timeNow * CONFIG.galaxy.rotationSpeed * pt.orbitSpeed * (0.9 + pt.rand * 0.2);
-        const ca = Math.cos(orbitAngle);
-        const sa = Math.sin(orbitAngle);
-        const gx = pt.galaxy.x * ca - pt.galaxy.z * sa;
-        const gz = pt.galaxy.x * sa + pt.galaxy.z * ca;
+        // --- coherent rigid rotation: ONE angle for the whole galaxy so the
+        // spiral arms stay perfectly intact forever (no winding-up). ---
+        const gx = pt.galaxy.x * cosA - pt.galaxy.z * sinA;
+        const gz = pt.galaxy.x * sinA + pt.galaxy.z * cosA;
         const gy = pt.galaxy.y;
 
-        // --- tiny independent shimmer so it feels alive, not rigid ---
-        const shimmer = Math.sin(timeNow * 0.6 + pt.phase) * 0.02;
+        // --- tiny independent shimmer so it feels alive, not rigid (kept small
+        // so the arm silhouette never blurs) ---
+        const shimmer = Math.sin(timeNow * 0.6 + pt.phase) * 0.015;
         const ox = gx + shimmer;
-        const oz = gz + Math.cos(timeNow * 0.5 + pt.phase) * 0.02;
-        const oy = gy + Math.sin(timeNow * 0.4 + pt.phase) * CONFIG.galaxy.thickness * 0.3;
+        const oz = gz + Math.cos(timeNow * 0.5 + pt.phase) * 0.015;
+        const oy = gy + Math.sin(timeNow * 0.4 + pt.phase) * CONFIG.galaxy.thickness * 0.25;
 
         // --- centrifugal burst target (used during dispersion) ---
         const burst = CONFIG.scatter.speed * (0.4 + pt.rand * 1.4);

@@ -12,6 +12,8 @@ export interface GalaxyPoint {
   brightness: number;
   /** 0..1 color tint index (0 = cool blue, 1 = warm white/violet) */
   tint: number;
+  /** true for the sparse, large "giant stars" near the center */
+  coreStar: boolean;
 }
 
 function clamp01(v: number) {
@@ -41,14 +43,17 @@ export function generateGalaxy(count: number): GalaxyPoint[] {
     const zoneRoll = Math.random();
     let zone: Zone;
     let armIndex: number;
+    let coreStar = false;
 
-    if (zoneRoll < 0.3) {
+    if (zoneRoll < 0.025) {
+      // sparse central "giant stars" rather than a dense filled disk
       zone = "core";
-      armIndex = 0; // core is symmetric, arm bias ignored
-    } else if (zoneRoll < 0.84) {
+      armIndex = 0;
+      coreStar = true;
+    } else if (zoneRoll < 0.68) {
       zone = "arm";
       armIndex = Math.floor(Math.random() * g.arms);
-    } else if (zoneRoll < 0.95) {
+    } else if (zoneRoll < 0.9) {
       zone = "periphery";
       armIndex = Math.floor(Math.random() * g.arms);
     } else {
@@ -60,13 +65,13 @@ export function generateGalaxy(count: number): GalaxyPoint[] {
     let thickness: number;
 
     if (zone === "core") {
-      // dense central bulge
-      radius = Math.pow(Math.random(), 1.5) * g.coreRadius;
-      thickness = randGauss() * g.thickness * 0.5;
+      // few bright stars scattered within a small central region
+      radius = Math.pow(Math.random(), 0.75) * g.coreRadius;
+      thickness = randGauss() * g.thickness * 0.4;
     } else if (zone === "arm") {
       const t = Math.random();
       // bias toward mid arms so the whirl is dense along its length
-      radius = g.coreRadius * 0.9 + Math.pow(t, 0.95) * (g.radius - g.coreRadius);
+      radius = g.coreRadius * 0.6 + Math.pow(t, 0.95) * (g.radius - g.coreRadius);
       thickness = randGauss() * g.thickness * (1 - radius / (g.radius * 1.3));
     } else if (zone === "periphery") {
       radius = g.radius * (0.82 + Math.random() * 0.22);
@@ -98,13 +103,13 @@ export function generateGalaxy(count: number): GalaxyPoint[] {
 
     const radial = clamp01(radius / g.radius);
     let brightness: number;
-    if (zone === "core") brightness = clamp01(0.9 + Math.random() * 0.1);
+    if (zone === "core") brightness = 1;
     else if (zone === "arm") brightness = clamp01(0.82 - radial * 0.4) * (0.8 + Math.random() * 0.2);
     else if (zone === "periphery") brightness = clamp01(0.5 - radial * 0.2) * (0.55 + Math.random() * 0.4);
     else brightness = clamp01(0.28 - radial * 0.12) * (0.35 + Math.random() * 0.5);
 
     // tint: low = blue/cyan (outer arms), high = warm white (core)
-    const tint = clamp01(0.08 + radial * 0.9 + randGauss() * 0.12 + (zone === "core" ? 0.08 : 0));
+    const tint = clamp01(0.08 + radial * 0.9 + randGauss() * 0.12 + (zone === "core" ? 0.25 : 0));
 
     points[i] = {
       pos: { x, y, z },
@@ -112,6 +117,7 @@ export function generateGalaxy(count: number): GalaxyPoint[] {
       radius,
       brightness,
       tint,
+      coreStar,
     };
   }
 
