@@ -215,7 +215,7 @@ export function ParticleGenesisExperience() {
         snap: false,
       };
       // central stars + the largest arm stars twinkle (alpha animated per frame)
-      if (gp.coreStar || tier >= 1.1) twinkleIdx.push(i);
+      if (gp.coreStar || tier >= 1.0) twinkleIdx.push(i);
     }
 
     // ---- buffers ----

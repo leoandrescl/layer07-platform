@@ -2,16 +2,16 @@ export const DEBUG = false;
 
 export const CONFIG = {
   particles: {
-    countDesktop: 10000,
-    countTablet: 6000,
-    countMobile: 3500,
+    countDesktop: 5000,
+    countTablet: 3000,
+    countMobile: 1750,
     // 8 absolute size tiers (world units, smallest first): from fine dust to
     // giant glowing stars. Wide geometric gaps so the size variety reads
     // clearly; upper tiers are common enough to dot the arms with big stars.
-    tiers: [0.09, 0.14, 0.22, 0.34, 0.52, 0.78, 1.1, 1.5],
-    tierWeights: [0.24, 0.2, 0.16, 0.13, 0.11, 0.08, 0.05, 0.03],
+    tiers: [0.1, 0.17, 0.28, 0.45, 0.7, 1.0, 1.4, 1.9],
+    tierWeights: [0.22, 0.19, 0.16, 0.13, 0.12, 0.09, 0.055, 0.035],
     // the single dominant star at the exact center: biggest of them all
-    centerStarSize: 2.3,
+    centerStarSize: 2.6,
     // brightness scales size mildly so bright stars read slightly larger
     brightnessSize: 0.55,
   },

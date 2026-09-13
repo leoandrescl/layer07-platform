@@ -47,13 +47,14 @@ export function generateGalaxy(count: number): GalaxyPoint[] {
 
   for (let i = 0; i < count; i += 1) {
     if (i === 0) {
-      // the single dominant star: exactly at the center, biggest of them all
+      // the single dominant star: exactly at the center, biggest of them all.
+      // Same cool white as the arms around it — never yellow.
       points[0] = {
         pos: { x: 0, y: 0, z: 0 },
         zone: "core",
         radius: 0,
         brightness: 1,
-        tint: 0.9,
+        tint: 0.22,
         coreStar: true,
         centerStar: true,
         armIndex: 0,
@@ -72,10 +73,10 @@ export function generateGalaxy(count: number): GalaxyPoint[] {
       zone = "core";
       armIndex = 0;
       coreStar = true;
-    } else if (zoneRoll < 0.72) {
+    } else if (zoneRoll < 0.74) {
       zone = "arm";
       armIndex = Math.floor(Math.random() * g.arms);
-    } else if (zoneRoll < 0.92) {
+    } else if (zoneRoll < 0.94) {
       zone = "periphery";
       armIndex = Math.floor(Math.random() * g.arms);
     } else {
@@ -133,11 +134,10 @@ export function generateGalaxy(count: number): GalaxyPoint[] {
     else brightness = clamp01(0.24 - radial * 0.1) * (0.3 + Math.random() * 0.5);
 
     // tint: mostly cool blue/cyan/white like the reference, with sparse warm
-    // amber accents. Core stars skew warm white.
+    // amber accents. Core stars share the arms' cool palette — the white-hot
+    // center comes from density + the shader's white core, not yellow tint.
     let tint: number;
-    if (coreStar) {
-      tint = 0.8 + Math.random() * 0.2; // warm white / orange core stars
-    } else if (Math.random() < 0.16) {
+    if (Math.random() < 0.16) {
       tint = 0.68 + Math.random() * 0.32; // amber accent stars
     } else {
       tint = Math.random() * 0.36; // cool blue -> cyan -> violet
