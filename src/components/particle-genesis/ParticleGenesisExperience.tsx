@@ -154,14 +154,15 @@ export function ParticleGenesisExperience() {
         z: gp.pos.z + rand(-0.2, 0.2),
       });
 
-      // size: power-law so MOST particles are tiny dust and a few are bright stars.
-      // core stars are the sparse, large "giant stars" marking the nucleus.
+      // size: power-law so MOST particles are tiny dust and a few are brighter
+      // "stars". Core stars are always the largest; arm/tail stars stay smaller.
       const starRoll = Math.random();
       const starBoost = gp.coreStar
-        ? rand(2.6, 3.6)
+        ? rand(2.8, 3.6)
         : starRoll > 0.93
-          ? rand(1.6, 2.6)
-          : rand(0.5, 1.2);
+          ? rand(1.3, 1.8)
+          : rand(0.4, 1.0);
+      const base = CONFIG.particles.minSize + (CONFIG.particles.maxSize - CONFIG.particles.minSize) * gp.brightness;
       const radNorm = clamp(gp.radius / CONFIG.galaxy.radius, 0, 1);
       particles[i] = {
         galaxy: gp.pos,
@@ -169,10 +170,10 @@ export function ParticleGenesisExperience() {
         radial,
         rand: Math.random(),
         phase: rand(0, Math.PI * 2),
-        size: starBoost * (CONFIG.particles.minSize + (CONFIG.particles.maxSize - CONFIG.particles.minSize) * gp.brightness),
+        size: starBoost * base,
         alpha: gp.coreStar
-          ? 1
-          : clamp(0.16 + gp.brightness * 0.84, 0, 1) * (starRoll > 0.93 ? 1 : rand(0.6, 0.95)),
+          ? 0.9
+          : clamp(0.12 + gp.brightness * 0.7, 0, 1) * (starRoll > 0.93 ? 0.85 : rand(0.4, 0.8)),
         tint: gp.tint,
         radius: gp.radius,
         orbitSpeed: (1.4 - radNorm * 1.15) * rand(0.7, 1.4),

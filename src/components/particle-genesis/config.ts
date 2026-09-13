@@ -2,22 +2,22 @@ export const DEBUG = false;
 
 export const CONFIG = {
   particles: {
-    countDesktop: 60000,
-    countTablet: 35000,
-    countMobile: 18000,
-    minSize: 0.14,
-    maxSize: 1.1,
+    countDesktop: 42000,
+    countTablet: 26000,
+    countMobile: 14000,
+    minSize: 0.12,
+    maxSize: 0.9,
   },
 
   galaxy: {
-    radius: 8.0,
-    arms: 3,
+    radius: 7.2,
+    arms: 6,
     branchiness: 0.0,
-    twist: 4.2,
-    coreRadius: 1.3,
-    thickness: 0.22,
+    twist: 4.6,
+    coreRadius: 1.15,
+    thickness: 0.2,
     rotationSpeed: 0.045,
-    armWidth: 0.22,
+    armWidth: 0.2,
   },
 
   animation: {
@@ -32,7 +32,7 @@ export const CONFIG = {
   // camera: yaw rotates around the vertical axis, pitch is the elevation
   // above the galaxy plane. A high pitch (~1.35 rad) reads as top-down.
   camera: {
-    distance: 12.5,
+    distance: 16.5,
     yaw: 0.0,
     pitch: 1.35,
     minPitch: -0.35,

@@ -108,8 +108,15 @@ export function generateGalaxy(count: number): GalaxyPoint[] {
     else if (zone === "periphery") brightness = clamp01(0.5 - radial * 0.2) * (0.55 + Math.random() * 0.4);
     else brightness = clamp01(0.28 - radial * 0.12) * (0.35 + Math.random() * 0.5);
 
-    // tint: low = blue/cyan (outer arms), high = warm white (core)
-    const tint = clamp01(0.08 + radial * 0.9 + randGauss() * 0.12 + (zone === "core" ? 0.25 : 0));
+    // tint: hue across the full star palette (blue/cyan/violet/magenta/red/
+    // orange/white). Scatter broadly so reds and blues coexist, while core
+    // stars skew warm/white.
+    let tint: number;
+    if (coreStar) {
+      tint = 0.8 + Math.random() * 0.2; // warm white / orange core stars
+    } else {
+      tint = clamp01(0.35 + radial * 0.5 + randGauss() * 0.28);
+    }
 
     points[i] = {
       pos: { x, y, z },
