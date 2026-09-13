@@ -5,7 +5,6 @@ import { useEffect, useRef } from "react";
 import Lenis from "lenis";
 import { CONFIG, DEBUG, initialQuality, qualityFor, type QualityLevel } from "./config";
 import { generateGalaxy } from "./galaxy";
-import { generateLogoTargets } from "./logo";
 import type { V3 } from "./math";
 import { clamp, lerp, normalize, rand, sub } from "./math";
 import { POINT_FRAG, POINT_VERT } from "./shaders";
@@ -13,16 +12,14 @@ import { POINT_FRAG, POINT_VERT } from "./shaders";
 const { scroll: SC } = CONFIG;
 
 interface Particle {
-  start: V3;
   galaxy: V3;
-  logo: V3;
   dispersed: V3;
   radial: V3;
-  current: V3;
-  size: number;
-  alpha: number;
   rand: number;
   phase: number;
+  size: number;
+  alpha: number;
+  tint: number;
 }
 
 function smoothstep(edge0: number, edge1: number, x: number) {
@@ -87,7 +84,7 @@ function buildSpinMat(angle: number) {
   return (p: V3): V3 => ({ x: p.x * c - p.z * s, y: p.y, z: p.x * s + p.z * c });
 }
 
-const TOTAL_VH = 640;
+const TOTAL_VH = 480;
 
 export function ParticleGenesisExperience() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -134,48 +131,36 @@ export function ParticleGenesisExperience() {
 
     // ---- build particles ----
     const galaxyPoints = generateGalaxy(particleCount);
-    const logoTargets = generateLogoTargets(particleCount);
-
     const particles: Particle[] = new Array(particleCount);
-    const usedLogo = logoTargets.slice(0, particleCount).concat(
-      Array.from({ length: Math.max(0, particleCount - logoTargets.length) }, (_, i) => logoTargets[i % logoTargets.length]),
-    );
 
-    const spaceRadius = CONFIG.galaxy.radius * 2.6;
+    const spaceRadius = CONFIG.galaxy.radius * 2.4;
     for (let i = 0; i < particleCount; i += 1) {
       const gp = galaxyPoints[i];
-      // start: scattered 3D space
-      const theta = rand(0, Math.PI * 2);
-      const phi = Math.acos(rand(-1, 1));
-      const r = spaceRadius * (0.35 + Math.pow(Math.random(), 0.7));
-      const start: V3 = {
-        x: Math.sin(phi) * Math.cos(theta) * r,
-        y: Math.sin(phi) * Math.sin(theta) * r * 0.7,
-        z: Math.cos(phi) * r,
-      };
-      // dispersed: ambient scattered positions around content plane
+
+      // dispersed: ambient scattered positions after the galaxy unwinds
       const dispersed: V3 = {
-        x: rand(-1, 1) * spaceRadius * 1.3,
-        y: rand(-1, 1) * spaceRadius * 0.8,
-        z: rand(-1, 1) * spaceRadius - 2,
+        x: gp.pos.x + rand(-1, 1) * spaceRadius * 0.35,
+        y: rand(-1, 1) * spaceRadius * 0.55,
+        z: gp.pos.z + rand(-1, 1) * spaceRadius * 0.35,
       };
-      // radial: unit-ish outward direction for centrifugal dispersion
+
+      // radial: outward direction for centrifugal dispersion
       const radial: V3 = normalize({
-        x: gp.pos.x + rand(-0.3, 0.3),
-        y: gp.pos.y + rand(-0.3, 0.3),
-        z: gp.pos.z + rand(-0.3, 0.3),
+        x: gp.pos.x + rand(-0.2, 0.2),
+        y: rand(-0.4, 0.4),
+        z: gp.pos.z + rand(-0.2, 0.2),
       });
+
+      const sizeJitter = rand(0.7, 1.4);
       particles[i] = {
-        start,
         galaxy: gp.pos,
-        logo: usedLogo[i],
         dispersed,
         radial,
-        current: { ...start },
-        size: rand(CONFIG.particles.minSize, CONFIG.particles.maxSize),
-        alpha: rand(0.4, 1),
         rand: Math.random(),
         phase: rand(0, Math.PI * 2),
+        size: sizeJitter * (CONFIG.particles.minSize + (CONFIG.particles.maxSize - CONFIG.particles.minSize) * gp.brightness),
+        alpha: clamp(0.22 + gp.brightness * 0.78, 0, 1) * rand(0.75, 1),
+        tint: gp.tint,
       };
     }
 
@@ -183,6 +168,13 @@ export function ParticleGenesisExperience() {
     const posArray = new Float32Array(particleCount * 3);
     const sizeArray = new Float32Array(particleCount);
     const alphaArray = new Float32Array(particleCount);
+    const tintArray = new Float32Array(particleCount);
+
+    for (let i = 0; i < particleCount; i += 1) {
+      sizeArray[i] = particles[i].size;
+      alphaArray[i] = particles[i].alpha;
+      tintArray[i] = particles[i].tint;
+    }
 
     const posBuf = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, posBuf);
@@ -190,20 +182,20 @@ export function ParticleGenesisExperience() {
 
     const sizeBuf = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, sizeBuf);
-    gl.bufferData(gl.ARRAY_BUFFER, particleCount * 4, gl.STATIC_DRAW);
-    gl.bufferSubData(gl.ARRAY_BUFFER, 0, sizeArray.fill(0) ? sizeArray : sizeArray);
-    for (let i = 0; i < particleCount; i += 1) sizeArray[i] = particles[i].size;
-    gl.bufferSubData(gl.ARRAY_BUFFER, 0, sizeArray);
+    gl.bufferData(gl.ARRAY_BUFFER, sizeArray, gl.STATIC_DRAW);
 
     const alphaBuf = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, alphaBuf);
-    gl.bufferData(gl.ARRAY_BUFFER, particleCount * 4, gl.STATIC_DRAW);
-    for (let i = 0; i < particleCount; i += 1) alphaArray[i] = particles[i].alpha;
-    gl.bufferSubData(gl.ARRAY_BUFFER, 0, alphaArray);
+    gl.bufferData(gl.ARRAY_BUFFER, alphaArray, gl.STATIC_DRAW);
+
+    const tintBuf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, tintBuf);
+    gl.bufferData(gl.ARRAY_BUFFER, tintArray, gl.STATIC_DRAW);
 
     const aPos = gl.getAttribLocation(program, "a_pos");
     const aSize = gl.getAttribLocation(program, "a_size");
     const aAlpha = gl.getAttribLocation(program, "a_alpha");
+    const aTint = gl.getAttribLocation(program, "a_tint");
     const uViewProj = gl.getUniformLocation(program, "u_viewProj");
     const uPixelRatio = gl.getUniformLocation(program, "u_pixelRatio");
 
@@ -216,8 +208,11 @@ export function ParticleGenesisExperience() {
     gl.enableVertexAttribArray(aAlpha);
     gl.bindBuffer(gl.ARRAY_BUFFER, alphaBuf);
     gl.vertexAttribPointer(aAlpha, 1, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(aTint);
+    gl.bindBuffer(gl.ARRAY_BUFFER, tintBuf);
+    gl.vertexAttribPointer(aTint, 1, gl.FLOAT, false, 0, 0);
 
-    gl.clearColor(0.012, 0.015, 0.02, 1);
+    gl.clearColor(0.01, 0.012, 0.02, 1);
 
     // ---- camera ----
     const cam: {
@@ -237,18 +232,16 @@ export function ParticleGenesisExperience() {
     let lastDragY = 0;
 
     const onPointerMove = (e: PointerEvent) => {
-      const nx = (e.clientX / window.innerWidth) * 2 - 1;
-      const ny = (e.clientY / window.innerHeight) * 2 - 1;
-      pointerNDC.x = nx;
-      pointerNDC.y = ny;
+      pointerNDC.x = (e.clientX / window.innerWidth) * 2 - 1;
+      pointerNDC.y = (e.clientY / window.innerHeight) * 2 - 1;
       if (dragging) {
         const dx = (e.clientX - lastDragX) / window.innerWidth;
         const dy = (e.clientY - lastDragY) / window.innerHeight;
         cam.targetRotY += dx * Math.PI * CONFIG.camera.dragSensitivityX;
         cam.targetRotX = clamp(
           cam.targetRotX + dy * Math.PI * CONFIG.camera.dragSensitivityY,
-          -1.1,
-          1.1,
+          -1.2,
+          1.2,
         );
       }
       lastDragX = e.clientX;
@@ -283,6 +276,11 @@ export function ParticleGenesisExperience() {
     let fpsTime: number = 0;
     let lastTime: number = 0;
 
+    const applyQuality = () => {
+      quality = qualityFor(level);
+      resize();
+    };
+
     const downgrade = () => {
       if (level === "high" && window.innerWidth >= 640) {
         level = "medium";
@@ -293,30 +291,19 @@ export function ParticleGenesisExperience() {
       }
     };
 
-    const applyQuality = () => {
-      quality = qualityFor(level);
-      resize();
-    };
-
     // ---- timeline ----
     let raf = 0;
     let alive = true;
-    let autoplay: boolean = CONFIG.animation.formationAuto;
-    let autoT = 0;
-    let scrollProgress = 0;
 
-    const buildStateWeights = (p: number) => {
-      // named phases -> [space, galaxy, dispersed, logo] weights summing ~1
-      const space = 1 - smoothstep(SC.spaceEnd, SC.galaxyFormed, p);
-      const galaxy =
-        smoothstep(SC.spaceEnd, SC.galaxyFormed, p) *
-        (1 - smoothstep(SC.dispersionStart, SC.scattered, p));
-      const dispersed =
-        smoothstep(SC.dispersionStart, SC.scattered, p) *
-        (1 - smoothstep(SC.transitionStart, SC.logoForming, p));
-      const logo = smoothstep(SC.transitionStart, SC.logoComplete, p);
-      return { space, galaxy, dispersed, logo };
+    // galaxy weight: 1 at rest, 0 when fully dispersed; recovers on regroup
+    const galaxyWeight = (p: number) => {
+      const g = 1 - smoothstep(SC.dispersionStart, SC.scattered, p);
+      const r = smoothstep(SC.regroupStart, SC.regrouped, p);
+      return Math.max(g, r);
     };
+    const dispersedWeight = (p: number) =>
+      smoothstep(SC.dispersionStart, SC.scattered, p) *
+      (1 - smoothstep(SC.regroupStart, SC.regrouped, p));
 
     const tick = (time: number) => {
       lenis.raf(time);
@@ -327,96 +314,62 @@ export function ParticleGenesisExperience() {
       // scroll progress
       const scrollable = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
       let p = clamp(window.scrollY / scrollable);
-      if (reduced) p = 1;
+      if (reduced) p = Math.max(p, 0.55);
 
-      if (autoplay) {
-        autoT += dtSec;
-        const onset = CONFIG.animation.formationDelay;
-        const ft = clamp((autoT - onset) / CONFIG.animation.formationDuration);
-        scrollProgress = ft * SC.galaxyFormed;
-        if (window.scrollY > 8) {
-          autoplay = false;
-          scrollProgress = p;
-        }
-      } else {
-        scrollProgress = p;
-      }
-      p = scrollProgress;
-
-      // camera damping
+      // camera damping + idle micro parallax
       cam.rotX = lerp(cam.rotX, cam.targetRotX, CONFIG.camera.damping + dtSec);
       cam.rotY = lerp(cam.rotY, cam.targetRotY, CONFIG.camera.damping + dtSec);
 
-      const weights = buildStateWeights(p);
+      const tw = galaxyWeight(p);
+      const dw = dispersedWeight(p);
+
+      // dispersion transient (outward burst) strength
+      const dispersionT = smoothstep(SC.dispersionStart, SC.scattered, p);
       const timeNow = time / 1000;
 
-      // determine dispersion progress for radial burst
-      const dispersionT = smoothstep(SC.dispersionStart, SC.scattered, p);
-      // regroup/logo progress
-      const regT = smoothstep(SC.transitionStart, SC.logoComplete, p);
-
+      // galaxy sways a touch over time so it never feels rigid
       const spinFn = buildSpinMat(timeNow * CONFIG.galaxy.rotationSpeed);
 
       for (let i = 0; i < particleCount; i += 1) {
         const pt = particles[i];
-        const g = pt.galaxy;
 
-        // rotate galaxy base position by time (orbital motion)
-        const gSpin = spinFn(g);
+        // orbital rotation of the galaxy
+        const gSpin = spinFn(pt.galaxy);
 
-        // centrifugal dispersion: push outward along each particle's own radial
-        const burst = CONFIG.scatter.speed * (0.5 + pt.rand * 1.5);
+        // centrifugal burst target
+        const burst = CONFIG.scatter.speed * (0.4 + pt.rand * 1.4);
         const dispX = gSpin.x + pt.radial.x * burst;
-        const dispY = gSpin.y + pt.radial.y * burst * 0.55;
+        const dispY = gSpin.y + pt.radial.y * burst * 0.6;
         const dispZ = gSpin.z + pt.radial.z * burst;
 
-        // blend targets across the named states
-        let tx =
-          gSpin.x * weights.galaxy +
-          pt.dispersed.x * weights.dispersed +
-          pt.logo.x * weights.logo +
-          pt.start.x * weights.space;
-        let ty =
-          gSpin.y * weights.galaxy +
-          pt.dispersed.y * weights.dispersed +
-          pt.logo.y * weights.logo +
-          pt.start.y * weights.space;
-        let tz =
-          gSpin.z * weights.galaxy +
-          pt.dispersed.z * weights.dispersed +
-          pt.logo.z * weights.logo +
-          pt.start.z * weights.space;
+        // blend: galaxy (with dispersion influence) vs dispersed
+        const targetX = lerp(gSpin.x, pt.dispersed.x, dw);
+        const targetY = lerp(gSpin.y, pt.dispersed.y, dw);
+        const targetZ = lerp(gSpin.z, pt.dispersed.z, dw);
 
-        // transient radial burst during dispersion
-        if (weights.dispersed > 0) {
-          tx = lerp(tx, dispX, dispersionT * 0.5);
-          ty = lerp(ty, dispY, dispersionT * 0.5);
-          tz = lerp(tz, dispZ, dispersionT * 0.5);
+        let tx = targetX;
+        let ty = targetY;
+        let tz = targetZ;
+
+        // transient outward burst during dispersion
+        if (dw > 0.001) {
+          const mix = dispersionT * (1 - smoothstep(SC.regroupStart, SC.regrouped, p));
+          tx = lerp(tx, dispX, mix * 0.55);
+          ty = lerp(ty, dispY, mix * 0.55);
+          tz = lerp(tz, dispZ, mix * 0.55);
         }
 
-        // subtle living noise
-        const noiseT = timeNow * 0.5 + pt.phase;
-        tx += Math.sin(noiseT) * 0.02 * (1 - regT);
-        ty += Math.cos(noiseT * 1.3) * 0.02 * (1 - regT);
-        tz += Math.sin(noiseT * 0.7) * 0.02 * (1 - regT);
+        // subtle living noise (stronger when dispersed)
+        const noiseT = timeNow * 0.6 + pt.phase;
+        const noiseAmp = 0.015 + dw * 0.06;
+        tx += Math.sin(noiseT) * noiseAmp;
+        ty += Math.cos(noiseT * 1.3) * noiseAmp;
+        tz += Math.sin(noiseT * 0.7) * noiseAmp;
 
-        // logo breathing
-        if (weights.logo > 0) {
-          const breathe = Math.sin(timeNow * 1.2 + pt.phase) * CONFIG.logo.breathing;
-          tx += breathe * weights.logo;
-          ty += breathe * 0.5 * weights.logo;
-        }
-
-        // per-particle easing toward its blend target
-        const k = 0.05 + (1 - pt.rand) * 0.12;
-        pt.current.x = lerp(pt.current.x, tx, k);
-        pt.current.y = lerp(pt.current.y, ty, k);
-        pt.current.z = lerp(pt.current.z, tz, k);
-
-        // write position
-        posArray[i * 3] = pt.current.x;
-        posArray[i * 3 + 1] = pt.current.y;
-        posArray[i * 3 + 2] = pt.current.z;
+        // write directly (no per-frame lerp needed; weights already smooth)
+        posArray[i * 3] = tx;
+        posArray[i * 3 + 1] = ty;
+        posArray[i * 3 + 2] = tz;
       }
 
       gl.bindBuffer(gl.ARRAY_BUFFER, posBuf);
@@ -424,7 +377,6 @@ export function ParticleGenesisExperience() {
 
       // ---- camera matrices ----
       const aspect = view.w / view.h;
-      // eye position: user controls rotation; subtle parallax from pointer
       const rotY = cam.rotY + pointerNDC.x * CONFIG.camera.parallax * (dragging ? 0 : 1);
       const rotX = cam.rotX + pointerNDC.y * CONFIG.camera.parallax * (dragging ? 0 : 1);
 
@@ -436,9 +388,8 @@ export function ParticleGenesisExperience() {
       const center: V3 = { x: 0, y: 0, z: 0 };
       const worldUp: V3 = { x: 0, y: 1, z: 0 };
 
-      const proj = perspective((55 * Math.PI) / 180, aspect, 0.05, 120);
-      const lk = lookAt(eye, center, worldUp);
-      const viewProj = multiply(proj, lk);
+      const proj = perspective((55 * Math.PI) / 180, aspect, 0.05, 160);
+      const viewProj = multiply(proj, lookAt(eye, center, worldUp));
 
       gl.uniformMatrix4fv(uViewProj, false, viewProj);
       gl.uniform1f(uPixelRatio, view.dpr);
@@ -447,15 +398,14 @@ export function ParticleGenesisExperience() {
       gl.clear(gl.COLOR_BUFFER_BIT);
       gl.drawArrays(gl.POINTS, 0, particleCount);
 
-      // hint opacity
+      // hint opacity: fades once the user has begun to move
       if (hintRef.current) {
-        const ho = reduced ? 0 : clamp(1 - p / 0.03) * clamp(1 - (autoT - 0.6) / 2);
+        const ho = reduced ? 0 : clamp(1 - p / 0.04);
         hintRef.current.style.opacity = String(ho);
       }
 
-      // debug
       if (DEBUG && debugRef.current) {
-        debugRef.current.textContent = `p ${p.toFixed(3)} · state ${level} · fps ${(1 / Math.max(dtSec, 1e-4)).toFixed(0)} · n ${particleCount}`;
+        debugRef.current.textContent = `p ${p.toFixed(3)} · tw ${tw.toFixed(2)} · dw ${dw.toFixed(2)} · fps ${(1 / Math.max(dtSec, 1e-4)).toFixed(0)} · n ${particleCount}`;
       }
 
       // adaptive FPS
@@ -465,7 +415,6 @@ export function ParticleGenesisExperience() {
         const fps = fpsCount / fpsTime;
         if (fps < CONFIG.performance.targetFps * CONFIG.performance.fpsDropThreshold) {
           downgrade();
-          applyQuality();
         }
         fpsCount = 0;
         fpsTime = 0;
@@ -491,7 +440,7 @@ export function ParticleGenesisExperience() {
     window.addEventListener("pointercancel", onPointerUp);
     document.addEventListener("visibilitychange", onVisibility);
 
-    const cleanup = () => {
+    return () => {
       alive = false;
       cancelAnimationFrame(raf);
       ro.disconnect();
@@ -503,8 +452,6 @@ export function ParticleGenesisExperience() {
       reducedMq.removeEventListener("change", onReduced);
       lenis.destroy();
     };
-
-    return cleanup;
   }, []);
 
   return (
@@ -518,7 +465,11 @@ export function ParticleGenesisExperience() {
         />
       )}
 
-      <div ref={hintRef} className="pointer-events-none fixed inset-x-0 bottom-[18vh] z-30 flex flex-col items-center gap-3" style={{ opacity: 1 }}>
+      <div
+        ref={hintRef}
+        className="pointer-events-none fixed inset-x-0 bottom-[18vh] z-30 flex flex-col items-center gap-3"
+        style={{ opacity: 1 }}
+      >
         <span className="pg-hint size-1.5 rounded-full bg-[#7fffd4]" aria-hidden />
         <p className="font-mono text-[11px] tracking-[0.28em] text-[#8fb8b0]">
           arrastrar para explorar · scroll para avanzar
@@ -526,19 +477,10 @@ export function ParticleGenesisExperience() {
       </div>
 
       <main className="relative z-20" style={{ height: `${TOTAL_VH}vh` }}>
-        {/* hero / space */}
-        <section className="hero flex min-h-screen items-center justify-center">
-          <div className="pointer-events-none text-center">
-            <p className="font-mono text-[11px] tracking-[0.3em] text-[#7fffd4]/80">
-              LAYER07
-            </p>
-            <h1 className="pg-glow mt-4 font-sans text-4xl tracking-[0.08em] text-[#e8fff8] sm:text-6xl">
-              particle genesis
-            </h1>
-          </div>
-        </section>
+        {/* empty spacer so the galaxy is front-and-center first */}
+        <section className="min-h-screen" aria-hidden />
 
-        {/* content */}
+        {/* content — appears after the galaxy disperses */}
         <section className="content min-h-screen">
           <div className="mx-auto flex min-h-screen max-w-2xl flex-col justify-center px-6 py-32">
             <p className="font-mono text-[11px] tracking-[0.3em] text-[#7fffd4]">
@@ -564,28 +506,19 @@ export function ParticleGenesisExperience() {
           </div>
         </section>
 
-        {/* transition space */}
-        <section className="transition min-h-screen" aria-hidden />
+        {/* trailing space: particles regroup back into the galaxy */}
+        <section className="min-h-screen" aria-hidden />
 
-        {/* logo section */}
-        <section className="logo flex min-h-screen items-center justify-center">
-          <div className="pb-32 text-center">
-            <h2 className="pg-glow font-sans text-5xl tracking-[0.14em] text-[#e8fff8] sm:text-7xl">
-              L07
-            </h2>
-            <p className="mt-4 font-mono text-[11px] tracking-[0.24em] text-[#8fb8b0]">
-              forma viva
-            </p>
-            <nav className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 font-mono text-[11px] tracking-[0.2em] text-[#8fb8b0]">
-              <Link href="/labs" className="transition-colors hover:text-[#e8fff8]">
-                LABS
-              </Link>
-              <Link href="/" className="transition-colors hover:text-[#e8fff8]">
-                LAYER07
-              </Link>
-            </nav>
-          </div>
-        </section>
+        <div className="pointer-events-none fixed inset-x-0 bottom-0 z-30">
+          <nav className="pointer-events-auto flex flex-wrap items-center justify-center gap-x-6 gap-y-2 px-6 pb-8 font-mono text-[11px] tracking-[0.2em] text-[#8fb8b0]">
+            <Link href="/labs" className="transition-colors hover:text-[#e8fff8]">
+              LABS
+            </Link>
+            <Link href="/" className="transition-colors hover:text-[#e8fff8]">
+              LAYER07
+            </Link>
+          </nav>
+        </div>
       </main>
     </div>
   );

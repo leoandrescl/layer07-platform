@@ -2,66 +2,54 @@ export const DEBUG = false;
 
 export const CONFIG = {
   particles: {
-    countDesktop: 90000,
-    countTablet: 45000,
-    countMobile: 22000,
-    minSize: 1.1,
-    maxSize: 2.6,
+    countDesktop: 120000,
+    countTablet: 60000,
+    countMobile: 28000,
+    minSize: 0.5,
+    maxSize: 2.0,
   },
 
   galaxy: {
-    radius: 6.4,
+    radius: 7.2,
     arms: 4,
-    branchiness: 2.4,
+    branchiness: 2.2,
     spin: 1.0,
-    twist: 1.6,
-    coreRadius: 0.9,
-    thickness: 0.55,
-    rotationSpeed: 0.06,
+    twist: 1.9,
+    coreRadius: 1.1,
+    thickness: 0.4,
+    rotationSpeed: 0.09,
     zoneRatio: 0.5, // fraction of particles used to build the galaxy (rest -> halo)
   },
 
   animation: {
-    formationDelay: 0.6, // seconds after load before formation begins
-    formationDuration: 5.0, // seconds to build the galaxy
+    formationDelay: 0.2, // seconds after load before a subtle settle
+    formationDuration: 2.2, // seconds for the initial galaxy settle-in
     formationAuto: true,
   },
 
   scatter: {
-    speed: 9.0,
-    tangential: 0.6,
-    noise: 1.4,
+    speed: 11.0,
+    noise: 1.2,
   },
 
   camera: {
-    z: 11.5,
-    rotationX: 0.0,
+    z: 12.0,
+    rotationX: -0.35,
     rotationY: 0.0,
     dragSensitivityX: 2.4,
     dragSensitivityY: 1.5,
-    parallax: 0.12,
+    parallax: 0.08,
     damping: 0.055,
-  },
-
-  logo: {
-    // normalized to a unit box, then multiplied by scale in world units
-    scale: 4.6,
-    samplingStep: 3.2,
-    haloRatio: 0.16,
-    breathing: 0.05,
   },
 
   // normalized scroll progress keyframes (0 -> 1)
   scroll: {
-    spaceEnd: 0.08, // galaxy begins to form here
-    galaxyFormed: 0.22, // galaxy complete + rotating
-    dispersionStart: 0.36,
-    scattered: 0.5, // galaxy fully dispersed, content begins
-    contentMiddle: 0.64, // ambient / dispersed reading state
-    transitionStart: 0.75, // particles begin to react
-    regroup: 0.82,
-    logoForming: 0.92,
-    logoComplete: 1.0,
+    galaxyEnd: 0.18, // galaxy fully formed + rotating
+    dispersionStart: 0.28,
+    scattered: 0.48, // galaxy fully dispersed, content visible
+    contentHold: 0.62, // dispersed/ambient while reading
+    regroupStart: 0.72,
+    regrouped: 0.9, // galaxy re-formed
   },
 
   interaction: {
