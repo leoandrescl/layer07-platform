@@ -84,7 +84,7 @@ function buildSpinMat(angle: number) {
   return (p: V3): V3 => ({ x: p.x * c - p.z * s, y: p.y, z: p.x * s + p.z * c });
 }
 
-const TOTAL_VH = 480;
+const TOTAL_VH = 220;
 
 export function ParticleGenesisExperience() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -137,11 +137,17 @@ export function ParticleGenesisExperience() {
     for (let i = 0; i < particleCount; i += 1) {
       const gp = galaxyPoints[i];
 
-      // dispersed: ambient scattered positions after the galaxy unwinds
+      // dispersed: particles pushed far out to the periphery so the center
+      // is left clean for the / about content. Direction kept roughly radial
+      // so the dispersion reads as matter expanding outward, not vanishing.
+      const dirX = gp.pos.x || rand(-1, 1);
+      const dirZ = gp.pos.z || rand(-1, 1);
+      const dirL = Math.hypot(dirX, dirZ) || 1;
+      const spread = spaceRadius * (0.9 + rand(0, 0.9));
       const dispersed: V3 = {
-        x: gp.pos.x + rand(-1, 1) * spaceRadius * 0.35,
-        y: rand(-1, 1) * spaceRadius * 0.55,
-        z: gp.pos.z + rand(-1, 1) * spaceRadius * 0.35,
+        x: (dirX / dirL) * spread + rand(-1, 1) * 1.2,
+        y: rand(-1, 1) * spaceRadius * 0.12,
+        z: (dirZ / dirL) * spread + rand(-1, 1) * 1.2,
       };
 
       // radial: outward direction for centrifugal dispersion
@@ -214,17 +220,17 @@ export function ParticleGenesisExperience() {
 
     gl.clearColor(0.01, 0.012, 0.02, 1);
 
-    // ---- camera ----
+    // ---- camera (yaw / pitch, top-down spiral by default) ----
     const cam: {
-      rotX: number;
-      rotY: number;
-      targetRotX: number;
-      targetRotY: number;
+      yaw: number;
+      pitch: number;
+      targetYaw: number;
+      targetPitch: number;
     } = {
-      rotX: CONFIG.camera.rotationX,
-      rotY: CONFIG.camera.rotationY,
-      targetRotX: CONFIG.camera.rotationX,
-      targetRotY: CONFIG.camera.rotationY,
+      yaw: CONFIG.camera.yaw,
+      pitch: CONFIG.camera.pitch,
+      targetYaw: CONFIG.camera.yaw,
+      targetPitch: CONFIG.camera.pitch,
     };
     const pointerNDC = { x: 0, y: 0 };
     let dragging = false;
@@ -237,11 +243,11 @@ export function ParticleGenesisExperience() {
       if (dragging) {
         const dx = (e.clientX - lastDragX) / window.innerWidth;
         const dy = (e.clientY - lastDragY) / window.innerHeight;
-        cam.targetRotY += dx * Math.PI * CONFIG.camera.dragSensitivityX;
-        cam.targetRotX = clamp(
-          cam.targetRotX + dy * Math.PI * CONFIG.camera.dragSensitivityY,
-          -1.2,
-          1.2,
+        cam.targetYaw += dx * Math.PI * CONFIG.camera.dragSensitivityYaw;
+        cam.targetPitch = clamp(
+          cam.targetPitch - dy * Math.PI * CONFIG.camera.dragSensitivityPitch,
+          CONFIG.camera.minPitch,
+          CONFIG.camera.maxPitch,
         );
       }
       lastDragX = e.clientX;
@@ -317,8 +323,8 @@ export function ParticleGenesisExperience() {
       if (reduced) p = Math.max(p, 0.55);
 
       // camera damping + idle micro parallax
-      cam.rotX = lerp(cam.rotX, cam.targetRotX, CONFIG.camera.damping + dtSec);
-      cam.rotY = lerp(cam.rotY, cam.targetRotY, CONFIG.camera.damping + dtSec);
+      cam.yaw = lerp(cam.yaw, cam.targetYaw, CONFIG.camera.damping + dtSec);
+      cam.pitch = lerp(cam.pitch, cam.targetPitch, CONFIG.camera.damping + dtSec);
 
       const tw = galaxyWeight(p);
       const dw = dispersedWeight(p);
@@ -377,18 +383,20 @@ export function ParticleGenesisExperience() {
 
       // ---- camera matrices ----
       const aspect = view.w / view.h;
-      const rotY = cam.rotY + pointerNDC.x * CONFIG.camera.parallax * (dragging ? 0 : 1);
-      const rotX = cam.rotX + pointerNDC.y * CONFIG.camera.parallax * (dragging ? 0 : 1);
+      const yaw = cam.yaw + pointerNDC.x * CONFIG.camera.parallax * (dragging ? 0 : 1);
+      const pitch = cam.pitch + pointerNDC.y * CONFIG.camera.parallax * (dragging ? 0 : 1);
 
+      // eye orbits the galaxy; high pitch = top-down view of the spiral
       const eye: V3 = {
-        x: Math.sin(rotY) * Math.cos(rotX) * CONFIG.camera.z,
-        y: Math.sin(rotX) * CONFIG.camera.z,
-        z: Math.cos(rotY) * Math.cos(rotX) * CONFIG.camera.z,
+        x: Math.sin(yaw) * Math.cos(pitch) * CONFIG.camera.distance,
+        y: Math.sin(pitch) * CONFIG.camera.distance,
+        z: Math.cos(yaw) * Math.cos(pitch) * CONFIG.camera.distance,
       };
       const center: V3 = { x: 0, y: 0, z: 0 };
+      // up vector: world +Y is safe except exactly top-down; we clamp pitch < 1.45
       const worldUp: V3 = { x: 0, y: 1, z: 0 };
 
-      const proj = perspective((55 * Math.PI) / 180, aspect, 0.05, 160);
+      const proj = perspective((50 * Math.PI) / 180, aspect, 0.05, 200);
       const viewProj = multiply(proj, lookAt(eye, center, worldUp));
 
       gl.uniformMatrix4fv(uViewProj, false, viewProj);
@@ -477,12 +485,12 @@ export function ParticleGenesisExperience() {
       </div>
 
       <main className="relative z-20" style={{ height: `${TOTAL_VH}vh` }}>
-        {/* empty spacer so the galaxy is front-and-center first */}
-        <section className="min-h-screen" aria-hidden />
+        {/* spacer so the galaxy settles front-and-center first */}
+        <section className="h-[60vh]" aria-hidden />
 
-        {/* content — appears after the galaxy disperses */}
-        <section className="content min-h-screen">
-          <div className="mx-auto flex min-h-screen max-w-2xl flex-col justify-center px-6 py-32">
+        {/* content — appears once the galaxy has dispersed and the center is clear */}
+        <section className="content flex min-h-screen items-center">
+          <div className="mx-auto w-full max-w-2xl px-6 py-24">
             <p className="font-mono text-[11px] tracking-[0.3em] text-[#7fffd4]">
               / about
             </p>
@@ -507,7 +515,7 @@ export function ParticleGenesisExperience() {
         </section>
 
         {/* trailing space: particles regroup back into the galaxy */}
-        <section className="min-h-screen" aria-hidden />
+        <section className="h-[60vh]" aria-hidden />
 
         <div className="pointer-events-none fixed inset-x-0 bottom-0 z-30">
           <nav className="pointer-events-auto flex flex-wrap items-center justify-center gap-x-6 gap-y-2 px-6 pb-8 font-mono text-[11px] tracking-[0.2em] text-[#8fb8b0]">

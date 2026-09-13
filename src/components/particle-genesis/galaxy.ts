@@ -14,20 +14,31 @@ export interface GalaxyPoint {
   tint: number;
 }
 
+function clamp01(v: number) {
+  return Math.min(1, Math.max(0, v));
+}
+
 /**
- * Procedural spiral galaxy. Produces a clear central nucleus and well-defined
- * spiral arms while keeping natural irregularity via gaussian jitter.
+ * Procedural logarithmic-spiral galaxy. Arms follow `angle = a + b*log(r)`
+ * so they read as a curving whirl from above, with gaussian jitter and
+ * zone-based density so the structure stays organic rather than geometric.
+ *
+ * Galaxy lives in the XZ plane (y = thickness). Viewed from +Y (top-down)
+ * the arms are immediately legible.
  */
 export function generateGalaxy(count: number): GalaxyPoint[] {
   const g = CONFIG.galaxy;
   const points: GalaxyPoint[] = new Array(count);
 
+  // how much the arms wind: angle offset per unit of log-radius
+  const wind = g.twist;
+
   for (let i = 0; i < count; i += 1) {
     const zoneRoll = Math.random();
     let zone: Zone;
-    if (zoneRoll < 0.24) zone = "core";
+    if (zoneRoll < 0.26) zone = "core";
     else if (zoneRoll < 0.82) zone = "arm";
-    else if (zoneRoll < 0.93) zone = "periphery";
+    else if (zoneRoll < 0.94) zone = "periphery";
     else zone = "halo";
 
     const armIndex = Math.floor(Math.random() * g.arms);
@@ -38,38 +49,44 @@ export function generateGalaxy(count: number): GalaxyPoint[] {
     let thickness: number;
 
     if (zone === "core") {
-      radius = Math.pow(Math.random(), 1.5) * g.coreRadius;
+      radius = Math.pow(Math.random(), 1.4) * g.coreRadius;
       angle = Math.random() * Math.PI * 2;
-      thickness = randGauss() * g.thickness * 0.55;
+      thickness = randGauss() * g.thickness * 0.5;
     } else if (zone === "arm") {
-      const t = Math.random();
-      radius = g.coreRadius + Math.pow(t, 0.92) * (g.radius - g.coreRadius);
-      angle = armBias + radius * g.twist;
-      angle += randGauss() * (g.branchiness * (0.22 + (radius / g.radius) * 0.55));
-      thickness = randGauss() * g.thickness * (1 - radius / (g.radius * 1.35));
+      // distribution biased toward mid/outer arms
+      const t = Math.pow(Math.random(), 0.85);
+      radius = g.coreRadius * 1.1 + t * (g.radius - g.coreRadius);
+      // logarithmic spiral: angle grows with log of radius
+      angle = armBias + wind * Math.log(1 + radius / g.radius * 3.2);
+      // gaussian spread perpendicular to the arm -> natural width
+      const spread = randGauss() * g.armWidth * (0.6 + (radius / g.radius) * 0.9);
+      angle += spread / Math.max(radius, 0.4);
+      thickness = randGauss() * g.thickness * (1.1 - radius / (g.radius * 1.4));
     } else if (zone === "periphery") {
-      radius = g.radius * (0.8 + Math.random() * 0.3);
+      radius = g.radius * (0.78 + Math.random() * 0.34);
       angle = Math.random() * Math.PI * 2;
-      thickness = randGauss() * g.thickness * 2.0;
+      thickness = randGauss() * g.thickness * 1.8;
     } else {
-      radius = g.radius * (0.35 + Math.random() * 1.3);
+      radius = g.radius * (0.35 + Math.random() * 1.2);
       angle = Math.random() * Math.PI * 2;
-      thickness = randGauss() * g.thickness * 4.0;
+      thickness = randGauss() * g.thickness * 3.2;
     }
 
     const x = Math.cos(angle) * radius;
     const z = Math.sin(angle) * radius;
     const y = thickness;
 
-    // brightness falls off with radius; core glows
-    const radial = Math.min(1, radius / g.radius);
-    let brightness = clamp01(1 - radial * 0.55);
-    if (zone === "core") brightness = clamp01(0.9 + Math.random() * 0.1);
-    if (zone === "halo") brightness *= 0.45 + Math.random() * 0.35;
+    // brightness: strong core, arm glow, faint periphery/halo
+    const radial = clamp01(radius / g.radius);
+    let brightness: number;
+    if (zone === "core") brightness = clamp01(0.85 + Math.random() * 0.15);
+    else if (zone === "arm") brightness = clamp01(0.8 - radial * 0.45) * (0.85 + Math.random() * 0.15);
+    else if (zone === "periphery") brightness = clamp01(0.55 - radial * 0.2) * (0.6 + Math.random() * 0.4);
+    else brightness = clamp01(0.3 - radial * 0.15) * (0.4 + Math.random() * 0.5);
 
-    // subtle tint: cool blue-violet in arms, warmer white near core
+    // tint: 0 = cool blue-violet (outer), 1 = warm white (core)
     const tint = clamp01(
-      0.5 + randGauss() * 0.22 + (zone === "core" ? 0.2 : 0),
+      0.42 + randGauss() * 0.2 + (zone === "core" ? 0.22 : 0) - radial * 0.18,
     );
 
     points[i] = {
@@ -82,8 +99,4 @@ export function generateGalaxy(count: number): GalaxyPoint[] {
   }
 
   return points;
-}
-
-function clamp01(v: number) {
-  return Math.min(1, Math.max(0, v));
 }

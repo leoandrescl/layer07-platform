@@ -2,54 +2,55 @@ export const DEBUG = false;
 
 export const CONFIG = {
   particles: {
-    countDesktop: 120000,
-    countTablet: 60000,
-    countMobile: 28000,
-    minSize: 0.5,
-    maxSize: 2.0,
+    countDesktop: 140000,
+    countTablet: 70000,
+    countMobile: 32000,
+    minSize: 0.28,
+    maxSize: 1.5,
   },
 
   galaxy: {
-    radius: 7.2,
+    radius: 7.6,
     arms: 4,
-    branchiness: 2.2,
-    spin: 1.0,
-    twist: 1.9,
-    coreRadius: 1.1,
-    thickness: 0.4,
-    rotationSpeed: 0.09,
-    zoneRatio: 0.5, // fraction of particles used to build the galaxy (rest -> halo)
+    branchiness: 0.55,
+    twist: 2.1,
+    coreRadius: 1.25,
+    thickness: 0.3,
+    rotationSpeed: 0.06,
+    armWidth: 0.34,
   },
 
   animation: {
-    formationDelay: 0.2, // seconds after load before a subtle settle
-    formationDuration: 2.2, // seconds for the initial galaxy settle-in
+    formationDuration: 2.2,
     formationAuto: true,
   },
 
   scatter: {
-    speed: 11.0,
-    noise: 1.2,
+    speed: 12.0,
   },
 
+  // camera: yaw rotates around the vertical axis, pitch is the elevation
+  // above the galaxy plane. A high pitch (~1.35 rad) reads as top-down.
   camera: {
-    z: 12.0,
-    rotationX: -0.35,
-    rotationY: 0.0,
-    dragSensitivityX: 2.4,
-    dragSensitivityY: 1.5,
-    parallax: 0.08,
-    damping: 0.055,
+    distance: 12.5,
+    yaw: 0.0,
+    pitch: 1.35,
+    minPitch: -0.35,
+    maxPitch: 1.45,
+    dragSensitivityYaw: 2.6,
+    dragSensitivityPitch: 2.0,
+    parallax: 0.06,
+    damping: 0.06,
   },
 
   // normalized scroll progress keyframes (0 -> 1)
   scroll: {
-    galaxyEnd: 0.18, // galaxy fully formed + rotating
-    dispersionStart: 0.28,
-    scattered: 0.48, // galaxy fully dispersed, content visible
-    contentHold: 0.62, // dispersed/ambient while reading
-    regroupStart: 0.72,
-    regrouped: 0.9, // galaxy re-formed
+    galaxyEnd: 0.14, // galaxy fully settled, rotating
+    dispersionStart: 0.2,
+    scattered: 0.4, // center cleared; content readable
+    contentHold: 0.55, // dispersed/ambient while reading
+    regroupStart: 0.62,
+    regrouped: 0.85, // galaxy re-formed
   },
 
   interaction: {
