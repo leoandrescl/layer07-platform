@@ -2,16 +2,16 @@ export const DEBUG = false;
 
 export const CONFIG = {
   particles: {
-    countDesktop: 42000,
-    countTablet: 26000,
-    countMobile: 14000,
-    minSize: 0.12,
-    maxSize: 0.9,
-    // 6 discrete size tiers (multipliers, smallest first). Distribution is
-    // weighted toward smaller particles. The largest tiers are reserved for
-    // central stars.
-    tiers: [0.5, 0.8, 1.2, 1.8, 2.6, 3.6],
-    tierWeights: [0.46, 0.24, 0.14, 0.09, 0.05, 0.02],
+    countDesktop: 15000,
+    countTablet: 9000,
+    countMobile: 5000,
+    // 8 absolute size tiers (world units, smallest first): from fine dust to
+    // giant glowing stars. Distribution is weighted toward smaller particles.
+    // The largest tiers are reserved for central stars.
+    tiers: [0.1, 0.15, 0.22, 0.32, 0.45, 0.62, 0.8, 1.05],
+    tierWeights: [0.3, 0.24, 0.18, 0.12, 0.08, 0.045, 0.025, 0.01],
+    // brightness scales size mildly so bright stars read slightly larger
+    brightnessSize: 0.55,
   },
 
   galaxy: {
@@ -29,7 +29,7 @@ export const CONFIG = {
 
   animation: {
     formationDelay: 2.0,
-    formationDuration: 3.8,
+    formationDuration: 1.9,
     formationAuto: true,
     // exponential position smoothing rate (1/s) — lower = gentler, lazier
     // motion for scroll-driven dispersion/regroup

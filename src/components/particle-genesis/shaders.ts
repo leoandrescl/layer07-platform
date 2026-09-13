@@ -18,7 +18,7 @@ void main() {
 
   float dist = max(-mv.z, 0.001);
   float s = a_size * u_pixelRatio * (260.0 / dist);
-  gl_PointSize = clamp(s, 0.2, 4.5);
+  gl_PointSize = clamp(s, 1.0, 20.0);
 
   v_alpha = a_alpha;
   v_tint = a_tint;
@@ -35,12 +35,13 @@ void main() {
   vec2 c = gl_PointCoord - 0.5;
   float d2 = dot(c, c);
 
-  // tenuous star glow: tight bright core + wide soft halo, kept low so it
-  // reads as a faint star rather than a bright blob
-  float core = exp(-d2 * 110.0);
-  float halo = exp(-d2 * 20.0) * 0.12;
-  float a = (core + halo) * v_alpha;
-  if (a < 0.0012) discard;
+  // glowing star: hot bright core + mid glow + wide soft halo. Large
+  // particles bloom into big soft stars, small ones stay as crisp dust.
+  float core = exp(-d2 * 60.0);
+  float glow = exp(-d2 * 16.0) * 0.35;
+  float halo = exp(-d2 * 5.5) * 0.1;
+  float a = (core + glow + halo) * v_alpha;
+  if (a < 0.004) discard;
 
   // wide, star-like palette (subdued): blue -> cyan -> violet -> red/magenta
   // -> orange -> white, chosen per particle via v_tint
@@ -68,6 +69,10 @@ void main() {
     color = mix(orange, white, (t - 0.833) / 0.166);
   }
 
-  gl_FragColor = vec4(color, a);
+  // white-hot center: the core burns toward white regardless of tint,
+  // exactly like a real glowing star
+  vec3 hot = mix(color, vec3(1.0, 0.98, 0.96), clamp(core * 1.2, 0.0, 1.0) * 0.85);
+
+  gl_FragColor = vec4(hot, a);
 }
 `;

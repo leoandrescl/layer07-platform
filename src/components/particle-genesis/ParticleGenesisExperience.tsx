@@ -45,7 +45,7 @@ const TIER_WEIGHTS = CONFIG.particles.tierWeights;
 
 function pickSizeTier(coreStar: boolean): number {
   if (coreStar) {
-    return TIERS[4] + Math.random() * (TIERS[5] - TIERS[4]);
+    return TIERS[6] + Math.random() * (TIERS[7] - TIERS[6]);
   }
   let r = Math.random();
   for (let t = 0; t < TIER_WEIGHTS.length; t += 1) {
@@ -179,11 +179,10 @@ export function ParticleGenesisExperience() {
         z: gp.pos.z + rand(-0.2, 0.2),
       });
 
-      // size: pick one of 6 discrete tiers so sizes read clearly distinct.
-      // Core stars always use the largest tiers; arm/tail particles use the
-      // weighted distribution (mostly small dust, few larger stars).
+      // size: pick one of 8 discrete absolute tiers so sizes read clearly
+      // distinct. Core stars always use the largest tiers; arm/tail particles
+      // use the weighted distribution (mostly fine dust, few large stars).
       const tier = pickSizeTier(gp.coreStar);
-      const base = CONFIG.particles.minSize + (CONFIG.particles.maxSize - CONFIG.particles.minSize) * gp.brightness;
       const radNorm = clamp(gp.radius / CONFIG.galaxy.radius, 0, 1);
       const flowing = gp.zone === "arm" || gp.zone === "periphery";
       particles[i] = {
@@ -192,10 +191,10 @@ export function ParticleGenesisExperience() {
         radial,
         rand: Math.random(),
         phase: rand(0, Math.PI * 2),
-        size: tier * base,
+        size: tier * (1 + gp.brightness * CONFIG.particles.brightnessSize),
         alpha: gp.coreStar
-          ? 0.9
-          : clamp(0.12 + gp.brightness * 0.7, 0, 1) * (tier >= 2.6 ? 0.85 : rand(0.4, 0.8)),
+          ? 0.95
+          : clamp(0.25 + gp.brightness * 0.75, 0, 1) * (tier >= 0.62 ? 0.9 : rand(0.55, 1.0)),
         tint: gp.tint,
         radius: gp.radius,
         orbitSpeed: (1.4 - radNorm * 1.15) * rand(0.7, 1.4),
