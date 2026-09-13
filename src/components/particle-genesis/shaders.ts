@@ -18,7 +18,7 @@ void main() {
 
   float dist = max(-mv.z, 0.001);
   float s = a_size * u_pixelRatio * (260.0 / dist);
-  gl_PointSize = clamp(s, 1.0, 20.0);
+  gl_PointSize = clamp(s, 1.0, 26.0);
 
   v_alpha = a_alpha;
   v_tint = a_tint;
@@ -35,12 +35,13 @@ void main() {
   vec2 c = gl_PointCoord - 0.5;
   float d2 = dot(c, c);
 
-  // glowing star: hot bright core + restrained mid glow + faint halo.
-  // Kept dim on purpose: additive blending stacks overlaps, so each
-  // particle must stay dark enough that arms never blow out to white.
-  float core = exp(-d2 * 70.0);
-  float glow = exp(-d2 * 18.0) * 0.22;
-  float halo = exp(-d2 * 6.0) * 0.06;
+  // crisp star: tight hot core that reads as a sharp dot, with a narrow
+  // glow and a very faint halo. Tight falloffs keep particles distinct
+  // instead of blurring together; each one stays dim so the additive
+  // stacking never blows the arms out to white.
+  float core = exp(-d2 * 150.0);
+  float glow = exp(-d2 * 30.0) * 0.18;
+  float halo = exp(-d2 * 8.0) * 0.05;
   float a = (core + glow + halo) * v_alpha;
   if (a < 0.004) discard;
 

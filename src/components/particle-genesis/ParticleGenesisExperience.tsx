@@ -195,10 +195,14 @@ export function ParticleGenesisExperience() {
         radial,
         rand: Math.random(),
         phase: rand(0, Math.PI * 2),
-        size: tier * (1 + gp.brightness * CONFIG.particles.brightnessSize),
-        alpha: gp.coreStar
-          ? 0.85
-          : clamp(0.16 + gp.brightness * 0.6, 0, 1) * (tier >= 0.78 ? 0.75 : rand(0.45, 0.85)),
+        size: gp.centerStar
+          ? CONFIG.particles.centerStarSize
+          : tier * (1 + gp.brightness * CONFIG.particles.brightnessSize),
+        alpha: gp.centerStar
+          ? 0.95
+          : gp.coreStar
+            ? 0.85
+            : clamp(0.16 + gp.brightness * 0.6, 0, 1) * (tier >= 0.78 ? 0.75 : rand(0.45, 0.85)),
         tint: gp.tint,
         radius: gp.radius,
         orbitSpeed: (1.4 - radNorm * 1.15) * rand(0.7, 1.4),

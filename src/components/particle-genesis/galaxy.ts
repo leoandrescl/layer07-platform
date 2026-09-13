@@ -14,6 +14,8 @@ export interface GalaxyPoint {
   tint: number;
   /** true for the sparse, large "giant stars" near the center */
   coreStar: boolean;
+  /** true for the single dominant star at the exact center */
+  centerStar: boolean;
   /** spiral arm index (0 for core/halo) */
   armIndex: number;
   /** raw angular spread added perpendicular to the arm (divide by radius) */
@@ -44,6 +46,22 @@ export function generateGalaxy(count: number): GalaxyPoint[] {
   const totalTurn = g.twist; // radians of winding at the outer edge
 
   for (let i = 0; i < count; i += 1) {
+    if (i === 0) {
+      // the single dominant star: exactly at the center, biggest of them all
+      points[0] = {
+        pos: { x: 0, y: 0, z: 0 },
+        zone: "core",
+        radius: 0,
+        brightness: 1,
+        tint: 0.9,
+        coreStar: true,
+        centerStar: true,
+        armIndex: 0,
+        armSpread: 0,
+      };
+      continue;
+    }
+
     const zoneRoll = Math.random();
     let zone: Zone;
     let armIndex: number;
@@ -132,6 +150,7 @@ export function generateGalaxy(count: number): GalaxyPoint[] {
       brightness,
       tint,
       coreStar,
+      centerStar: false,
       armIndex,
       armSpread,
     };

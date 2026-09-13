@@ -9,7 +9,9 @@ export const CONFIG = {
     // giant glowing stars. Wide geometric gaps so the size variety reads
     // clearly; upper tiers are common enough to dot the arms with big stars.
     tiers: [0.09, 0.14, 0.22, 0.34, 0.52, 0.78, 1.1, 1.5],
-    tierWeights: [0.28, 0.22, 0.17, 0.12, 0.09, 0.06, 0.04, 0.02],
+    tierWeights: [0.24, 0.2, 0.16, 0.13, 0.11, 0.08, 0.05, 0.03],
+    // the single dominant star at the exact center: biggest of them all
+    centerStarSize: 2.3,
     // brightness scales size mildly so bright stars read slightly larger
     brightnessSize: 0.55,
   },
