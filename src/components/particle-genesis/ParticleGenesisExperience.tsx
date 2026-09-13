@@ -154,7 +154,9 @@ export function ParticleGenesisExperience() {
         z: gp.pos.z + rand(-0.2, 0.2),
       });
 
-      const sizeJitter = rand(0.6, 1.6);
+      // size: power-law so MOST particles are tiny dust and a few are bright stars
+      const starRoll = Math.random();
+      const starBoost = starRoll > 0.93 ? rand(1.6, 2.6) : rand(0.55, 1.25);
       const radNorm = clamp(gp.radius / CONFIG.galaxy.radius, 0, 1);
       particles[i] = {
         galaxy: gp.pos,
@@ -162,8 +164,8 @@ export function ParticleGenesisExperience() {
         radial,
         rand: Math.random(),
         phase: rand(0, Math.PI * 2),
-        size: sizeJitter * (CONFIG.particles.minSize + (CONFIG.particles.maxSize - CONFIG.particles.minSize) * gp.brightness),
-        alpha: clamp(0.18 + gp.brightness * 0.82, 0, 1) * rand(0.7, 1),
+        size: starBoost * (CONFIG.particles.minSize + (CONFIG.particles.maxSize - CONFIG.particles.minSize) * gp.brightness),
+        alpha: clamp(0.16 + gp.brightness * 0.84, 0, 1) * (starRoll > 0.93 ? 1 : rand(0.6, 0.95)),
         tint: gp.tint,
         radius: gp.radius,
         // differential orbit: inner particles revolve faster
@@ -221,6 +223,11 @@ export function ParticleGenesisExperience() {
     gl.vertexAttribPointer(aTint, 1, gl.FLOAT, false, 0, 0);
 
     gl.clearColor(0.01, 0.012, 0.02, 1);
+
+    // additive blending so overlapping particles glow like a real galaxy
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+    gl.disable(gl.DEPTH_TEST);
 
     // ---- camera (yaw / pitch, top-down spiral by default) ----
     const cam: {
@@ -335,20 +342,21 @@ export function ParticleGenesisExperience() {
       for (let i = 0; i < particleCount; i += 1) {
         const pt = particles[i];
 
-        // --- orbital revolution (differential by radius) ---
-        const orbitAngle = timeNow * CONFIG.galaxy.rotationSpeed * pt.orbitSpeed + pt.phase * 0.4;
+        // --- orbital revolution (coherent; slight differential by radius so
+        // inner particles revolve a touch faster, but the spiral stays intact) ---
+        const orbitAngle =
+          timeNow * CONFIG.galaxy.rotationSpeed * pt.orbitSpeed * (0.9 + pt.rand * 0.2);
         const ca = Math.cos(orbitAngle);
         const sa = Math.sin(orbitAngle);
         const gx = pt.galaxy.x * ca - pt.galaxy.z * sa;
         const gz = pt.galaxy.x * sa + pt.galaxy.z * ca;
         const gy = pt.galaxy.y;
 
-        // --- organic drift: independent radial breathing + vertical shimmer ---
-        const breatheT = timeNow * pt.wobble + pt.phase;
-        const breathe = 1 + Math.sin(breatheT) * 0.035;
-        const ox = gx * breathe + Math.sin(breatheT * 1.7) * 0.12;
-        const oz = gz * breathe + Math.cos(breatheT * 1.3) * 0.12;
-        const oy = gy + Math.sin(breatheT * 0.8 + pt.phase) * CONFIG.galaxy.thickness * 0.55;
+        // --- tiny independent shimmer so it feels alive, not rigid ---
+        const shimmer = Math.sin(timeNow * 0.6 + pt.phase) * 0.02;
+        const ox = gx + shimmer;
+        const oz = gz + Math.cos(timeNow * 0.5 + pt.phase) * 0.02;
+        const oy = gy + Math.sin(timeNow * 0.4 + pt.phase) * CONFIG.galaxy.thickness * 0.3;
 
         // --- centrifugal burst target (used during dispersion) ---
         const burst = CONFIG.scatter.speed * (0.4 + pt.rand * 1.4);
@@ -372,13 +380,6 @@ export function ParticleGenesisExperience() {
           ty = lerp(ty, dispY, mix * 0.55);
           tz = lerp(tz, dispZ, mix * 0.55);
         }
-
-        // subtle living noise (ambient flicker, stronger when dispersed)
-        const noiseT = timeNow * 0.6 + pt.phase;
-        const noiseAmp = 0.02 + dw * 0.08;
-        tx += Math.sin(noiseT) * noiseAmp;
-        ty += Math.cos(noiseT * 1.3) * noiseAmp;
-        tz += Math.sin(noiseT * 0.7) * noiseAmp;
 
         // write directly (no per-frame lerp needed; weights already smooth)
         posArray[i * 3] = tx;

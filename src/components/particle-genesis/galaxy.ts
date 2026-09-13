@@ -19,76 +19,92 @@ function clamp01(v: number) {
 }
 
 /**
- * Procedural logarithmic-spiral galaxy. Arms follow `angle = a + b*log(r)`
- * so they read as a curving whirl from above, with gaussian jitter and
- * zone-based density so the structure stays organic rather than geometric.
+ * Procedural logarithmic-spiral galaxy, tuned so the arms read as a clear
+ * Fibonacci-style whirl from above. Each arm follows r = r0 * e^(k*theta)
+ * (log spiral) with a narrow gaussian band, so particles cluster along
+ * well-separated curving arms rather than smearing into a blob.
  *
- * Galaxy lives in the XZ plane (y = thickness). Viewed from +Y (top-down)
- * the arms are immediately legible.
+ * Galaxy lives in the XZ plane (y = thickness). Viewed from +Y the arms are
+ * immediately legible and retain subtle 3D thickness.
  */
 export function generateGalaxy(count: number): GalaxyPoint[] {
   const g = CONFIG.galaxy;
   const points: GalaxyPoint[] = new Array(count);
 
-  // how much the arms wind: angle offset per unit of log-radius
-  const wind = g.twist;
+  // arm separation in radians
+  const armStep = (Math.PI * 2) / g.arms;
+
+  // how tightly the spiral winds: total turn angle over the radius span
+  const totalTurn = g.twist; // radians of winding at the outer edge
 
   for (let i = 0; i < count; i += 1) {
     const zoneRoll = Math.random();
     let zone: Zone;
-    if (zoneRoll < 0.26) zone = "core";
-    else if (zoneRoll < 0.82) zone = "arm";
-    else if (zoneRoll < 0.94) zone = "periphery";
-    else zone = "halo";
+    let armIndex: number;
 
-    const armIndex = Math.floor(Math.random() * g.arms);
-    const armBias = (armIndex / g.arms) * Math.PI * 2;
+    if (zoneRoll < 0.3) {
+      zone = "core";
+      armIndex = 0; // core is symmetric, arm bias ignored
+    } else if (zoneRoll < 0.84) {
+      zone = "arm";
+      armIndex = Math.floor(Math.random() * g.arms);
+    } else if (zoneRoll < 0.95) {
+      zone = "periphery";
+      armIndex = Math.floor(Math.random() * g.arms);
+    } else {
+      zone = "halo";
+      armIndex = 0;
+    }
 
     let radius: number;
-    let angle: number;
     let thickness: number;
 
     if (zone === "core") {
-      radius = Math.pow(Math.random(), 1.4) * g.coreRadius;
-      angle = Math.random() * Math.PI * 2;
+      // dense central bulge
+      radius = Math.pow(Math.random(), 1.5) * g.coreRadius;
       thickness = randGauss() * g.thickness * 0.5;
     } else if (zone === "arm") {
-      // distribution biased toward mid/outer arms
-      const t = Math.pow(Math.random(), 0.85);
-      radius = g.coreRadius * 1.1 + t * (g.radius - g.coreRadius);
-      // logarithmic spiral: angle grows with log of radius
-      angle = armBias + wind * Math.log(1 + radius / g.radius * 3.2);
-      // gaussian spread perpendicular to the arm -> natural width
-      const spread = randGauss() * g.armWidth * (0.6 + (radius / g.radius) * 0.9);
-      angle += spread / Math.max(radius, 0.4);
-      thickness = randGauss() * g.thickness * (1.1 - radius / (g.radius * 1.4));
+      const t = Math.random();
+      // bias toward mid arms so the whirl is dense along its length
+      radius = g.coreRadius * 0.9 + Math.pow(t, 0.95) * (g.radius - g.coreRadius);
+      thickness = randGauss() * g.thickness * (1 - radius / (g.radius * 1.3));
     } else if (zone === "periphery") {
-      radius = g.radius * (0.78 + Math.random() * 0.34);
-      angle = Math.random() * Math.PI * 2;
-      thickness = randGauss() * g.thickness * 1.8;
+      radius = g.radius * (0.82 + Math.random() * 0.22);
+      thickness = randGauss() * g.thickness * 1.7;
     } else {
-      radius = g.radius * (0.35 + Math.random() * 1.2);
+      radius = g.radius * (0.3 + Math.random() * 1.1);
+      thickness = randGauss() * g.thickness * 3.5;
+    }
+
+    // logarithmic spiral angle = arm offset + winding * normalized radius
+    const radialNorm = clamp01(radius / g.radius);
+    const spiralAngle = radialNorm * totalTurn;
+
+    let angle: number;
+    if (zone === "core") {
       angle = Math.random() * Math.PI * 2;
-      thickness = randGauss() * g.thickness * 3.2;
+    } else if (zone === "arm" || zone === "periphery") {
+      angle = armIndex * armStep + spiralAngle;
+      // narrow gaussian spread perpendicular to the arm (keeps the arms crisp)
+      const spread = randGauss() * g.armWidth;
+      angle += spread / Math.max(radius, 0.35);
+    } else {
+      angle = Math.random() * Math.PI * 2;
     }
 
     const x = Math.cos(angle) * radius;
     const z = Math.sin(angle) * radius;
     const y = thickness;
 
-    // brightness: strong core, arm glow, faint periphery/halo
     const radial = clamp01(radius / g.radius);
     let brightness: number;
-    if (zone === "core") brightness = clamp01(0.85 + Math.random() * 0.15);
-    else if (zone === "arm") brightness = clamp01(0.8 - radial * 0.45) * (0.85 + Math.random() * 0.15);
-    else if (zone === "periphery") brightness = clamp01(0.55 - radial * 0.2) * (0.6 + Math.random() * 0.4);
-    else brightness = clamp01(0.3 - radial * 0.15) * (0.4 + Math.random() * 0.5);
+    if (zone === "core") brightness = clamp01(0.9 + Math.random() * 0.1);
+    else if (zone === "arm") brightness = clamp01(0.82 - radial * 0.4) * (0.8 + Math.random() * 0.2);
+    else if (zone === "periphery") brightness = clamp01(0.5 - radial * 0.2) * (0.55 + Math.random() * 0.4);
+    else brightness = clamp01(0.28 - radial * 0.12) * (0.35 + Math.random() * 0.5);
 
-    // tint drives the shader palette: low = blue/cyan (outer arms),
-    // high = warm white (core). Spread across the full range for richness.
-    const tint = clamp01(
-      0.12 + radial * 0.85 + randGauss() * 0.14 + (zone === "core" ? 0.1 : 0),
-    );
+    // tint: low = blue/cyan (outer arms), high = warm white (core)
+    const tint = clamp01(0.08 + radial * 0.9 + randGauss() * 0.12 + (zone === "core" ? 0.08 : 0));
 
     points[i] = {
       pos: { x, y, z },

@@ -2,22 +2,22 @@ export const DEBUG = false;
 
 export const CONFIG = {
   particles: {
-    countDesktop: 140000,
-    countTablet: 70000,
-    countMobile: 32000,
-    minSize: 0.28,
-    maxSize: 1.5,
+    countDesktop: 60000,
+    countTablet: 35000,
+    countMobile: 18000,
+    minSize: 0.14,
+    maxSize: 1.1,
   },
 
   galaxy: {
-    radius: 7.6,
-    arms: 4,
-    branchiness: 0.55,
-    twist: 2.1,
-    coreRadius: 1.25,
-    thickness: 0.3,
-    rotationSpeed: 0.06,
-    armWidth: 0.34,
+    radius: 8.0,
+    arms: 3,
+    branchiness: 0.0,
+    twist: 4.2,
+    coreRadius: 1.3,
+    thickness: 0.22,
+    rotationSpeed: 0.045,
+    armWidth: 0.22,
   },
 
   animation: {
