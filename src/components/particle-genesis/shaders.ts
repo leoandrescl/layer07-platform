@@ -35,11 +35,13 @@ void main() {
   vec2 c = gl_PointCoord - 0.5;
   float d2 = dot(c, c);
   float r = sqrt(d2) * 2.0; // 0 at center -> 1 at sprite edge
-  if (r > 1.0) discard; // hard disk, no feather, no AA
+  if (r > 0.9) discard; // hard round cut, no feather
 
-  // zero blur: solid disk, no exp falloff, no glow, no halo.
-  // Alpha is flat so there is no gradient to read as blur.
-  float a = v_alpha;
+  // zero blur: core only, no glow, no halo, no edge fade.
+  // Every particle is a hard pinpoint dot.
+  float core = exp(-d2 * 1200.0);
+  float a = core * v_alpha;
+  if (a < 0.05) discard;
 
   // wide, star-like palette (subdued): blue -> cyan -> violet -> red/magenta
   // -> orange -> white, chosen per particle via v_tint
@@ -67,9 +69,9 @@ void main() {
     color = mix(orange, white, (t - 0.833) / 0.166);
   }
 
-  // hard white-hot center via step (no gradient, no blur):
-  // inner disk reads white, outer ring keeps the tint
-  vec3 hot = (r < 0.35) ? mix(color, vec3(1.0, 0.98, 0.96), 0.85) : color;
+  // warm center: only the very brightest pixel leans toward white so the
+  // tint survives everywhere else (no blur, hard mix on the core)
+  vec3 hot = mix(color, vec3(1.0, 0.98, 0.96), clamp(core * 2.0 - 0.75, 0.0, 1.0) * 0.85);
 
   gl_FragColor = vec4(hot, a);
 }
