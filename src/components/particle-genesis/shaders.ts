@@ -11,6 +11,7 @@ uniform float u_pixelRatio;
 
 varying float v_alpha;
 varying float v_tint;
+varying float v_px;
 
 void main() {
   vec4 mv = u_viewProj * vec4(a_pos, 1.0);
@@ -18,10 +19,13 @@ void main() {
 
   float dist = max(-mv.z, 0.001);
   float s = a_size * u_pixelRatio * (260.0 / dist);
-  gl_PointSize = clamp(s, 1.0, 126.0);
+  // min 2px: 1px dots are always dim gray mush; 2px reads as a star
+  float px = clamp(s, 2.0, 126.0);
+  gl_PointSize = px;
 
   v_alpha = a_alpha;
   v_tint = a_tint;
+  v_px = px;
 }
 `;
 
@@ -30,18 +34,28 @@ precision highp float;
 
 varying float v_alpha;
 varying float v_tint;
+varying float v_px;
 
 void main() {
   vec2 c = gl_PointCoord - 0.5;
   float d2 = dot(c, c);
   float r = sqrt(d2) * 2.0; // 0 at center -> 1 at sprite edge
-  if (r > 0.9) discard; // hard round cut, no feather
+  if (r > 1.0) discard;
 
-  // zero blur: core only, no glow, no halo, no edge fade.
-  // Every particle is a hard pinpoint dot.
-  float core = exp(-d2 * 1200.0);
-  float a = core * v_alpha;
-  if (a < 0.05) discard;
+  // sharpness by size: tiny dust (most of the arms) is a solid flat dot
+  // with no gradient at all; big stars keep a tight falloff so huge
+  // sprites don't stack into solid white blobs under additive blending.
+  float profile;
+  if (v_px < 7.0) {
+    if (r > 0.85) discard;
+    profile = 1.0;
+  } else {
+    float core = exp(-d2 * 700.0);
+    float glow = exp(-d2 * 180.0) * 0.06;
+    profile = core + glow;
+    if (profile < 0.03) discard;
+  }
+  float a = profile * v_alpha;
 
   // wide, star-like palette (subdued): blue -> cyan -> violet -> red/magenta
   // -> orange -> white, chosen per particle via v_tint
@@ -69,9 +83,9 @@ void main() {
     color = mix(orange, white, (t - 0.833) / 0.166);
   }
 
-  // warm center: only the very brightest pixel leans toward white so the
-  // tint survives everywhere else (no blur, hard mix on the core)
-  vec3 hot = mix(color, vec3(1.0, 0.98, 0.96), clamp(core * 2.0 - 0.75, 0.0, 1.0) * 0.85);
+  // hard white-hot center via step (no gradient): inner disk white,
+  // outer ring keeps the tint
+  vec3 hot = (r < 0.4) ? mix(color, vec3(1.0, 0.98, 0.96), 0.85) : color;
 
   gl_FragColor = vec4(hot, a);
 }
