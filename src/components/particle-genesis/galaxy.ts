@@ -94,15 +94,16 @@ export function generateGalaxy(count: number): GalaxyPoint[] {
     let armIndex: number;
     let coreStar = false;
 
-    if (zoneRoll < 0.01) {
+    if (zoneRoll < 0.005) {
       // a few scattered central stars, bigger than the rest — never a disc
+      // (halved density so the center stays clean around the giants)
       zone = "core";
       armIndex = 0;
       coreStar = true;
-    } else if (zoneRoll < 0.74) {
+    } else if (zoneRoll < 0.735) {
       zone = "arm";
       armIndex = Math.floor(Math.random() * g.arms);
-    } else if (zoneRoll < 0.94) {
+    } else if (zoneRoll < 0.935) {
       zone = "periphery";
       armIndex = Math.floor(Math.random() * g.arms);
     } else {

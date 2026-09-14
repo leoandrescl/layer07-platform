@@ -15,7 +15,7 @@ export const CONFIG = {
     // a handful of giant warm stars hugging the center: larger than anything
     // else so the core reads hot yellow/white
     giantCount: 6,
-    giantSize: 3.8,
+    giantSize: 11.4,
     // brightness scales size mildly so bright stars read slightly larger
     brightnessSize: 0.55,
   },
