@@ -186,6 +186,7 @@ export function ParticleGenesisExperience() {
       // size: pick one of 8 discrete absolute tiers so sizes read clearly
       // distinct. Core stars always use the largest tiers; arm/tail particles
       // use the weighted distribution (mostly fine dust, few large stars).
+      // Giant center stars are larger than everything, including centerStar.
       const tier = pickSizeTier(gp.coreStar);
       const radNorm = clamp(gp.radius / CONFIG.galaxy.radius, 0, 1);
       const flowing = gp.zone === "arm" || gp.zone === "periphery";
@@ -195,14 +196,18 @@ export function ParticleGenesisExperience() {
         radial,
         rand: Math.random(),
         phase: rand(0, Math.PI * 2),
-        size: gp.centerStar
-          ? CONFIG.particles.centerStarSize
-          : tier * (1 + gp.brightness * CONFIG.particles.brightnessSize),
-        alpha: gp.centerStar
-          ? 0.95
-          : gp.coreStar
-            ? 0.85
-            : clamp(0.16 + gp.brightness * 0.6, 0, 1) * (tier >= 0.78 ? 0.75 : rand(0.45, 0.85)),
+        size: gp.giant
+          ? CONFIG.particles.giantSize
+          : gp.centerStar
+            ? CONFIG.particles.centerStarSize
+            : tier * (1 + gp.brightness * CONFIG.particles.brightnessSize),
+        alpha: gp.giant
+          ? 1.0
+          : gp.centerStar
+            ? 0.95
+            : gp.coreStar
+              ? 0.85
+              : clamp(0.16 + gp.brightness * 0.6, 0, 1) * (tier >= 0.78 ? 0.75 : rand(0.45, 0.85)),
         tint: gp.tint,
         radius: gp.radius,
         orbitSpeed: (1.4 - radNorm * 1.15) * rand(0.7, 1.4),

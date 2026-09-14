@@ -12,6 +12,10 @@ export const CONFIG = {
     tierWeights: [0.22, 0.19, 0.16, 0.13, 0.12, 0.09, 0.055, 0.035],
     // the single dominant star at the exact center: biggest of them all
     centerStarSize: 2.6,
+    // a handful of giant warm stars hugging the center: larger than anything
+    // else so the core reads hot yellow/white
+    giantCount: 6,
+    giantSize: 3.8,
     // brightness scales size mildly so bright stars read slightly larger
     brightnessSize: 0.55,
   },

@@ -18,7 +18,7 @@ void main() {
 
   float dist = max(-mv.z, 0.001);
   float s = a_size * u_pixelRatio * (260.0 / dist);
-  gl_PointSize = clamp(s, 1.0, 26.0);
+  gl_PointSize = clamp(s, 1.0, 42.0);
 
   v_alpha = a_alpha;
   v_tint = a_tint;

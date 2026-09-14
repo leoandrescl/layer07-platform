@@ -16,6 +16,8 @@ export interface GalaxyPoint {
   coreStar: boolean;
   /** true for the single dominant star at the exact center */
   centerStar: boolean;
+  /** true for the handful of giant warm stars hugging the center */
+  giant: boolean;
   /** spiral arm index (0 for core/halo) */
   armIndex: number;
   /** raw angular spread added perpendicular to the arm (divide by radius) */
@@ -57,6 +59,30 @@ export function generateGalaxy(count: number): GalaxyPoint[] {
         tint: 0.22,
         coreStar: true,
         centerStar: true,
+        giant: false,
+        armIndex: 0,
+        armSpread: 0,
+      };
+      continue;
+    }
+
+    const giantCount = CONFIG.particles.giantCount;
+    if (i >= 1 && i <= giantCount) {
+      // a handful of giant warm stars hugging the center: larger than
+      // everything else, yellow/white tinted so the core reads hot.
+      const angle = Math.random() * Math.PI * 2;
+      const radius = 0.12 + Math.random() * 0.3;
+      const x = Math.cos(angle) * radius;
+      const z = Math.sin(angle) * radius;
+      points[i] = {
+        pos: { x, y: randGauss() * g.thickness * 0.4, z },
+        zone: "core",
+        radius,
+        brightness: 1,
+        tint: 0.8 + Math.random() * 0.15,
+        coreStar: true,
+        centerStar: false,
+        giant: true,
         armIndex: 0,
         armSpread: 0,
       };
@@ -151,6 +177,7 @@ export function generateGalaxy(count: number): GalaxyPoint[] {
       tint,
       coreStar,
       centerStar: false,
+      giant: false,
       armIndex,
       armSpread,
     };
