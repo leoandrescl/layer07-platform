@@ -34,22 +34,20 @@ varying float v_tint;
 void main() {
   vec2 c = gl_PointCoord - 0.5;
   float d2 = dot(c, c);
-
-  // sharp star: very tight hot core that reads as a crisp dot, with a
-  // narrow restrained glow and almost no halo. Tight falloffs + a higher
-  // discard cutoff keep particles distinct instead of blurring together;
-  // each one stays dim so additive stacking never blows the arms to white.
-  float core = exp(-d2 * 420.0);
-  float glow = exp(-d2 * 110.0) * 0.10;
-  float halo = exp(-d2 * 32.0) * 0.025;
-  float a = (core + glow + halo) * v_alpha;
-  if (a < 0.015) discard;
-
-  // crisp circular cutoff with 1px anti-aliased edge: kills the soft
-  // square-sprite tails so every star ends in a hard round dot
   float r = sqrt(d2) * 2.0; // 0 at center -> 1 at sprite edge
-  a *= 1.0 - smoothstep(0.82, 1.0, r);
-  if (a < 0.015) discard;
+  if (r > 1.0) discard;
+
+  // ultra-sharp star: ~all energy in a pinpoint core, whisper of glow,
+  // zero halo. Higher cutoff + hard round mask so every particle ends
+  // in a crisp dot instead of a soft blob, even the triple-size giants.
+  float core = exp(-d2 * 950.0);
+  float glow = exp(-d2 * 280.0) * 0.055;
+  float a = (core + glow) * v_alpha;
+  if (a < 0.04) discard;
+
+  // hard circular mask with minimal AA: only the outer rim fades
+  a *= 1.0 - smoothstep(0.90, 1.0, r);
+  if (a < 0.04) discard;
 
   // wide, star-like palette (subdued): blue -> cyan -> violet -> red/magenta
   // -> orange -> white, chosen per particle via v_tint
@@ -78,8 +76,8 @@ void main() {
   }
 
   // warm center: only the very brightest pixel leans toward white so the
-  // tint survives everywhere else (tightened to match the sharper core)
-  vec3 hot = mix(color, vec3(1.0, 0.98, 0.96), clamp(core * 1.6 - 0.55, 0.0, 1.0) * 0.75);
+  // tint survives everywhere else (tightened to match the pinpoint core)
+  vec3 hot = mix(color, vec3(1.0, 0.98, 0.96), clamp(core * 1.8 - 0.65, 0.0, 1.0) * 0.8);
 
   gl_FragColor = vec4(hot, a);
 }
