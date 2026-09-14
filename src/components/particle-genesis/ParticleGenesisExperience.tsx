@@ -204,10 +204,10 @@ export function ParticleGenesisExperience() {
         alpha: gp.giant
           ? 1.0
           : gp.centerStar
-            ? 1.0
+            ? 0.95
             : gp.coreStar
-              ? 1.0
-              : clamp(0.35 + gp.brightness * 0.65, 0, 1) * (tier >= 1.0 ? 0.95 : rand(0.7, 1.0)),
+              ? 0.85
+              : clamp(0.16 + gp.brightness * 0.6, 0, 1) * (tier >= 0.78 ? 0.75 : rand(0.45, 0.85)),
         tint: gp.tint,
         radius: gp.radius,
         orbitSpeed: (1.4 - radNorm * 1.15) * rand(0.7, 1.4),
