@@ -83,9 +83,12 @@ void main() {
     color = mix(orange, white, (t - 0.833) / 0.166);
   }
 
-  // hard white-hot center via step (no gradient): inner disk white,
-  // outer ring keeps the tint
-  vec3 hot = (r < 0.4) ? mix(color, vec3(1.0, 0.98, 0.96), 0.85) : color;
+  // hard white-hot center via step (no gradient): only big stars get a
+  // small white core; small dust keeps its pure tint so the arms stay
+  // colorful instead of washing to white under additive blending.
+  vec3 hot = (v_px >= 7.0 && r < 0.25)
+    ? mix(color, vec3(1.0, 0.98, 0.96), 0.6)
+    : color;
 
   gl_FragColor = vec4(hot, a);
 }
