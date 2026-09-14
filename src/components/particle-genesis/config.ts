@@ -2,9 +2,9 @@ export const DEBUG = false;
 
 export const CONFIG = {
   particles: {
-    countDesktop: 5000,
-    countTablet: 3000,
-    countMobile: 1750,
+    countDesktop: 2500,
+    countTablet: 1500,
+    countMobile: 875,
     // 8 absolute size tiers (world units, smallest first): from fine dust to
     // giant glowing stars. Wide geometric gaps so the size variety reads
     // clearly; upper tiers are common enough to dot the arms with big stars.
