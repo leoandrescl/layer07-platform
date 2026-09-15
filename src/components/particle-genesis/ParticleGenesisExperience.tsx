@@ -207,7 +207,7 @@ export function ParticleGenesisExperience() {
             ? 1.0
             : gp.coreStar
               ? 0.9
-              : clamp(0.35 + gp.brightness * 0.65, 0, 1) * (tier >= 0.9 ? 0.85 : rand(0.7, 1.0)),
+              : clamp(0.55 + gp.brightness * 0.45, 0, 1) * (tier >= 0.6 ? 1.0 : rand(0.85, 1.0)),
         tint: gp.tint,
         radius: gp.radius,
         orbitSpeed: (1.4 - radNorm * 1.15) * rand(0.7, 1.4),
@@ -220,7 +220,7 @@ export function ParticleGenesisExperience() {
         snap: false,
       };
       // central stars + the largest arm stars twinkle (alpha animated per frame)
-      if (gp.coreStar || tier >= 0.9) twinkleIdx.push(i);
+      if (gp.coreStar || tier >= 0.6) twinkleIdx.push(i);
     }
 
     // ---- buffers ----
@@ -279,9 +279,11 @@ export function ParticleGenesisExperience() {
 
     gl.clearColor(0.01, 0.012, 0.02, 1);
 
-    // additive blending so overlapping particles glow like a real galaxy
+    // normal alpha blending: overlapping dots occlude instead of summing,
+    // so dense arms keep dark gaps and saturated color instead of washing
+    // white (additive stacking was the white-tube culprit)
     gl.enable(gl.BLEND);
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
     gl.disable(gl.DEPTH_TEST);
 
     // ---- camera (yaw / pitch, top-down spiral by default) ----

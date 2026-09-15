@@ -8,14 +8,14 @@ export const CONFIG = {
     // 8 absolute size tiers (world units, smallest first): from fine dust to
     // giant glowing stars. Wide geometric gaps so the size variety reads
     // clearly; upper tiers are common enough to dot the arms with big stars.
-    tiers: [0.05, 0.09, 0.13, 0.2, 0.3, 0.48, 0.75, 1.1],
-    tierWeights: [0.24, 0.2, 0.16, 0.13, 0.12, 0.08, 0.045, 0.025],
+    tiers: [0.05, 0.09, 0.13, 0.2, 0.3, 0.45, 0.6, 0.8],
+    tierWeights: [0.25, 0.21, 0.17, 0.14, 0.11, 0.07, 0.035, 0.015],
     // the single dominant star at the exact center: biggest of them all
-    centerStarSize: 2.0,
+    centerStarSize: 1.4,
     // a handful of giant stars near the center: clearly larger than the
-    // rest, but bounded — huge sprites read as blurry blobs, not stars
+    // rest, but bounded — oversized sprites read as soap bubbles, not stars
     giantCount: 6,
-    giantSize: 1.7,
+    giantSize: 1.2,
     // brightness scales size mildly so bright stars read slightly larger
     brightnessSize: 0.3,
   },
