@@ -207,7 +207,7 @@ export function ParticleGenesisExperience() {
             ? 1.0
             : gp.coreStar
               ? 0.9
-              : clamp(0.55 + gp.brightness * 0.45, 0, 1) * (tier >= 0.45 ? 1.0 : rand(0.85, 1.0)),
+              : clamp(0.4 + gp.brightness * 0.45, 0, 1) * (tier >= 0.45 ? 0.9 : rand(0.65, 0.95)),
         tint: gp.tint,
         radius: gp.radius,
         orbitSpeed: (1.4 - radNorm * 1.15) * rand(0.7, 1.4),
@@ -279,11 +279,11 @@ export function ParticleGenesisExperience() {
 
     gl.clearColor(0.01, 0.012, 0.02, 1);
 
-    // normal alpha blending: overlapping dots occlude instead of summing,
-    // so dense arms keep dark gaps and saturated color instead of washing
-    // white (additive stacking was the white-tube culprit)
+    // additive blending: overlapping glows gather into bright nebulae, and
+    // each small star reads as a luminous point on darkness. (Must pair with
+    // SMALL point sizes + modest alphas, otherwise it blows out to white.)
     gl.enable(gl.BLEND);
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
     gl.disable(gl.DEPTH_TEST);
 
     // ---- camera (yaw / pitch, top-down spiral by default) ----

@@ -44,20 +44,15 @@ void main() {
   float r = sqrt(d2) * 2.0; // 0 at center -> 1 at sprite edge
   if (r > 1.0) discard;
 
-  // crisp by size: small dust is a solid dot with a near-hard edge;
-  // big stars get a solid core plus a narrow glow shell that ends well
-  // inside the sprite — glow without blur, and zero energy at the rim
-  // so no disc outline ever resolves.
-  float profile;
-  if (v_px < 7.0) {
-    if (r > 0.92) discard;
-    profile = 1.0 - smoothstep(0.55, 0.92, r);
-  } else {
-    float core = 1.0 - smoothstep(0.28, 0.42, r);
-    float shell = (1.0 - smoothstep(0.3, 0.62, r)) * 0.22;
-    profile = core + shell;
-  }
-  if (profile < 0.015) discard;
+  // star sprite: a gaussian glow — bright hot center falling off smoothly.
+  // Every star reads as a luminous point on darkness, never a solid disc.
+  // Because blending is additive, the soft glow gathers into bright nebulae
+  // where stars are dense, exactly like a galaxy.
+  float d = sqrt(d2) * 2.0; // 0 center -> 1 edge
+  float gauss = exp(-d * d * 4.5);
+  float core = exp(-d * d * 60.0);
+  float profile = core + gauss * 0.4;
+  if (profile < 0.03) discard;
   float a = profile * v_alpha;
 
   // star palette, saturated but not neon: blue -> cyan -> violet ->
@@ -89,8 +84,8 @@ void main() {
   // white-hot heart only at the very center of truly big stars; small
   // dust keeps its pure tint so the arms stay colorful instead of washing
   // to white under additive blending.
-  vec3 hot = (v_px >= 12.0 && r < 0.22)
-    ? mix(color, vec3(1.0, 0.98, 0.96), 0.75)
+  vec3 hot = (v_px >= 12.0 && d < 0.25)
+    ? mix(color, vec3(1.0, 0.98, 0.96), 0.7)
     : color;
 
   gl_FragColor = vec4(hot, a);
