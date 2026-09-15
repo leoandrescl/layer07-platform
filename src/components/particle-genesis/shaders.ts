@@ -19,8 +19,9 @@ void main() {
 
   float dist = max(-mv.z, 0.001);
   float s = a_size * u_pixelRatio * (260.0 / dist);
-  // min 2px: 1px dots are always dim gray mush; 2px reads as a star
-  float px = clamp(s, 2.0, 126.0);
+  // min 2px: 1px dots are always dim gray mush; 2px reads as a star.
+  // max 48px: anything larger becomes an unfocused blob, not a star.
+  float px = clamp(s, 2.0, 48.0);
   gl_PointSize = px;
 
   v_alpha = a_alpha;
@@ -42,30 +43,30 @@ void main() {
   float r = sqrt(d2) * 2.0; // 0 at center -> 1 at sprite edge
   if (r > 1.0) discard;
 
-  // sharpness by size: tiny dust (most of the arms) is a solid flat dot
-  // with no gradient at all; big stars keep a tight falloff so huge
-  // sprites don't stack into solid white blobs under additive blending.
+  // crisp by size: small dust is a solid opaque dot with a hard edge (no
+  // blur, no gradient); big stars get a solid core plus a narrow glow shell
+  // that ends well inside the sprite — real glow, never a blurry halo.
   float profile;
   if (v_px < 7.0) {
-    if (r > 0.85) discard;
+    if (r > 0.9) discard;
     profile = 1.0;
   } else {
-    float core = exp(-d2 * 700.0);
-    float glow = exp(-d2 * 180.0) * 0.06;
-    profile = core + glow;
-    if (profile < 0.03) discard;
+    float core = 1.0 - smoothstep(0.28, 0.38, r);
+    float shell = (1.0 - smoothstep(0.3, 0.7, r)) * 0.25;
+    profile = core + shell;
+    if (profile < 0.02) discard;
   }
   float a = profile * v_alpha;
 
-  // wide, star-like palette (subdued): blue -> cyan -> violet -> red/magenta
-  // -> orange -> white, chosen per particle via v_tint
-  vec3 blue    = vec3(0.35, 0.50, 1.0);
-  vec3 cyan    = vec3(0.30, 0.78, 0.95);
-  vec3 violet  = vec3(0.66, 0.55, 1.0);
-  vec3 magenta = vec3(0.95, 0.45, 0.85);
-  vec3 red     = vec3(1.0, 0.45, 0.42);
-  vec3 orange  = vec3(1.0, 0.70, 0.50);
-  vec3 white   = vec3(1.0, 0.97, 0.95);
+  // star palette, saturated but not neon: blue -> cyan -> violet ->
+  // magenta -> red -> orange -> white, chosen per particle via v_tint
+  vec3 blue    = vec3(0.25, 0.45, 1.0);
+  vec3 cyan    = vec3(0.15, 0.80, 1.0);
+  vec3 violet  = vec3(0.62, 0.50, 1.0);
+  vec3 magenta = vec3(1.0, 0.35, 0.80);
+  vec3 red     = vec3(1.0, 0.30, 0.32);
+  vec3 orange  = vec3(1.0, 0.60, 0.20);
+  vec3 white   = vec3(1.0, 0.97, 0.94);
 
   vec3 color;
   float t = v_tint;
@@ -83,11 +84,11 @@ void main() {
     color = mix(orange, white, (t - 0.833) / 0.166);
   }
 
-  // hard white-hot center via step (no gradient): only big stars get a
-  // small white core; small dust keeps its pure tint so the arms stay
-  // colorful instead of washing to white under additive blending.
-  vec3 hot = (v_px >= 7.0 && r < 0.25)
-    ? mix(color, vec3(1.0, 0.98, 0.96), 0.6)
+  // white-hot heart only at the very center of truly big stars; small
+  // dust keeps its pure tint so the arms stay colorful instead of washing
+  // to white under additive blending.
+  vec3 hot = (v_px >= 10.0 && r < 0.22)
+    ? mix(color, vec3(1.0, 0.98, 0.96), 0.75)
     : color;
 
   gl_FragColor = vec4(hot, a);
