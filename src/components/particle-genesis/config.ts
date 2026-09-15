@@ -2,22 +2,22 @@ export const DEBUG = false;
 
 export const CONFIG = {
   particles: {
-    countDesktop: 2500,
-    countTablet: 1500,
-    countMobile: 875,
+    countDesktop: 1600,
+    countTablet: 1000,
+    countMobile: 600,
     // 8 absolute size tiers (world units, smallest first): from fine dust to
     // giant glowing stars. Wide geometric gaps so the size variety reads
     // clearly; upper tiers are common enough to dot the arms with big stars.
-    tiers: [0.1, 0.17, 0.28, 0.45, 0.7, 1.0, 1.4, 1.9],
-    tierWeights: [0.22, 0.19, 0.16, 0.13, 0.12, 0.09, 0.055, 0.035],
+    tiers: [0.06, 0.1, 0.15, 0.23, 0.35, 0.55, 0.85, 1.2],
+    tierWeights: [0.24, 0.2, 0.16, 0.13, 0.12, 0.08, 0.045, 0.025],
     // the single dominant star at the exact center: biggest of them all
-    centerStarSize: 2.2,
+    centerStarSize: 2.0,
     // a handful of giant stars near the center: clearly larger than the
     // rest, but bounded — huge sprites read as blurry blobs, not stars
     giantCount: 6,
     giantSize: 1.7,
     // brightness scales size mildly so bright stars read slightly larger
-    brightnessSize: 0.55,
+    brightnessSize: 0.3,
   },
 
   galaxy: {
@@ -35,7 +35,7 @@ export const CONFIG = {
     driftSpeed: 0.025,
     // central stars orbit slightly faster than the global drift
     coreOrbitSpeed: 0.08,
-    armWidth: 0.2,
+    armWidth: 0.32,
   },
 
   animation: {

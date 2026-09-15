@@ -163,13 +163,13 @@ export function ParticleGenesisExperience() {
     for (let i = 0; i < particleCount; i += 1) {
       const gp = galaxyPoints[i];
 
-      // dispersed: particles pushed far out to the periphery so the center
-      // is left clean for the / about content. Direction kept roughly radial
-      // so the dispersion reads as matter expanding outward, not vanishing.
+      // dispersed: ring filling the visible frustum but leaving a hole at
+      // the center for the /about content. Direction kept roughly radial
+      // so the motion reads as matter expanding outward to the sides.
       const dirX = gp.pos.x || rand(-1, 1);
       const dirZ = gp.pos.z || rand(-1, 1);
       const dirL = Math.hypot(dirX, dirZ) || 1;
-      const spread = spaceRadius * (0.9 + rand(0, 0.9));
+      const spread = 5.5 + rand(0, 6.5);
       const dispersed: V3 = {
         x: (dirX / dirL) * spread + rand(-1, 1) * 1.2,
         y: rand(-1, 1) * spaceRadius * 0.12,
@@ -207,7 +207,7 @@ export function ParticleGenesisExperience() {
             ? 1.0
             : gp.coreStar
               ? 0.9
-              : clamp(0.3 + gp.brightness * 0.6, 0, 1) * (tier >= 1.0 ? 0.85 : rand(0.6, 0.95)),
+              : clamp(0.35 + gp.brightness * 0.65, 0, 1) * (tier >= 0.9 ? 0.85 : rand(0.7, 1.0)),
         tint: gp.tint,
         radius: gp.radius,
         orbitSpeed: (1.4 - radNorm * 1.15) * rand(0.7, 1.4),
@@ -220,7 +220,7 @@ export function ParticleGenesisExperience() {
         snap: false,
       };
       // central stars + the largest arm stars twinkle (alpha animated per frame)
-      if (gp.coreStar || tier >= 1.0) twinkleIdx.push(i);
+      if (gp.coreStar || tier >= 0.9) twinkleIdx.push(i);
     }
 
     // ---- buffers ----

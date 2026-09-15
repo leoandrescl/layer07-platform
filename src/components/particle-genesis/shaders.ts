@@ -52,7 +52,7 @@ void main() {
     profile = 1.0;
   } else {
     float core = 1.0 - smoothstep(0.28, 0.38, r);
-    float shell = (1.0 - smoothstep(0.3, 0.7, r)) * 0.25;
+    float shell = (1.0 - smoothstep(0.3, 0.55, r)) * 0.15;
     profile = core + shell;
     if (profile < 0.02) discard;
   }
@@ -87,7 +87,7 @@ void main() {
   // white-hot heart only at the very center of truly big stars; small
   // dust keeps its pure tint so the arms stay colorful instead of washing
   // to white under additive blending.
-  vec3 hot = (v_px >= 10.0 && r < 0.22)
+  vec3 hot = (v_px >= 12.0 && r < 0.22)
     ? mix(color, vec3(1.0, 0.98, 0.96), 0.75)
     : color;
 
