@@ -207,7 +207,7 @@ export function ParticleGenesisExperience() {
             ? 1.0
             : gp.coreStar
               ? 0.9
-              : clamp(0.55 + gp.brightness * 0.45, 0, 1) * (tier >= 0.6 ? 1.0 : rand(0.85, 1.0)),
+              : clamp(0.55 + gp.brightness * 0.45, 0, 1) * (tier >= 0.45 ? 1.0 : rand(0.85, 1.0)),
         tint: gp.tint,
         radius: gp.radius,
         orbitSpeed: (1.4 - radNorm * 1.15) * rand(0.7, 1.4),
@@ -220,7 +220,7 @@ export function ParticleGenesisExperience() {
         snap: false,
       };
       // central stars + the largest arm stars twinkle (alpha animated per frame)
-      if (gp.coreStar || tier >= 0.6) twinkleIdx.push(i);
+      if (gp.coreStar || tier >= 0.45) twinkleIdx.push(i);
     }
 
     // ---- buffers ----

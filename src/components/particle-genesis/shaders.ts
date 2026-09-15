@@ -18,10 +18,11 @@ void main() {
   gl_Position = mv;
 
   float dist = max(-mv.z, 0.001);
-  float s = a_size * u_pixelRatio * (260.0 / dist);
-  // min 2px: 1px dots are always dim gray mush; 2px reads as a star.
-  // max 48px: anything larger becomes an unfocused blob, not a star.
-  float px = clamp(s, 2.0, 48.0);
+  // ~7 px per world unit at the camera distance (was ~16 — that is why
+  // particles read as big circles). Sub-pixel minimum so even the finest
+  // dust renders as a small crisp point instead of a flat identical dot.
+  float s = a_size * u_pixelRatio * (110.0 / dist);
+  float px = clamp(s, 1.0, 32.0);
   gl_PointSize = px;
 
   v_alpha = a_alpha;
