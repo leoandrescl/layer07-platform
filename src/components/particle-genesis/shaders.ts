@@ -43,19 +43,20 @@ void main() {
   float r = sqrt(d2) * 2.0; // 0 at center -> 1 at sprite edge
   if (r > 1.0) discard;
 
-  // crisp by size: small dust is a solid opaque dot with a hard edge (no
-  // blur, no gradient); big stars get a solid core plus a narrow glow shell
-  // that ends well inside the sprite — real glow, never a blurry halo.
+  // crisp by size: small dust is a solid dot with a near-hard edge;
+  // big stars get a solid core plus a narrow glow shell that ends well
+  // inside the sprite — glow without blur, and zero energy at the rim
+  // so no disc outline ever resolves.
   float profile;
   if (v_px < 7.0) {
-    if (r > 0.9) discard;
-    profile = 1.0;
+    if (r > 0.92) discard;
+    profile = 1.0 - smoothstep(0.55, 0.92, r);
   } else {
-    float core = 1.0 - smoothstep(0.28, 0.38, r);
-    float shell = (1.0 - smoothstep(0.3, 0.55, r)) * 0.15;
+    float core = 1.0 - smoothstep(0.28, 0.42, r);
+    float shell = (1.0 - smoothstep(0.3, 0.62, r)) * 0.22;
     profile = core + shell;
-    if (profile < 0.02) discard;
   }
+  if (profile < 0.015) discard;
   float a = profile * v_alpha;
 
   // star palette, saturated but not neon: blue -> cyan -> violet ->
