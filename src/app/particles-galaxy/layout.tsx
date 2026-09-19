@@ -25,7 +25,7 @@ export default function ParticlesGalaxyLayout({
 }) {
   return (
     <div
-      className={`${lainMono.variable} ${lainDisplay.variable} pgx-root min-h-dvh bg-[#030b0c] font-mono text-white`}
+      className={`${lainMono.variable} ${lainDisplay.variable} h-dvh overflow-hidden bg-black font-mono text-white`}
     >
       {children}
     </div>

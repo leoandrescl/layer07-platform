@@ -1,19 +1,20 @@
 import { CONFIG, PALETTE } from "./config";
 
-const { goldenAngle } = CONFIG;
-const TAU = Math.PI * 2;
+const PI = Math.PI;
 
 export interface ParticleBuffers {
-  /** scattered field the intro converges from */
-  start: Float32Array;
-  /** fibonacci sphere (written into the geometry "position" attribute) */
-  sphere: Float32Array;
-  /** Vogel phyllotaxis disc */
-  disc: Float32Array;
-  /** logarithmic golden coil */
-  spiral: Float32Array;
-  /** random unit vector used for drift and dispersion */
-  dir: Float32Array;
+  /** required by three (unused by the shader, positions are computed on GPU) */
+  position: Float32Array;
+  /** starting life 0..1, offset so particles are spread across the flow */
+  phase: Float32Array;
+  /** per-particle flow rate multiplier */
+  speed: Float32Array;
+  /** arm index, or -1 for diffuse halo matter */
+  arm: Float32Array;
+  /** angular jitter within the arm (grows/decreases with radius in shader) */
+  spread: Float32Array;
+  /** vertical offset (disc thickness) */
+  height: Float32Array;
   seed: Float32Array;
   size: Float32Array;
   color: Float32Array;
@@ -24,13 +25,9 @@ function rand(min: number, max: number) {
   return min + Math.random() * (max - min);
 }
 
-function unitVector(out: Float32Array, i: number) {
-  const u = Math.random() * 2 - 1;
-  const theta = Math.random() * TAU;
-  const r = Math.sqrt(Math.max(0, 1 - u * u));
-  out[i] = Math.cos(theta) * r;
-  out[i + 1] = u;
-  out[i + 2] = Math.sin(theta) * r;
+/** cheap approx-gaussian in roughly [-1.5, 1.5] */
+function gaussian() {
+  return Math.random() + Math.random() + Math.random() - 1.5;
 }
 
 function makeColorTable() {
@@ -38,53 +35,59 @@ function makeColorTable() {
   let cumulative = 0;
   for (const entry of PALETTE) {
     const hex = entry.hex.replace("#", "");
-    const r = parseInt(hex.slice(0, 2), 16) / 255;
-    const g = parseInt(hex.slice(2, 4), 16) / 255;
-    const b = parseInt(hex.slice(4, 6), 16) / 255;
-    cumulative += entry.weight;
-    table.push({ r, g, b, cumulative });
+    table.push({
+      r: parseInt(hex.slice(0, 2), 16) / 255,
+      g: parseInt(hex.slice(2, 4), 16) / 255,
+      b: parseInt(hex.slice(4, 6), 16) / 255,
+      cumulative: (cumulative += entry.weight),
+    });
   }
   return table;
 }
 
 const COLOR_TABLE = makeColorTable();
-const SIZE_TIERS = CONFIG.particles.sizeTiers;
-const TIER_WEIGHTS = CONFIG.particles.tierWeights;
 
-function pickColorIndex() {
+function pickColor(out: Float32Array, i3: number) {
   const r = Math.random();
+  let entry = COLOR_TABLE[COLOR_TABLE.length - 1];
   for (let i = 0; i < COLOR_TABLE.length; i += 1) {
-    if (r <= COLOR_TABLE[i].cumulative) return i;
+    if (r <= COLOR_TABLE[i].cumulative) {
+      entry = COLOR_TABLE[i];
+      break;
+    }
   }
-  return COLOR_TABLE.length - 1;
+  out[i3] = entry.r;
+  out[i3 + 1] = entry.g;
+  out[i3 + 2] = entry.b;
 }
 
 function pickSize() {
+  const tiers = CONFIG.particles.sizeTiers;
+  const weights = CONFIG.particles.tierWeights;
   let r = Math.random();
-  for (let t = 0; t < TIER_WEIGHTS.length; t += 1) {
-    if (r < TIER_WEIGHTS[t]) {
-      // slight per-particle variance so tiers never look stamped
-      return Math.max(CONFIG.particles.minSize, SIZE_TIERS[t] * rand(0.72, 1.28));
+  for (let t = 0; t < weights.length; t += 1) {
+    if (r < weights[t]) {
+      return Math.max(CONFIG.particles.minSize, tiers[t] * rand(0.72, 1.28));
     }
-    r -= TIER_WEIGHTS[t];
+    r -= weights[t];
   }
-  return SIZE_TIERS[SIZE_TIERS.length - 1];
+  return tiers[tiers.length - 1];
 }
 
 /**
- * Builds every per-particle buffer for the scene. Four positions per particle:
- * the scattered intro field plus the three morph targets (sphere / disc /
- * spiral). The vertex shader blends them with a weight vector, so the CPU only
- * touches a handful of uniforms per frame.
+ * Builds the per-particle attributes for the galaxy. Radius and angle are not
+ * baked here: the vertex shader derives them from a looping "life" value so the
+ * whole field flows inward continuously without any per-frame CPU work.
  */
 export function buildParticles(count: number): ParticleBuffers {
-  const { sphere: sphereCfg, disc: discCfg, spiral: spiralCfg } = CONFIG.formations;
+  const { arms, armWidth, halo } = CONFIG.galaxy;
 
-  const start = new Float32Array(count * 3);
-  const sphere = new Float32Array(count * 3);
-  const disc = new Float32Array(count * 3);
-  const spiral = new Float32Array(count * 3);
-  const dir = new Float32Array(count * 3);
+  const position = new Float32Array(count * 3);
+  const phase = new Float32Array(count);
+  const speed = new Float32Array(count);
+  const arm = new Float32Array(count);
+  const spread = new Float32Array(count);
+  const height = new Float32Array(count);
   const seed = new Float32Array(count);
   const size = new Float32Array(count);
   const color = new Float32Array(count * 3);
@@ -92,57 +95,28 @@ export function buildParticles(count: number): ParticleBuffers {
 
   for (let i = 0; i < count; i += 1) {
     const i3 = i * 3;
-    const t = (i + 0.5) / count;
+    const isHalo = Math.random() < halo;
 
-    // --- scattered intro field: a large, sparse star volume ---
-    unitVector(dir, i3);
-    const radius = 7 + Math.pow(Math.random(), 0.6) * 16;
-    start[i3] = dir[i3] * radius * rand(0.7, 1.3);
-    start[i3 + 1] = dir[i3 + 1] * radius * rand(0.55, 1.1);
-    start[i3 + 2] = dir[i3 + 2] * radius;
-
-    // --- fibonacci sphere: uniform shell, denser toward the camera-neutral band ---
-    const y = 1 - 2 * t;
-    const ring = Math.sqrt(Math.max(0, 1 - y * y));
-    const theta = i * goldenAngle;
-    const shell = shellRadius(sphereCfg.radius, sphereCfg.shellMin);
-    sphere[i3] = Math.cos(theta) * ring * shell;
-    sphere[i3 + 1] = y * shell;
-    sphere[i3 + 2] = Math.sin(theta) * ring * shell;
-
-    // --- phyllotaxis disc (Vogel model) with a shallow dome and thickness ---
-    const rn = Math.sqrt(t);
-    const dr = rn * discCfg.radius;
-    const dTheta = i * goldenAngle;
-    disc[i3] = Math.cos(dTheta) * dr;
-    disc[i3 + 1] = (1 - rn) * discCfg.radius * discCfg.dome + rand(-1, 1) * discCfg.radius * discCfg.thickness;
-    disc[i3 + 2] = Math.sin(dTheta) * dr;
-
-    // --- logarithmic golden coil: exponential radius, linear height ---
-    const sr = spiralCfg.inner + (spiralCfg.outer - spiralCfg.inner) * (Math.exp(spiralCfg.turns * t) - 1) /
-      (Math.exp(spiralCfg.turns) - 1);
-    const sTheta = t * spiralCfg.turns * TAU;
-    spiral[i3] = Math.cos(sTheta) * sr + rand(-1, 1) * spiralCfg.jitter;
-    spiral[i3 + 1] = (t - 0.5) * spiralCfg.height + rand(-1, 1) * spiralCfg.jitter;
-    spiral[i3 + 2] = Math.sin(sTheta) * sr + rand(-1, 1) * spiralCfg.jitter;
-
-    // --- attributes ---
-    const ci = pickColorIndex();
-    const entry = COLOR_TABLE[ci];
-    const s = pickSize();
-    const b = rand(0.55, 1.5) * (1 + (s / SIZE_TIERS[SIZE_TIERS.length - 1]) * CONFIG.particles.brightnessSize);
-
+    phase[i] = Math.random();
+    speed[i] = rand(0.65, 1.35);
     seed[i] = Math.random();
-    size[i] = s;
-    color[i3] = entry.r;
-    color[i3 + 1] = entry.g;
-    color[i3 + 2] = entry.b;
-    bright[i] = b;
+
+    if (isHalo) {
+      arm[i] = -1;
+      spread[i] = rand(-PI, PI);
+      height[i] = gaussian() * 1.4;
+      size[i] = pickSize() * 0.7;
+      bright[i] = rand(0.12, 0.38);
+    } else {
+      arm[i] = Math.floor(Math.random() * arms);
+      spread[i] = gaussian() * armWidth;
+      height[i] = gaussian() * (Math.random() < 0.12 ? 1.8 : 1);
+      size[i] = pickSize();
+      bright[i] = rand(0.5, 1.45) * (1 + (size[i] / CONFIG.particles.sizeTiers[5]) * CONFIG.particles.brightnessSize);
+    }
+
+    pickColor(color, i3);
   }
 
-  return { start, sphere, disc, spiral, dir, seed, size, color, bright };
-}
-
-function shellRadius(radius: number, shellMin: number) {
-  return radius * (shellMin + Math.random() * (1 - shellMin));
+  return { position, phase, speed, arm, spread, height, seed, size, color, bright };
 }

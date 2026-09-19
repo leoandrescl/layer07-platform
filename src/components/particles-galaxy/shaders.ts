@@ -1,8 +1,11 @@
 export const POINT_VERT = /* glsl */ `
-attribute vec3 aStart;
-attribute vec3 aDisc;
-attribute vec3 aSpiral;
-attribute vec3 aDir;
+const float TAU = 6.28318530718;
+
+attribute float aPhase;
+attribute float aSpeed;
+attribute float aArm;
+attribute float aSpread;
+attribute float aHeight;
 attribute vec3 aColor;
 attribute float aSeed;
 attribute float aSize;
@@ -10,33 +13,44 @@ attribute float aBright;
 
 uniform float uTime;
 uniform float uIntro;
-uniform float uDisperse;
-uniform float uMotion;
+uniform float uArms;
+uniform float uCoreRadius;
+uniform float uOuterRadius;
+uniform float uTwist;
+uniform float uRadialCurve;
+uniform float uThickness;
+uniform float uSpin;
+uniform float uFlowSpeed;
 uniform float uFovScale;
 uniform float uSizeScale;
-uniform float uTwinkle;
-uniform vec3 uWeights;
+uniform vec3 uCoreColor;
 
 varying vec3 vColor;
 varying float vBright;
 varying float vSeed;
 
 void main() {
-  // morph between the three fibonacci targets
-  vec3 p = position * uWeights.x + aDisc * uWeights.y + aSpiral * uWeights.z;
+  // looping life 0..1: spawns at the outer tail, drifts to the core, recycles
+  float life = fract(aPhase + uTime * uFlowSpeed * aSpeed);
+  float rf = 1.0 - life; // 1 at the tail, 0 at the core
 
-  float t = uTime;
-  float s = aSeed * 6.2831853;
+  float r = uCoreRadius + (uOuterRadius - uCoreRadius) * pow(rf, uRadialCurve);
 
-  // idle drift: each particle sways on its own tiny orbit so the field breathes
-  p += sin(t * 0.55 + s) * aDir * 0.035 * uMotion;
-  p += cos(t * 0.42 + s * 1.7) * vec3(aDir.z, aDir.x, aDir.y) * 0.028 * uMotion;
+  // The angle is a function of the radius, so as r shrinks the particle travels
+  // inward *along* the log-spiral: the arm keeps its shape while its tail is
+  // continuously fed by newly recycled matter.
+  float theta;
+  if (aArm >= 0.0) {
+    theta = aArm * (TAU / uArms)
+      + uTwist * log(max(r, 0.08) / uOuterRadius)
+      + uSpin * uTime
+      + aSpread * (0.35 + 0.65 * rf);
+  } else {
+    theta = uSpin * uTime * 0.6 + aSpread;
+  }
 
-  // convergence from the scattered intro field
-  p = mix(aStart, p, uIntro);
-
-  // soft outward dispersion for the outro
-  p += aDir * uDisperse * (0.4 + aSeed * 1.1);
+  float discThickness = uThickness * (0.18 + 0.82 * rf);
+  vec3 p = vec3(cos(theta) * r, aHeight * discThickness, sin(theta) * r);
 
   vec4 mv = modelViewMatrix * vec4(p, 1.0);
   gl_Position = projectionMatrix * mv;
@@ -44,9 +58,12 @@ void main() {
   float size = max(aSize, 0.006) * uSizeScale;
   gl_PointSize = clamp(size * uFovScale / max(-mv.z, 0.001), 1.0, 76.0);
 
-  float twinkle = 0.72 + 0.28 * sin(t * uTwinkle + s * 30.0);
-  vColor = aColor;
-  vBright = aBright * mix(0.35, 1.0, uIntro) * mix(1.0, twinkle, uMotion);
+  float fade = smoothstep(0.0, 0.06, life) * (1.0 - smoothstep(0.88, 1.0, life));
+  float coreMix = 1.0 - smoothstep(uCoreRadius, uOuterRadius * 0.45, r);
+  float twinkle = 0.72 + 0.28 * sin(uTime * 1.7 + aSeed * 30.0);
+
+  vColor = mix(aColor, uCoreColor, coreMix * 0.75);
+  vBright = aBright * uIntro * fade * twinkle * (1.0 + coreMix * 1.8);
   vSeed = aSeed;
 }
 `;

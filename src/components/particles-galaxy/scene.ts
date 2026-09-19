@@ -18,11 +18,6 @@ function clamp(v: number, min = 0, max = 1) {
   return v < min ? min : v > max ? max : v;
 }
 
-function smoothstep(edge0: number, edge1: number, x: number) {
-  const t = clamp((x - edge0) / (edge1 - edge0), 0, 1);
-  return t * t * (3 - 2 * t);
-}
-
 interface StreakOptions {
   samples: number;
   strength: number;
@@ -86,25 +81,33 @@ export function createParticlesScene(
   // ---- particles ----
   const buffers = buildParticles(quality.count);
   const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute("position", new THREE.BufferAttribute(buffers.sphere, 3));
-  geometry.setAttribute("aStart", new THREE.BufferAttribute(buffers.start, 3));
-  geometry.setAttribute("aDisc", new THREE.BufferAttribute(buffers.disc, 3));
-  geometry.setAttribute("aSpiral", new THREE.BufferAttribute(buffers.spiral, 3));
-  geometry.setAttribute("aDir", new THREE.BufferAttribute(buffers.dir, 3));
-  geometry.setAttribute("aColor", new THREE.BufferAttribute(buffers.color, 3));
+  // position is required by three but unused: the shader computes it on the GPU
+  geometry.setAttribute("position", new THREE.BufferAttribute(buffers.position, 3));
+  geometry.setAttribute("aPhase", new THREE.BufferAttribute(buffers.phase, 1));
+  geometry.setAttribute("aSpeed", new THREE.BufferAttribute(buffers.speed, 1));
+  geometry.setAttribute("aArm", new THREE.BufferAttribute(buffers.arm, 1));
+  geometry.setAttribute("aSpread", new THREE.BufferAttribute(buffers.spread, 1));
+  geometry.setAttribute("aHeight", new THREE.BufferAttribute(buffers.height, 1));
   geometry.setAttribute("aSeed", new THREE.BufferAttribute(buffers.seed, 1));
   geometry.setAttribute("aSize", new THREE.BufferAttribute(buffers.size, 1));
+  geometry.setAttribute("aColor", new THREE.BufferAttribute(buffers.color, 3));
   geometry.setAttribute("aBright", new THREE.BufferAttribute(buffers.bright, 1));
 
+  const coreColor = new THREE.Color(CONFIG.effects.coreColor);
   const uniforms = {
     uTime: new THREE.Uniform(0),
     uIntro: new THREE.Uniform(0),
-    uDisperse: new THREE.Uniform(0),
-    uMotion: new THREE.Uniform(1),
+    uArms: new THREE.Uniform(CONFIG.galaxy.arms),
+    uCoreRadius: new THREE.Uniform(CONFIG.galaxy.coreRadius),
+    uOuterRadius: new THREE.Uniform(CONFIG.galaxy.outerRadius),
+    uTwist: new THREE.Uniform(CONFIG.galaxy.twist),
+    uRadialCurve: new THREE.Uniform(CONFIG.galaxy.radialCurve),
+    uThickness: new THREE.Uniform(CONFIG.galaxy.thickness),
+    uSpin: new THREE.Uniform<number>(CONFIG.galaxy.spin),
+    uFlowSpeed: new THREE.Uniform(CONFIG.galaxy.flowSpeed),
     uFovScale: new THREE.Uniform(1000),
     uSizeScale: new THREE.Uniform(1),
-    uTwinkle: new THREE.Uniform(CONFIG.motion.twinkleSpeed),
-    uWeights: new THREE.Uniform(new THREE.Vector3(1, 0, 0)),
+    uCoreColor: new THREE.Uniform(coreColor),
   };
 
   const material = new THREE.ShaderMaterial({
@@ -119,7 +122,15 @@ export function createParticlesScene(
 
   const points = new THREE.Points(geometry, material);
   points.frustumCulled = false;
-  scene.add(points);
+
+  // pivot = yaw (drag), tiltGroup = disc inclination, so the spin inside the
+  // shader stays aligned with the galaxy plane
+  const tiltGroup = new THREE.Group();
+  tiltGroup.rotation.x = CONFIG.tilt;
+  tiltGroup.add(points);
+  const pivot = new THREE.Group();
+  pivot.add(tiltGroup);
+  scene.add(pivot);
 
   // ---- post processing ----
   const composer = new EffectComposer(renderer, {
@@ -128,22 +139,19 @@ export function createParticlesScene(
     multisampling: 0,
   });
   composer.addPass(new RenderPass(scene, camera));
-
-  if (quality.bloom) {
-    composer.addPass(
-      new EffectPass(
-        camera,
-        new BloomEffect({
-          intensity: CONFIG.effects.bloomIntensity,
-          luminanceThreshold: CONFIG.effects.bloomThreshold,
-          luminanceSmoothing: CONFIG.effects.bloomSmoothing,
-          mipmapBlur: true,
-          radius: CONFIG.effects.bloomRadius,
-          levels: quality.bloomLevels,
-        }),
-      ),
-    );
-  }
+  composer.addPass(
+    new EffectPass(
+      camera,
+      new BloomEffect({
+        intensity: CONFIG.effects.bloomIntensity,
+        luminanceThreshold: CONFIG.effects.bloomThreshold,
+        luminanceSmoothing: CONFIG.effects.bloomSmoothing,
+        mipmapBlur: true,
+        radius: CONFIG.effects.bloomRadius,
+        levels: quality.bloomLevels,
+      }),
+    ),
+  );
 
   const streak = new StreakEffect({
     samples: quality.streakSamples,
@@ -162,14 +170,12 @@ export function createParticlesScene(
   composer.addPass(new EffectPass(camera, streak, chromatic, toneMapping));
 
   // ---- responsive sizing ----
-  const view = { w: 1, h: 1, dpr: quality.pixelRatio };
+  const view = { dpr: quality.pixelRatio };
 
   const applySize = () => {
     const w = Math.max(1, window.innerWidth);
     const h = Math.max(1, window.innerHeight);
     const dpr = Math.min(window.devicePixelRatio || 1, quality.pixelRatio);
-    view.w = w;
-    view.h = h;
     view.dpr = dpr;
 
     renderer.setPixelRatio(dpr);
@@ -179,23 +185,20 @@ export function createParticlesScene(
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
 
-    const drawingHeight = h * dpr;
-    uniforms.uFovScale.value = drawingHeight / (2 * Math.tan((CONFIG.fov * Math.PI) / 360));
+    uniforms.uFovScale.value = (h * dpr) / (2 * Math.tan((CONFIG.fov * Math.PI) / 360));
   };
 
   applySize();
 
-  // ---- interaction: drag to rotate + gentle auto spin ----
+  // ---- interaction: drag to rotate ----
   const reducedMq = window.matchMedia("(prefers-reduced-motion: reduce)");
   let reduced = reducedMq.matches;
   const onReduced = () => {
     reduced = reducedMq.matches;
-    uniforms.uMotion.value = reduced ? 0.12 : 1;
   };
   reducedMq.addEventListener("change", onReduced);
-  uniforms.uMotion.value = reduced ? 0.12 : 1;
 
-  const rot = { x: 0, y: 0, targetX: 0, targetY: 0 };
+  const rot = { yaw: 0, yawTarget: 0, tiltOffset: 0, tiltTarget: 0 };
   let dragging = false;
   let lastX = 0;
   let lastY = 0;
@@ -217,11 +220,11 @@ export function createParticlesScene(
     if (!dragging) return;
     const dx = (e.clientX - lastX) / window.innerWidth;
     const dy = (e.clientY - lastY) / window.innerHeight;
-    rot.targetY += dx * Math.PI * CONFIG.motion.dragSensitivity;
-    rot.targetX = clamp(
-      rot.targetX + dy * Math.PI * CONFIG.motion.dragSensitivity,
-      -CONFIG.motion.maxTilt,
-      CONFIG.motion.maxTilt,
+    rot.yawTarget += dx * Math.PI * CONFIG.motion.dragSensitivity;
+    rot.tiltTarget = clamp(
+      rot.tiltTarget + dy * Math.PI * CONFIG.motion.dragSensitivity,
+      -CONFIG.motion.maxTiltOffset,
+      CONFIG.motion.maxTiltOffset,
     );
     lastX = e.clientX;
     lastY = e.clientY;
@@ -237,7 +240,7 @@ export function createParticlesScene(
   window.addEventListener("pointerup", onPointerUp);
   window.addEventListener("pointercancel", onPointerUp);
 
-  // ---- adaptive performance: lower the resolution before the frame budget breaks ----
+  // ---- adaptive performance ----
   let fpsAccum = 0;
   let fpsFrames = 0;
   let lowStreak = 0;
@@ -253,28 +256,18 @@ export function createParticlesScene(
     const dt = Math.min(0.05, clock.getDelta());
     elapsed += dt;
 
-    const introRaw = reduced ? 1 : clamp((elapsed - CONFIG.motion.introDelay) / CONFIG.motion.introDuration);
+    const introRaw = reduced ? 1 : clamp(elapsed / CONFIG.motion.introDuration);
     const intro = introRaw * introRaw * (3 - 2 * introRaw);
-
-    const scrollable = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
-    const p = clamp(window.scrollY / scrollable);
-
-    const sc = CONFIG.scroll;
-    const sphereW = 1 - smoothstep(sc.sphereFadeStart, sc.sphereFadeEnd, p);
-    const spiralW = smoothstep(sc.spiralStart, sc.spiralEnd, p);
-    const discW = Math.max(0, 1 - sphereW - spiralW);
 
     uniforms.uTime.value = elapsed;
     uniforms.uIntro.value = intro;
-    uniforms.uWeights.value.set(sphereW, discW, spiralW);
-    uniforms.uDisperse.value = smoothstep(sc.disperseStart, sc.disperseEnd, p) * 0.9;
+    uniforms.uSpin.value = reduced ? 0 : CONFIG.galaxy.spin;
 
-    // rotation: auto spin + drag, exponentially damped
-    if (!reduced) rot.targetY += CONFIG.motion.baseSpin * dt;
     const damp = Math.min(1, (dragging ? CONFIG.motion.dragDamping : CONFIG.motion.damping) + dt * 3);
-    rot.y += (rot.targetY - rot.y) * damp;
-    rot.x += (rot.targetX - rot.x) * damp;
-    points.rotation.set(rot.x, rot.y, 0);
+    rot.yaw += (rot.yawTarget - rot.yaw) * damp;
+    rot.tiltOffset += (rot.tiltTarget - rot.tiltOffset) * damp;
+    pivot.rotation.y = rot.yaw;
+    tiltGroup.rotation.x = CONFIG.tilt + rot.tiltOffset;
 
     composer.render(dt);
 
@@ -283,7 +276,6 @@ export function createParticlesScene(
       onReady?.();
     }
 
-    // adaptive resolution
     fpsAccum += dt;
     fpsFrames += 1;
     if (fpsAccum >= 1.2) {
@@ -305,7 +297,6 @@ export function createParticlesScene(
     if (alive) raf = requestAnimationFrame(tick);
   };
 
-  // first frame is rendered immediately so the canvas can fade in
   raf = requestAnimationFrame(tick);
 
   const onResize = () => applySize();
