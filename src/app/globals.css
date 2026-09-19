@@ -840,6 +840,51 @@
   }
 }
 
+/* PARTICLES GALAXY — fibonacci particle lab (scoped under .pgx-root). */
+.pgx-root {
+  --font-mono: var(--font-lain-mono), "Courier New", Courier, monospace;
+  --font-sans: var(--font-lain-display), "Courier New", Courier, serif;
+  font-family: var(--font-mono);
+}
+
+.pgx-root .pgx-glow {
+  text-shadow:
+    0 0 14px rgba(127, 255, 212, 0.55),
+    0 0 38px rgba(0, 230, 204, 0.22),
+    0 0 72px rgba(0, 140, 130, 0.14);
+}
+
+.pgx-root .pgx-panel {
+  border: 1px dashed rgba(0, 255, 102, 0.28);
+  background: linear-gradient(
+    180deg,
+    rgba(3, 11, 12, 0.72),
+    rgba(3, 11, 12, 0.42)
+  );
+  backdrop-filter: blur(10px);
+  box-shadow: 0 0 60px rgba(0, 0, 0, 0.45);
+}
+
+.pgx-root .pgx-pulse {
+  animation: pgx-pulse 2.6s ease-in-out infinite;
+}
+
+@keyframes pgx-pulse {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pgx-root .pgx-pulse {
+    animation: none !important;
+  }
+}
+
 /* Lenis smooth-scroll normalization. */
 html.lenis,
 html.lenis body {
