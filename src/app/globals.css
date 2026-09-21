@@ -298,7 +298,7 @@ html.lenis body {
 
 .l07-stage,
 [data-hero="active"] .site-header {
-  --bg: #050507;
+  --bg: #000000;
   --bg-elevated: #0b0b10;
   --surface: #101016;
   --surface-strong: #17171f;
@@ -313,18 +313,8 @@ html.lenis body {
 }
 
 .l07-stage {
-  background:
-    radial-gradient(60% 60% at 50% 40%, #0b0b14 0%, #050507 62%),
-    #050507;
+  background: #000000;
   color: var(--ink);
-}
-
-.l07-glow {
-  background: radial-gradient(
-    44% 50% at 50% 42%,
-    var(--accent-soft),
-    transparent 72%
-  );
 }
 
 .l07-fallback {

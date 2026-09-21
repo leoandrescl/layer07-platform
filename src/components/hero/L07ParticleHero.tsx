@@ -11,15 +11,12 @@ import {
   Scene,
   ShaderMaterial,
   SRGBColorSpace,
-  Uniform,
   Vector2,
-  Vector3,
   WebGLRenderer,
 } from "three";
 import {
   BlendFunction,
   BloomEffect,
-  Effect,
   EffectComposer,
   EffectPass,
   NoiseEffect,
@@ -34,28 +31,8 @@ import { SITE } from "@/lib/site";
 import type { Locale } from "@/lib/i18n/config";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
 import { WORD_WIDTH } from "./glyphs";
-import { buildAmbient, buildL07 } from "./particles";
-import {
-  AMBIENT_VERT,
-  L07_VERT,
-  POINT_FRAG,
-  streakFragment,
-} from "./hero-shaders";
-
-class StreakEffect extends Effect {
-  constructor(samples: number) {
-    super("StreakEffect", streakFragment(samples), {
-      blendFunction: BlendFunction.NORMAL,
-      uniforms: new Map<string, Uniform>([
-        ["uStrength", new Uniform(0.5)],
-        ["uThreshold", new Uniform(0.5)],
-        ["uTint", new Uniform(new Vector3(0.64, 0.9, 1.0))],
-        ["uVignette", new Uniform(0.55)],
-        ["uGrain", new Uniform(0.03)],
-      ]),
-    });
-  }
-}
+import { buildFormation, buildStarfield } from "./particles";
+import { FORMATION_VERT, POINT_FRAG, STARFIELD_VERT } from "./hero-shaders";
 
 function clamp01(value: number) {
   return Math.min(1, Math.max(0, value));
@@ -63,6 +40,11 @@ function clamp01(value: number) {
 
 function lerp(a: number, b: number, t: number) {
   return a + (b - a) * t;
+}
+
+function smoothstep(edge0: number, edge1: number, x: number) {
+  const t = clamp01((x - edge0) / (edge1 - edge0 || 1));
+  return t * t * (3 - 2 * t);
 }
 
 export function L07ParticleHero({
@@ -128,7 +110,7 @@ export function L07ParticleHero({
     const ratio = Math.min(cap.dpr * cap.resolutionScale, cap.tier === 2 ? 1.5 : 1.15);
     renderer.setPixelRatio(ratio);
     renderer.toneMapping = ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.15;
+    renderer.toneMappingExposure = 1.2;
     renderer.outputColorSpace = SRGBColorSpace;
     renderer.setClearAlpha(0);
 
@@ -139,64 +121,71 @@ export function L07ParticleHero({
     const shared = {
       uTime: { value: 0 },
       uIntro: { value: 0 },
+      uReveal: { value: 0 },
       uFovScale: { value: 1 },
       uPointer: { value: new Vector2(999, 999) },
       uPointerStrength: { value: 0 },
     };
 
-    const l07Count = cap.tier === 2 ? 22000 : 9000;
-    const ambientCount = cap.tier === 2 ? 7000 : 2800;
+    const formationCount = cap.tier === 2 ? 20000 : 8000;
+    const starfieldCount = cap.tier === 2 ? 16000 : 6000;
 
-    const l07 = buildL07(l07Count);
-    const l07Geometry = new BufferGeometry();
-    l07Geometry.setAttribute("position", new Float32BufferAttribute(l07.position, 3));
-    l07Geometry.setAttribute("aTarget", new Float32BufferAttribute(l07.aTarget, 3));
-    l07Geometry.setAttribute("aScatter", new Float32BufferAttribute(l07.aScatter, 3));
-    l07Geometry.setAttribute("aPhase", new Float32BufferAttribute(l07.aPhase, 1));
-    l07Geometry.setAttribute("aSpeed", new Float32BufferAttribute(l07.aSpeed, 1));
-    l07Geometry.setAttribute("aSize", new Float32BufferAttribute(l07.aSize, 1));
-    l07Geometry.setAttribute("aBright", new Float32BufferAttribute(l07.aBright, 1));
-    l07Geometry.setAttribute("aSeed", new Float32BufferAttribute(l07.aSeed, 1));
-    l07Geometry.setAttribute("aColor", new Float32BufferAttribute(l07.aColor, 3));
-
-    const l07Material = new ShaderMaterial({
-      vertexShader: L07_VERT,
-      fragmentShader: POINT_FRAG,
-      uniforms: {
-        ...shared,
-        uFlow: { value: 0.045 },
-        uTurb: { value: cap.tier === 2 ? 0.55 : 0.4 },
-        uShimmer: { value: 0.018 },
-      },
-      transparent: true,
-      depthTest: false,
-      depthWrite: false,
-      blending: AdditiveBlending,
-    });
-
-    const l07Points = new Points(l07Geometry, l07Material);
-    l07Points.frustumCulled = false;
-    scene.add(l07Points);
-
-    const ambient = buildAmbient(ambientCount);
-    const ambientGeometry = new BufferGeometry();
-    ambientGeometry.setAttribute(
+    const formation = buildFormation(formationCount);
+    const formationGeometry = new BufferGeometry();
+    formationGeometry.setAttribute(
       "position",
-      new Float32BufferAttribute(ambient.position, 3),
+      new Float32BufferAttribute(formation.position, 3),
     );
-    ambientGeometry.setAttribute("aBase", new Float32BufferAttribute(ambient.aBase, 3));
-    ambientGeometry.setAttribute("aSpeed", new Float32BufferAttribute(ambient.aSpeed, 1));
-    ambientGeometry.setAttribute("aSize", new Float32BufferAttribute(ambient.aSize, 1));
-    ambientGeometry.setAttribute("aBright", new Float32BufferAttribute(ambient.aBright, 1));
-    ambientGeometry.setAttribute("aSeed", new Float32BufferAttribute(ambient.aSeed, 1));
-    ambientGeometry.setAttribute("aColor", new Float32BufferAttribute(ambient.aColor, 3));
+    formationGeometry.setAttribute(
+      "aTarget",
+      new Float32BufferAttribute(formation.aTarget, 3),
+    );
+    formationGeometry.setAttribute(
+      "aPhase",
+      new Float32BufferAttribute(formation.aPhase, 1),
+    );
+    formationGeometry.setAttribute(
+      "aSpeed",
+      new Float32BufferAttribute(formation.aSpeed, 1),
+    );
+    formationGeometry.setAttribute(
+      "aSize",
+      new Float32BufferAttribute(formation.aSize, 1),
+    );
+    formationGeometry.setAttribute(
+      "aBright",
+      new Float32BufferAttribute(formation.aBright, 1),
+    );
+    formationGeometry.setAttribute(
+      "aSeed",
+      new Float32BufferAttribute(formation.aSeed, 1),
+    );
+    formationGeometry.setAttribute(
+      "aColor",
+      new Float32BufferAttribute(formation.aColor, 3),
+    );
+    formationGeometry.setAttribute(
+      "aRadius0",
+      new Float32BufferAttribute(formation.aRadius0, 1),
+    );
+    formationGeometry.setAttribute(
+      "aSpin",
+      new Float32BufferAttribute(formation.aSpin, 1),
+    );
+    formationGeometry.setAttribute(
+      "aDepth",
+      new Float32BufferAttribute(formation.aDepth, 1),
+    );
 
-    const ambientMaterial = new ShaderMaterial({
-      vertexShader: AMBIENT_VERT,
+    const formationMaterial = new ShaderMaterial({
+      vertexShader: FORMATION_VERT,
       fragmentShader: POINT_FRAG,
       uniforms: {
         ...shared,
-        uFlow: { value: 1 },
+        uFlow: { value: 0.07 },
+        uTwist: { value: 2.6 },
+        uSpin: { value: 0.08 },
+        uTurb: { value: cap.tier === 2 ? 0.5 : 0.36 },
       },
       transparent: true,
       depthTest: false,
@@ -204,28 +193,72 @@ export function L07ParticleHero({
       blending: AdditiveBlending,
     });
 
-    const ambientPoints = new Points(ambientGeometry, ambientMaterial);
-    ambientPoints.frustumCulled = false;
-    scene.add(ambientPoints);
+    const formationPoints = new Points(formationGeometry, formationMaterial);
+    formationPoints.frustumCulled = false;
+    scene.add(formationPoints);
+
+    const starfield = buildStarfield(starfieldCount);
+    const starfieldGeometry = new BufferGeometry();
+    starfieldGeometry.setAttribute(
+      "position",
+      new Float32BufferAttribute(starfield.position, 3),
+    );
+    starfieldGeometry.setAttribute(
+      "aBase",
+      new Float32BufferAttribute(starfield.aBase, 3),
+    );
+    starfieldGeometry.setAttribute(
+      "aSize",
+      new Float32BufferAttribute(starfield.aSize, 1),
+    );
+    starfieldGeometry.setAttribute(
+      "aBright",
+      new Float32BufferAttribute(starfield.aBright, 1),
+    );
+    starfieldGeometry.setAttribute(
+      "aSeed",
+      new Float32BufferAttribute(starfield.aSeed, 1),
+    );
+    starfieldGeometry.setAttribute(
+      "aSpeed",
+      new Float32BufferAttribute(starfield.aSpeed, 1),
+    );
+    starfieldGeometry.setAttribute(
+      "aColor",
+      new Float32BufferAttribute(starfield.aColor, 3),
+    );
+
+    const starfieldMaterial = new ShaderMaterial({
+      vertexShader: STARFIELD_VERT,
+      fragmentShader: POINT_FRAG,
+      uniforms: { ...shared },
+      transparent: true,
+      depthTest: false,
+      depthWrite: false,
+      blending: AdditiveBlending,
+    });
+
+    const starfieldPoints = new Points(starfieldGeometry, starfieldMaterial);
+    starfieldPoints.frustumCulled = false;
+    scene.add(starfieldPoints);
 
     let composer: EffectComposer | null = null;
     if (cap.tier === 2) {
       composer = new EffectComposer(renderer);
       composer.addPass(new RenderPass(scene, camera));
       const bloom = new BloomEffect({
-        luminanceThreshold: 0.18,
-        intensity: 0.9,
+        luminanceThreshold: 0.22,
+        intensity: 1.15,
         mipmapBlur: true,
-        radius: 0.8,
+        radius: 0.85,
       });
-      const streak = new StreakEffect(17);
-      const vignette = new VignetteEffect({ darkness: 0.62, offset: 0.3 });
+      const vignette = new VignetteEffect({ darkness: 0.72, offset: 0.24 });
       const noise = new NoiseEffect({
         blendFunction: BlendFunction.OVERLAY,
         premultiply: true,
       });
-      noise.blendMode.opacity.value = 0.12;
-      composer.addPass(new EffectPass(camera, bloom, streak, vignette, noise));
+      noise.blendMode.opacity.value = 0.1;
+      composer.addPass(new EffectPass(camera, bloom, vignette, noise));
     }
 
     let fit = 1;
@@ -241,10 +274,10 @@ export function L07ParticleHero({
         2 * Math.tan(((camera.fov / 2) * Math.PI) / 180) * camera.position.z;
       const visibleWidth = visibleHeight * camera.aspect;
       fit = Math.min(
-        (visibleWidth * 0.52) / WORD_WIDTH,
-        (visibleHeight * 0.36) / 1,
+        (visibleWidth * 0.6) / WORD_WIDTH,
+        (visibleHeight * 0.42) / 1,
       );
-      l07Points.scale.setScalar(fit);
+      formationPoints.scale.setScalar(fit);
       shared.uFovScale.value =
         (height * ratio) /
         (2 * Math.tan(((camera.fov / 2) * Math.PI) / 180));
@@ -265,7 +298,7 @@ export function L07ParticleHero({
       strengthTarget = 0;
     };
     const onPointerDown = () => {
-      strengthTarget = 2.4;
+      strengthTarget = 2.6;
     };
 
     let alive = true;
@@ -285,7 +318,8 @@ export function L07ParticleHero({
       pointer.y = lerp(pointer.y, pointerTarget.y, 0.06);
 
       shared.uTime.value = time;
-      shared.uIntro.value = lerp(shared.uIntro.value, 1, 0.03);
+      shared.uReveal.value = smoothstep(0, 0.9, time);
+      shared.uIntro.value = smoothstep(0.6, 3.2, time);
 
       const visibleHeight =
         2 * Math.tan(((camera.fov / 2) * Math.PI) / 180) * camera.position.z;
@@ -304,13 +338,20 @@ export function L07ParticleHero({
       const height = Math.max(1, root.offsetHeight);
       const exit = clamp01((window.scrollY - height * 0.15) / (height * 0.7));
 
-      l07Points.rotation.y = lerp(l07Points.rotation.y, pointer.x * 0.22, 0.05);
-      l07Points.rotation.x = lerp(l07Points.rotation.x, -pointer.y * 0.14 + exit * 0.5, 0.05);
-      l07Points.position.y = exit * 1.4;
-      l07Points.position.z = -exit * 1.2;
+      formationPoints.rotation.y = lerp(
+        formationPoints.rotation.y,
+        pointer.x * 0.2,
+        0.05,
+      );
+      formationPoints.rotation.x = lerp(
+        formationPoints.rotation.x,
+        -pointer.y * 0.12 + exit * 0.5,
+        0.05,
+      );
+      formationPoints.position.y = exit * 1.4;
+      formationPoints.position.z = -exit * 1.2;
 
-      ambientPoints.rotation.y = l07Points.rotation.y * 0.4;
-      ambientPoints.position.y = exit * 0.6;
+      starfieldPoints.position.y = exit * 0.5;
 
       canvas.style.opacity = String(1 - clamp01((exit - 0.2) / 0.7));
 
@@ -359,7 +400,7 @@ export function L07ParticleHero({
         .fromTo(
           "[data-hero-fade]",
           { autoAlpha: 0, y: 18 },
-          { autoAlpha: 1, y: 0, duration: 0.9, stagger: 0.1, delay: 0.5 },
+          { autoAlpha: 1, y: 0, duration: 0.9, stagger: 0.1, delay: 1.2 },
         );
     }, root);
 
@@ -373,10 +414,10 @@ export function L07ParticleHero({
       stage.removeEventListener("pointerdown", onPointerDown);
       document.removeEventListener("visibilitychange", onVisibility);
       canvas.removeEventListener("webglcontextlost", onContextLost);
-      l07Geometry.dispose();
-      ambientGeometry.dispose();
-      l07Material.dispose();
-      ambientMaterial.dispose();
+      formationGeometry.dispose();
+      starfieldGeometry.dispose();
+      formationMaterial.dispose();
+      starfieldMaterial.dispose();
       composer?.dispose();
       renderer.dispose();
     };
@@ -389,8 +430,6 @@ export function L07ParticleHero({
       data-field="0"
       className="l07-hero l07-stage relative flex min-h-[100svh] flex-col overflow-hidden"
     >
-      <div className="l07-glow pointer-events-none absolute inset-0" aria-hidden />
-
       <div className="shell relative flex flex-1 flex-col justify-center pt-28 pb-6 md:pt-32">
         <p data-hero-fade className="eyebrow text-center">
           {hero.eyebrow}
@@ -398,7 +437,7 @@ export function L07ParticleHero({
 
         <div
           ref={stageRef}
-          className="relative mx-auto mt-2 aspect-[16/9] w-full max-w-[960px] max-lg:aspect-[4/3]"
+          className="relative mx-auto mt-2 aspect-[16/9] w-full max-w-[1000px] max-lg:aspect-[4/3]"
         >
           <div
             ref={fallbackRef}

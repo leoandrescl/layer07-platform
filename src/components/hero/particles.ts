@@ -3,18 +3,14 @@ import { buildGlyphShapes, GLYPH } from "./glyphs";
 
 type ColorEntry = { r: number; g: number; b: number; cumulative: number };
 
-const L07_PALETTE = [
-  { hex: "#f4f1ec", weight: 0.48 },
-  { hex: "#7a88ff", weight: 0.3 },
-  { hex: "#b9c6ff", weight: 0.14 },
-  { hex: "#ffd7a8", weight: 0.08 },
-];
-
-const AMBIENT_PALETTE = [
-  { hex: "#f4f1ec", weight: 0.32 },
-  { hex: "#7a88ff", weight: 0.36 },
-  { hex: "#5b6bff", weight: 0.2 },
-  { hex: "#b9c6ff", weight: 0.12 },
+/** Star palette: cool white/blue with warm amber and a rare ember. */
+const STAR_PALETTE = [
+  { hex: "#ffffff", weight: 0.42 },
+  { hex: "#dbe7ff", weight: 0.22 },
+  { hex: "#9fc4ff", weight: 0.14 },
+  { hex: "#ffd9a0", weight: 0.12 },
+  { hex: "#ffb066", weight: 0.07 },
+  { hex: "#ff7a6b", weight: 0.03 },
 ];
 
 function colorTable(palette: { hex: string; weight: number }[]): ColorEntry[] {
@@ -32,15 +28,14 @@ function colorTable(palette: { hex: string; weight: number }[]): ColorEntry[] {
   return table;
 }
 
-const L07_TABLE = colorTable(L07_PALETTE);
-const AMBIENT_TABLE = colorTable(AMBIENT_PALETTE);
+const COLOR_TABLE = colorTable(STAR_PALETTE);
 
-function pickColor(table: ColorEntry[], out: Float32Array, i3: number) {
+function pickColor(out: Float32Array, i3: number) {
   const r = Math.random();
-  let entry = table[table.length - 1];
-  for (let i = 0; i < table.length; i += 1) {
-    if (r <= table[i].cumulative) {
-      entry = table[i];
+  let entry = COLOR_TABLE[COLOR_TABLE.length - 1];
+  for (let i = 0; i < COLOR_TABLE.length; i += 1) {
+    if (r <= COLOR_TABLE[i].cumulative) {
+      entry = COLOR_TABLE[i];
       break;
     }
   }
@@ -51,6 +46,21 @@ function pickColor(table: ColorEntry[], out: Float32Array, i3: number) {
 
 function rand(min: number, max: number) {
   return min + Math.random() * (max - min);
+}
+
+function gaussian() {
+  return Math.random() + Math.random() + Math.random() - 1.5;
+}
+
+function pickSize(tiers: number[], weights: number[], jitter = 0.3) {
+  let r = Math.random();
+  for (let t = 0; t < weights.length; t += 1) {
+    if (r < weights[t]) {
+      return tiers[t] * (1 - jitter + Math.random() * jitter * 2);
+    }
+    r -= weights[t];
+  }
+  return tiers[tiers.length - 1];
 }
 
 type Triangle = { a: Vector2; b: Vector2; c: Vector2; cum: number };
@@ -66,9 +76,8 @@ function triangulate(shape: Shape) {
     const a = all[face[0]];
     const b = all[face[1]];
     const c = all[face[2]];
-    const area = Math.abs(
-      (b.x - a.x) * (c.y - a.y) - (c.x - a.x) * (b.y - a.y),
-    ) * 0.5;
+    const area =
+      Math.abs((b.x - a.x) * (c.y - a.y) - (c.x - a.x) * (b.y - a.y)) * 0.5;
     if (area <= 1e-6) continue;
     total += area;
     triangles.push({ a, b, c, cum: total });
@@ -104,19 +113,22 @@ function sampleTriangle(triangles: Triangle[], total: number) {
   };
 }
 
-export type L07Buffers = {
+/** Particles that fly along a spiral and settle on the L07. */
+export type FormationBuffers = {
   position: Float32Array;
   aTarget: Float32Array;
-  aScatter: Float32Array;
   aPhase: Float32Array;
   aSpeed: Float32Array;
   aSize: Float32Array;
   aBright: Float32Array;
   aSeed: Float32Array;
   aColor: Float32Array;
+  aRadius0: Float32Array;
+  aSpin: Float32Array;
+  aDepth: Float32Array;
 };
 
-export function buildL07(count: number): L07Buffers {
+export function buildFormation(count: number): FormationBuffers {
   const glyphs = buildGlyphShapes().map((glyph) => ({
     x: glyph.x,
     ...triangulate(glyph.shape),
@@ -125,16 +137,18 @@ export function buildL07(count: number): L07Buffers {
 
   const position = new Float32Array(count * 3);
   const aTarget = new Float32Array(count * 3);
-  const aScatter = new Float32Array(count * 3);
   const aPhase = new Float32Array(count);
   const aSpeed = new Float32Array(count);
   const aSize = new Float32Array(count);
   const aBright = new Float32Array(count);
   const aSeed = new Float32Array(count);
   const aColor = new Float32Array(count * 3);
+  const aRadius0 = new Float32Array(count);
+  const aSpin = new Float32Array(count);
+  const aDepth = new Float32Array(count);
 
-  const sizeTiers = [0.018, 0.03, 0.05, 0.082];
-  const sizeWeights = [0.5, 0.28, 0.15, 0.07];
+  const sizeTiers = [0.02, 0.035, 0.055, 0.09];
+  const sizeWeights = [0.46, 0.3, 0.16, 0.08];
 
   for (let i = 0; i < count; i += 1) {
     const i3 = i * 3;
@@ -150,78 +164,63 @@ export function buildL07(count: number): L07Buffers {
     }
 
     const point = sampleTriangle(glyph.triangles, glyph.total);
-    const x = glyph.x + point.x;
-    const y = point.y - GLYPH.cap / 2;
-
-    aTarget[i3] = x;
-    aTarget[i3 + 1] = y;
+    aTarget[i3] = glyph.x + point.x;
+    aTarget[i3 + 1] = point.y - GLYPH.cap / 2;
     aTarget[i3 + 2] = rand(-0.05, 0.05);
-
-    const dirX = x + rand(-0.5, 0.5);
-    const dirY = y + rand(-0.5, 0.5);
-    const dirZ = rand(-0.4, 0.4);
-    const length = Math.hypot(dirX, dirY, dirZ) || 1;
-    const distance = rand(3.4, 7.6);
-    aScatter[i3] = (dirX / length) * distance;
-    aScatter[i3 + 1] = (dirY / length) * distance;
-    aScatter[i3 + 2] = (dirZ / length) * distance;
 
     aPhase[i] = Math.random();
     aSpeed[i] = rand(0.6, 1.4);
     aSeed[i] = Math.random();
+    aSize[i] = pickSize(sizeTiers, sizeWeights);
+    aBright[i] = rand(0.6, 1.5) * (1 + (aSize[i] / sizeTiers[3]) * 0.5);
+    aRadius0[i] = rand(3.6, 8.6);
+    aSpin[i] = gaussian() * 0.85;
+    aDepth[i] = rand(-0.3, 0.3);
 
-    let r = Math.random();
-    let size = sizeTiers[sizeTiers.length - 1];
-    for (let t = 0; t < sizeWeights.length; t += 1) {
-      if (r < sizeWeights[t]) {
-        size = sizeTiers[t] * rand(0.75, 1.25);
-        break;
-      }
-      r -= sizeWeights[t];
-    }
-    aSize[i] = size;
-    aBright[i] = rand(0.5, 1.35) * (1 + (size / sizeTiers[3]) * 0.4);
-
-    pickColor(L07_TABLE, aColor, i3);
+    pickColor(aColor, i3);
   }
 
   return {
     position,
     aTarget,
-    aScatter,
     aPhase,
     aSpeed,
     aSize,
     aBright,
     aSeed,
     aColor,
+    aRadius0,
+    aSpin,
+    aDepth,
   };
 }
 
-export type AmbientBuffers = {
+/** Dense, mostly static starfield that fills the whole space. */
+export type StarfieldBuffers = {
   position: Float32Array;
   aBase: Float32Array;
-  aPhase: Float32Array;
-  aSpeed: Float32Array;
   aSize: Float32Array;
   aBright: Float32Array;
   aSeed: Float32Array;
+  aSpeed: Float32Array;
   aColor: Float32Array;
 };
 
-export function buildAmbient(count: number): AmbientBuffers {
+export function buildStarfield(count: number): StarfieldBuffers {
   const position = new Float32Array(count * 3);
   const aBase = new Float32Array(count * 3);
-  const aPhase = new Float32Array(count);
-  const aSpeed = new Float32Array(count);
   const aSize = new Float32Array(count);
   const aBright = new Float32Array(count);
   const aSeed = new Float32Array(count);
+  const aSpeed = new Float32Array(count);
   const aColor = new Float32Array(count * 3);
 
-  const spreadX = 15;
-  const spreadY = 9;
-  const spreadZ = 4.5;
+  const spreadX = 20;
+  const spreadY = 13;
+  const spreadZ = 9;
+
+  const sizeTiers = [0.007, 0.013, 0.022, 0.04];
+  const sizeWeights = [0.58, 0.26, 0.12, 0.04];
 
   for (let i = 0; i < count; i += 1) {
     const i3 = i * 3;
@@ -229,23 +228,13 @@ export function buildAmbient(count: number): AmbientBuffers {
     aBase[i3 + 1] = rand(-spreadY / 2, spreadY / 2);
     aBase[i3 + 2] = rand(-spreadZ / 2, spreadZ / 2);
 
-    aPhase[i] = Math.random();
-    aSpeed[i] = rand(0.5, 1.5);
+    aSize[i] = pickSize(sizeTiers, sizeWeights, 0.4);
+    aBright[i] = rand(0.18, 0.95) * (aSize[i] > 0.03 ? 1.5 : 1);
     aSeed[i] = Math.random();
-    aSize[i] = rand(0.008, 0.028) * (Math.random() < 0.12 ? 1.9 : 1);
-    aBright[i] = rand(0.14, 0.5);
+    aSpeed[i] = rand(0.4, 1.6);
 
-    pickColor(AMBIENT_TABLE, aColor, i3);
+    pickColor(aColor, i3);
   }
 
-  return {
-    position,
-    aBase,
-    aPhase,
-    aSpeed,
-    aSize,
-    aBright,
-    aSeed,
-    aColor,
-  };
+  return { position, aBase, aSize, aBright, aSeed, aSpeed, aColor };
 }

@@ -107,20 +107,23 @@ continua (técnica portada de `particles-galaxy`: posiciones calculadas en el
 vertex shader, sin trabajo por frame en CPU). Referencias: tryand.co (3D en el
 hero) y el campo de partículas de la página de OpenAI.
 
-- **Las letras:** las formas se definen con `Shape` (sin fuentes externas) y se
-  muestrean con `ShapeUtils.triangulateShape` + muestreo baricéntrico ponderado
-  por área. Cada partícula tiene un `aTarget` en la letra y un `aScatter` lejano;
-  su `life` la trae desde fuera, la asienta y la mantiene, y la recicla → el
-  L07 se ve formado pero siempre vivo.
-- **Fondo continuo:** un segundo sistema de partículas ambientales en una caja
-  mayor, con deriva propia, que llena el encuadre en todo momento.
+- **Secuencia de carga:** primero el starfield sobre negro absoluto (ss1);
+  luego las partículas se agrupan (ss2) y finalmente forman el L07 (ss3).
+  Controlado con `uReveal` (starfield) y `uIntro` (convergencia) en el tiempo.
+- **Las letras:** formas con `Shape` (sin fuentes) muestreadas con
+  `ShapeUtils.triangulateShape` + muestreo baricéntrico por área. Cada partícula
+  tiene un `aTarget` en la letra y viaja desde `aRadius0` por un espiral
+  logarítmico (su "cola") hasta asentarse en la letra y mantenerse; al reciclarse
+  la cola se alimenta de nuevas partículas de forma continua.
+- **Fondo continuo:** starfield denso (blanco/azul/ámbar) que llena todo el
+  espacio, con deriva muy lenta y twinkle.
 - **Interacción:** el cursor repele las partículas (fuerza en espacio mundo),
   inclina el bloque y el clic aumenta la fuerza.
-- **Escenario oscuro** (galería) en ambos temas; el header se invierte mientras
-  el Hero está activo (`[data-hero="active"] .site-header`).
+- **Escenario negro absoluto** en ambos temas; el header se invierte mientras el
+  Hero está activo (`[data-hero="active"] .site-header`).
 - **Render:** `three` (additive glow sprites: núcleo + halo), y en tier 2
-  `postprocessing` con Bloom + streak anamórfico + viñeta + grano. Tone mapping
-  ACES. Escala por aspecto (`fit`) para que el encuadre nunca se rompa.
+  `postprocessing` con Bloom + viñeta + grano. Tone mapping ACES. Escala por
+  aspecto (`fit`) para que el encuadre nunca se rompa.
 - **Scroll:** el bloque se inclina, sube y se desvanece al salir el Hero (sin
   scroll-jack).
 - **Degradación:** reusa `detectCapability`. Tier 1 con menos partículas y sin
