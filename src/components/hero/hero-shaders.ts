@@ -22,16 +22,14 @@ export const POINT_FRAG = /* glsl */ `
 const TAU = "6.28318530718";
 
 /**
- * Galaxy particles (log-spiral arms flowing inward) that settle onto the thin
- * "7". Each arm is continuously fed: as a particle locks onto the mark and
- * fades, a freshly recycled one spawns on the outer end of the arm.
+ * uMorph = 0 -> Astra-style spiral galaxy.
+ * uMorph = 1 -> the "7" as a river: particles enter at the bottom of the leg,
+ * travel up it, turn at the top-right corner and flow left along the bar,
+ * exiting at the left end. The loop never stops.
  */
 export const GALAXY_VERT = /* glsl */ `
   const float TAU = ${TAU};
-  const float PI = 3.14159265359;
 
-  attribute vec3 aTarget;
-  attribute vec3 aTrail;
   attribute float aPhase;
   attribute float aSpeed;
   attribute float aArm;
@@ -39,11 +37,14 @@ export const GALAXY_VERT = /* glsl */ `
   attribute float aHeight;
   attribute float aSeed;
   attribute float aSize;
-  attribute vec3 aColor;
   attribute float aBright;
+  attribute float aLateral;
+  attribute float aZ;
+  attribute vec3 aColor;
 
   uniform float uTime;
   uniform float uIntro;
+  uniform float uMorph;
   uniform float uArms;
   uniform float uCoreRadius;
   uniform float uOuterRadius;
@@ -54,43 +55,57 @@ export const GALAXY_VERT = /* glsl */ `
   uniform float uFlowSpeed;
   uniform float uFovScale;
   uniform float uSizeScale;
-  uniform float uMorph;
   uniform vec3 uCoreColor;
+  uniform vec2 uPathA;
+  uniform vec2 uPathB;
+  uniform vec2 uPathC;
 
   varying vec3 vColor;
   varying float vBright;
   varying float vSeed;
 
   void main() {
-    float life = fract(aPhase + uTime * uFlowSpeed * aSpeed);
+    float t = fract(aPhase + uTime * uFlowSpeed * aSpeed);
 
-    // ---- galaxy path (uses the whole life, recycles at the core) ----
-    float galaxyT = smoothstep(0.0, 1.0, life);
-    float rf = 1.0 - galaxyT;
+    // ---- galaxy ----
+    float rf = 1.0 - t;
     float r = uCoreRadius + (uOuterRadius - uCoreRadius) * pow(rf, uRadialCurve);
 
-    vec2 target = aTarget.xy;
-    float thetaEnd = atan(target.y, target.x);
     float thetaStart;
     if (aArm >= 0.0) {
       thetaStart = aArm * (TAU / uArms) + aSpread * (0.35 + 0.65 * rf);
     } else {
       thetaStart = aSpread;
     }
-    float dTheta = mod(thetaEnd - thetaStart + PI, TAU) - PI;
-    float theta = thetaStart + dTheta * galaxyT
+    float theta = thetaStart
       + uTwist * log(max(r, 0.08) / uOuterRadius)
       + uSpin * uTime;
-
     float thickness = uThickness * (0.18 + 0.82 * rf);
     vec3 galaxyPos = vec3(cos(theta) * r, aHeight * thickness, sin(theta) * r);
 
-    // ---- 7 path: fed from the left, settles and holds ----
-    float travel = smoothstep(0.0, 0.45, life);
-    vec3 sevenPath = aTarget + aTrail * (1.0 - travel);
-    sevenPath.y += sin(uTime * 1.5 + aSeed * 6.2831) * 0.07 * (1.0 - travel);
+    // ---- river along the 7 ----
+    float lenAB = length(uPathB - uPathA);
+    float lenBC = length(uPathC - uPathB);
+    float total = max(lenAB + lenBC, 0.0001);
+    float d = t * total;
 
-    vec3 p = mix(galaxyPos, sevenPath, uMorph);
+    vec2 center;
+    vec2 segDir;
+    if (d < lenAB) {
+      center = mix(uPathA, uPathB, d / max(lenAB, 0.0001));
+      segDir = normalize(uPathB - uPathA);
+    } else {
+      center = mix(uPathB, uPathC, (d - lenAB) / max(lenBC, 0.0001));
+      segDir = normalize(uPathC - uPathB);
+    }
+
+    vec2 perp = vec2(-segDir.y, segDir.x);
+    vec2 riverXY = center + perp * aLateral;
+    riverXY.x += sin(uTime * 1.3 + aSeed * 6.2831) * 0.03;
+    riverXY.y += cos(uTime * 1.1 + aSeed * 6.2831) * 0.03;
+    vec3 riverPos = vec3(riverXY, aZ);
+
+    vec3 p = mix(galaxyPos, riverPos, uMorph);
 
     vec4 mv = modelViewMatrix * vec4(p, 1.0);
     gl_Position = projectionMatrix * mv;
@@ -100,12 +115,17 @@ export const GALAXY_VERT = /* glsl */ `
       76.0
     );
 
-    float fade = smoothstep(0.0, 0.05, life) * (1.0 - smoothstep(0.94, 1.0, life));
+    float galaxyFade = smoothstep(0.0, 0.05, t) * (1.0 - smoothstep(0.94, 1.0, t));
+    float riverFade = smoothstep(0.0, 0.08, t) * (1.0 - smoothstep(0.9, 1.0, t));
+    float fade = mix(galaxyFade, riverFade, uMorph);
+
     float coreMix = 1.0 - smoothstep(uCoreRadius, uOuterRadius * 0.45, r);
     float twinkle = 0.72 + 0.28 * sin(uTime * 1.7 + aSeed * 30.0);
+    // travelling brightness wave so the flow along the 7 reads clearly
+    float wave = 0.8 + 0.4 * sin(t * 9.0 - uTime * 2.2);
 
     vColor = mix(aColor, uCoreColor, coreMix * 0.75 * (1.0 - uMorph));
-    vBright = aBright * uIntro * fade * twinkle;
+    vBright = aBright * uIntro * fade * twinkle * mix(1.0, wave, uMorph);
     vSeed = aSeed;
   }
 `;

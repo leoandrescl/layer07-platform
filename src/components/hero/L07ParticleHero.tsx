@@ -31,6 +31,7 @@ import {
 } from "postprocessing";
 import { detectCapability } from "@/lib/webgl/capability";
 import { setHeroActive } from "@/lib/hero-state";
+import { SEVEN_PATH } from "./glyphs";
 import { GALAXY, buildGalaxySeven, buildStarfield } from "./particles";
 import {
   GALAXY_VERT,
@@ -133,8 +134,8 @@ export function L07ParticleHero() {
     const buffers = buildGalaxySeven(count);
     const geometry = new BufferGeometry();
     geometry.setAttribute("position", new BufferAttribute(buffers.position, 3));
-    geometry.setAttribute("aTarget", new BufferAttribute(buffers.aTarget, 3));
-    geometry.setAttribute("aTrail", new BufferAttribute(buffers.aTrail, 3));
+    geometry.setAttribute("aLateral", new BufferAttribute(buffers.aLateral, 1));
+    geometry.setAttribute("aZ", new BufferAttribute(buffers.aZ, 1));
     geometry.setAttribute("aPhase", new BufferAttribute(buffers.aPhase, 1));
     geometry.setAttribute("aSpeed", new BufferAttribute(buffers.aSpeed, 1));
     geometry.setAttribute("aArm", new BufferAttribute(buffers.aArm, 1));
@@ -161,6 +162,9 @@ export function L07ParticleHero() {
       uFovScale: new Uniform(1000),
       uSizeScale: new Uniform(1),
       uCoreColor: new Uniform(coreColor),
+      uPathA: new Uniform(new Vector2(SEVEN_PATH.a.x, SEVEN_PATH.a.y)),
+      uPathB: new Uniform(new Vector2(SEVEN_PATH.b.x, SEVEN_PATH.b.y)),
+      uPathC: new Uniform(new Vector2(SEVEN_PATH.c.x, SEVEN_PATH.c.y)),
     };
 
     const material = new ShaderMaterial({

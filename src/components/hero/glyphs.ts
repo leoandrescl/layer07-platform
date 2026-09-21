@@ -1,38 +1,33 @@
-import { Shape } from "three";
-
 /**
- * Thin, elegant "7". Only the 7 for now — L and 0 are omitted on purpose while
- * the particle formation is tuned.
+ * Thin, Japanese-style "7": the top bar does NOT overhang to the right — the
+ * leg starts exactly at the bar's right end.
+ *
+ * The mark is drawn as a river: particles enter at the bottom of the leg,
+ * travel up it, turn at the top-right corner and flow left along the bar,
+ * exiting at the left end.
  */
 export const SEVEN = {
   half: 0.45,
   top: 0.7,
   bottom: -0.7,
   stroke: 0.14,
-  /** scale applied when sampling so the mark fills the galaxy */
+  legWidth: 0.16,
+  /** scale applied to the river path */
   scale: 2.4,
 } as const;
 
-export function buildSevenShape(): Shape {
-  const { half, top, bottom, stroke } = SEVEN;
+const { half, top, bottom, stroke, legWidth, scale } = SEVEN;
 
-  const shape = new Shape();
-  // top bar
-  shape.moveTo(-half, top);
-  shape.lineTo(half, top);
-  shape.lineTo(half, top - stroke);
-  // leg right edge
-  shape.lineTo(half * 0.66, top - stroke);
-  shape.lineTo(-half * 0.62, bottom);
-  // leg bottom edge
-  shape.lineTo(-half * 0.94, bottom);
-  // leg left edge
-  shape.lineTo(half * 0.36, top - stroke);
-  // bar underside, back to start
-  shape.lineTo(-half, top - stroke);
-  shape.lineTo(-half, top);
+/** River centerline, scaled to world units. a -> b -> c. */
+export const SEVEN_PATH = {
+  a: { x: -0.29 * scale, y: bottom * scale },
+  b: { x: half * scale, y: (top - stroke / 2) * scale },
+  c: { x: -half * scale, y: (top - stroke / 2) * scale },
+} as const;
 
-  return shape;
-}
-
-export const WORD_WIDTH = SEVEN.half * 2 * SEVEN.scale;
+/** Approximate world bounds of the mark (used for framing). */
+export const SEVEN_BOUNDS = {
+  width: half * 2 * scale,
+  height: (top - bottom) * scale,
+  legWidth: legWidth * scale,
+} as const;

@@ -1,6 +1,3 @@
-import { ShapeUtils, type Shape, type Vector2 } from "three";
-import { buildSevenShape, SEVEN } from "./glyphs";
-
 /** Galaxy look copied from the archived particles-galaxy (closest to Astra). */
 export const GALAXY = {
   arms: 3,
@@ -8,8 +5,9 @@ export const GALAXY = {
   coreRadius: 0.18,
   radialCurve: 2.3,
   twist: 3.15,
-  spin: -0.2,
-  flowSpeed: 0.05,
+  /** slow spin (was -0.2): a full turn takes several minutes */
+  spin: -0.04,
+  flowSpeed: 0.06,
   thickness: 0.14,
   armWidth: 0.3,
   halo: 0.22,
@@ -81,60 +79,8 @@ function pickSize() {
   return SIZE_TIERS[SIZE_TIERS.length - 1];
 }
 
-type Triangle = { a: Vector2; b: Vector2; c: Vector2; cum: number };
-
-function triangulate(shape: Shape) {
-  const extracted = shape.extractPoints(24);
-  const faces = ShapeUtils.triangulateShape(extracted.shape, extracted.holes);
-  const all = [...extracted.shape, ...extracted.holes.flat()];
-
-  const triangles: Triangle[] = [];
-  let total = 0;
-  for (const face of faces) {
-    const a = all[face[0]];
-    const b = all[face[1]];
-    const c = all[face[2]];
-    const area =
-      Math.abs((b.x - a.x) * (c.y - a.y) - (c.x - a.x) * (b.y - a.y)) * 0.5;
-    if (area <= 1e-6) continue;
-    total += area;
-    triangles.push({ a, b, c, cum: total });
-  }
-  return { triangles, total };
-}
-
-function sampleTriangle(triangles: Triangle[], total: number) {
-  const r = Math.random() * total;
-  let lo = 0;
-  let hi = triangles.length - 1;
-  let tri = triangles[hi];
-  while (lo <= hi) {
-    const mid = (lo + hi) >> 1;
-    if (triangles[mid].cum >= r) {
-      tri = triangles[mid];
-      hi = mid - 1;
-    } else {
-      lo = mid + 1;
-    }
-  }
-
-  let u = Math.random();
-  let v = Math.random();
-  if (u + v > 1) {
-    u = 1 - u;
-    v = 1 - v;
-  }
-
-  return {
-    x: tri.a.x + u * (tri.b.x - tri.a.x) + v * (tri.c.x - tri.a.x),
-    y: tri.a.y + u * (tri.b.y - tri.a.y) + v * (tri.c.y - tri.a.y),
-  };
-}
-
 export type GalaxyBuffers = {
   position: Float32Array;
-  aTarget: Float32Array;
-  aTrail: Float32Array;
   aPhase: Float32Array;
   aSpeed: Float32Array;
   aArm: Float32Array;
@@ -144,14 +90,14 @@ export type GalaxyBuffers = {
   aSize: Float32Array;
   aColor: Float32Array;
   aBright: Float32Array;
+  /** lateral offset across the stroke of the 7 */
+  aLateral: Float32Array;
+  /** depth offset for the river */
+  aZ: Float32Array;
 };
 
 export function buildGalaxySeven(count: number): GalaxyBuffers {
-  const seven = triangulate(buildSevenShape());
-
   const position = new Float32Array(count * 3);
-  const aTarget = new Float32Array(count * 3);
-  const aTrail = new Float32Array(count * 3);
   const aPhase = new Float32Array(count);
   const aSpeed = new Float32Array(count);
   const aArm = new Float32Array(count);
@@ -161,22 +107,13 @@ export function buildGalaxySeven(count: number): GalaxyBuffers {
   const aSize = new Float32Array(count);
   const aColor = new Float32Array(count * 3);
   const aBright = new Float32Array(count);
+  const aLateral = new Float32Array(count);
+  const aZ = new Float32Array(count);
 
   const { arms, armWidth, halo } = GALAXY;
 
   for (let i = 0; i < count; i += 1) {
     const i3 = i * 3;
-
-    const point = sampleTriangle(seven.triangles, seven.total);
-    aTarget[i3] = point.x * SEVEN.scale;
-    aTarget[i3 + 1] = point.y * SEVEN.scale;
-    aTarget[i3 + 2] = rand(-0.06, 0.06);
-
-    // The 7 is fed from the left: the trail sits behind each particle (to its
-    // left), so the whole mark is continuously drawn left to right.
-    aTrail[i3] = -rand(0.35, 1.7);
-    aTrail[i3 + 1] = gaussian() * 0.28;
-    aTrail[i3 + 2] = rand(-0.25, 0.25);
 
     aPhase[i] = Math.random();
     aSpeed[i] = rand(0.65, 1.35);
@@ -194,18 +131,19 @@ export function buildGalaxySeven(count: number): GalaxyBuffers {
       aSpread[i] = gaussian() * armWidth;
       aHeight[i] = gaussian() * (Math.random() < 0.12 ? 1.8 : 1);
       aSize[i] = pickSize();
-      aBright[i] =
-        rand(0.5, 1.45) *
-        (1 + (aSize[i] / SIZE_TIERS[5]) * 0.35);
+      aBright[i] = rand(0.5, 1.45) * (1 + (aSize[i] / SIZE_TIERS[5]) * 0.35);
     }
+
+    // river: mostly a tight stroke, a few stray particles for a soft edge
+    const stray = Math.random() < 0.15;
+    aLateral[i] = gaussian() * (stray ? 0.34 : 0.11);
+    aZ[i] = rand(-0.12, 0.12);
 
     pickColor(aColor, i3);
   }
 
   return {
     position,
-    aTarget,
-    aTrail,
     aPhase,
     aSpeed,
     aArm,
@@ -215,6 +153,8 @@ export function buildGalaxySeven(count: number): GalaxyBuffers {
     aSize,
     aColor,
     aBright,
+    aLateral,
+    aZ,
   };
 }
 
