@@ -3,59 +3,98 @@
 import { useEffect, useRef } from "react";
 import {
   ACESFilmicToneMapping,
-  AdditiveBlending,
   Color,
   DirectionalLight,
-  DynamicDrawUsage,
-  Euler,
-  Fog,
-  InstancedMesh,
-  Matrix4,
+  IcosahedronGeometry,
+  Mesh,
   MeshBasicMaterial,
   MeshPhysicalMaterial,
   PerspectiveCamera,
-  Plane,
   PMREMGenerator,
   PointLight,
   Quaternion,
-  Raycaster,
   Scene,
+  SphereGeometry,
   SRGBColorSpace,
-  Vector2,
   Vector3,
   WebGLRenderer,
 } from "three";
-import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
-import {
-  BlendFunction,
-  BloomEffect,
-  ChromaticAberrationEffect,
-  EffectComposer,
-  EffectPass,
-  NoiseEffect,
-  RenderPass,
-  VignetteEffect,
-} from "postprocessing";
 import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Button } from "@/components/ui/Button";
 import { detectCapability } from "@/lib/webgl/capability";
 import { setHeroActive } from "@/lib/hero-state";
 import { SITE } from "@/lib/site";
 import type { Locale } from "@/lib/i18n/config";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
-import {
-  actIndex,
-  actOpacities,
-  cameraAt,
-  computeTransform,
-  createLayers,
-  MATTER,
-} from "./matter";
 
-const STAGE_COLOR = 0x08080b;
-const ACCENT = "#7a88ff";
+const DISPLACEMENT_GLSL = /* glsl */ `
+  uniform float uTime;
+  uniform float uPulse;
+  uniform float uAmp;
+  uniform vec3 uPointer;
+
+  float matterHash(vec3 p) {
+    p = fract(p * 0.3183099 + 0.1);
+    p *= 17.0;
+    return fract(p.x * p.y * p.z * (p.x + p.y + p.z));
+  }
+
+  float matterNoise(vec3 x) {
+    vec3 i = floor(x);
+    vec3 f = fract(x);
+    f = f * f * (3.0 - 2.0 * f);
+    return mix(
+      mix(
+        mix(matterHash(i + vec3(0.0, 0.0, 0.0)), matterHash(i + vec3(1.0, 0.0, 0.0)), f.x),
+        mix(matterHash(i + vec3(0.0, 1.0, 0.0)), matterHash(i + vec3(1.0, 1.0, 0.0)), f.x),
+        f.y
+      ),
+      mix(
+        mix(matterHash(i + vec3(0.0, 0.0, 1.0)), matterHash(i + vec3(1.0, 0.0, 1.0)), f.x),
+        mix(matterHash(i + vec3(0.0, 1.0, 1.0)), matterHash(i + vec3(1.0, 1.0, 1.0)), f.x),
+        f.y
+      ),
+      f.z
+    );
+  }
+
+  float matterFbm(vec3 p) {
+    float value = 0.0;
+    float amp = 0.5;
+    for (int i = 0; i < 4; i++) {
+      value += amp * matterNoise(p);
+      p *= 2.02;
+      amp *= 0.5;
+    }
+    return value;
+  }
+
+  vec3 matterDisplaced(vec3 pos, vec3 nrm) {
+    float shape = (matterFbm(pos * 1.6 + vec3(0.0, uTime * 0.12, uTime * 0.06)) - 0.5) * 2.0;
+    float bulge = exp(-dot(pos - uPointer, pos - uPointer) * 1.4) * uPulse;
+    return pos + nrm * (shape * uAmp + bulge * 0.32);
+  }
+
+  vec3 matterNormal(vec3 pos, vec3 nrm) {
+    vec3 tangent = normalize(cross(nrm, abs(nrm.y) < 0.99 ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0)));
+    vec3 bitangent = normalize(cross(nrm, tangent));
+    float e = 0.05;
+    vec3 p0 = matterDisplaced(pos, nrm);
+    vec3 pa = matterDisplaced(pos + tangent * e, nrm);
+    vec3 pb = matterDisplaced(pos + bitangent * e, nrm);
+    vec3 nn = normalize(cross(pa - p0, pb - p0));
+    return dot(nn, nrm) < 0.0 ? -nn : nn;
+  }
+`;
+
+function clamp01(value: number) {
+  return Math.min(1, Math.max(0, value));
+}
+
+function lerp(a: number, b: number, t: number) {
+  return a + (b - a) * t;
+}
 
 export function DigitalMatterHero({
   locale,
@@ -65,14 +104,11 @@ export function DigitalMatterHero({
   dict: Dictionary;
 }) {
   const rootRef = useRef<HTMLElement | null>(null);
-  const stageRef = useRef<HTMLDivElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const heroTextRef = useRef<HTMLDivElement>(null);
-  const capsRef = useRef<HTMLDivElement>(null);
-  const manifestoRef = useRef<HTMLDivElement>(null);
-  const cueRef = useRef<HTMLDivElement>(null);
-  const wipeRef = useRef<HTMLDivElement>(null);
-  const ticksRef = useRef<HTMLDivElement>(null);
+  const stageRef = useRef<HTMLDivElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const fallbackRef = useRef<HTMLDivElement | null>(null);
+  const textRef = useRef<HTMLDivElement | null>(null);
+  const cueRef = useRef<HTMLDivElement | null>(null);
 
   const { hero } = dict.home;
 
@@ -81,11 +117,7 @@ export function DigitalMatterHero({
     if (!root) return;
 
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        const active = entry.isIntersecting;
-        setHeroActive(active);
-        document.documentElement.dataset.hero = active ? "active" : "";
-      },
+      ([entry]) => setHeroActive(entry.isIntersecting),
       { threshold: 0 },
     );
     observer.observe(root);
@@ -93,7 +125,6 @@ export function DigitalMatterHero({
     return () => {
       observer.disconnect();
       setHeroActive(false);
-      delete document.documentElement.dataset.hero;
     };
   }, []);
 
@@ -114,7 +145,7 @@ export function DigitalMatterHero({
       renderer = new WebGLRenderer({
         canvas,
         antialias: cap.tier === 2,
-        alpha: false,
+        alpha: true,
         powerPreference: "high-performance",
       });
     } catch {
@@ -122,178 +153,97 @@ export function DigitalMatterHero({
       return;
     }
 
-    const ratio = Math.min(cap.dpr * cap.resolutionScale, cap.tier === 2 ? 1.5 : 1.1);
+    const ratio = Math.min(cap.dpr * cap.resolutionScale, cap.tier === 2 ? 1.6 : 1.2);
     renderer.setPixelRatio(ratio);
     renderer.toneMapping = ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.05;
+    renderer.toneMappingExposure = 1.1;
     renderer.outputColorSpace = SRGBColorSpace;
+    renderer.setClearAlpha(0);
 
     const scene = new Scene();
-    scene.background = new Color(STAGE_COLOR);
-    scene.fog = new Fog(STAGE_COLOR, 9, 18);
-
     const camera = new PerspectiveCamera(35, 1, 0.1, 100);
+    camera.position.set(0, 0, 4.1);
 
-    let envTarget: { dispose: () => void } | null = null;
-    if (cap.tier === 2) {
-      const pmrem = new PMREMGenerator(renderer);
-      const room = new RoomEnvironment();
-      const env = pmrem.fromScene(room, 0.04);
-      scene.environment = env.texture;
-      envTarget = env;
-      pmrem.dispose();
-    }
+    const pmrem = new PMREMGenerator(renderer);
+    const room = new RoomEnvironment();
+    const environment = pmrem.fromScene(room, 0.04);
+    scene.environment = environment.texture;
+    pmrem.dispose();
 
-    const keyLight = new DirectionalLight(0xf4f1ec, cap.tier === 2 ? 2.3 : 3.2);
-    keyLight.position.set(4, 6, 3);
+    const keyLight = new DirectionalLight(0xffffff, 1.8);
+    keyLight.position.set(3, 4, 5);
     scene.add(keyLight);
 
-    const rimLight = new DirectionalLight(0x7a88ff, 1.5);
-    rimLight.position.set(-5, -2, -4);
-    scene.add(rimLight);
+    const rimCool = new DirectionalLight(0x6d7bff, 6.5);
+    rimCool.position.set(-4, -1, 2);
+    scene.add(rimCool);
 
-    const coreLight = new PointLight(0x7a88ff, 8, 9, 2);
-    scene.add(coreLight);
+    const rimWarm = new DirectionalLight(0xff5c7a, 4.5);
+    rimWarm.position.set(4, -2.5, -3);
+    scene.add(rimWarm);
 
-    const layers = cap.tier === 2 ? MATTER.layersHigh : MATTER.layersLow;
-    const step = MATTER.height / (layers - 1);
-    const thickness = step * MATTER.thicknessRatio;
-    const radius = Math.min(thickness * 0.36, 0.012);
+    const cursorLight = new PointLight(0xffffff, 6, 8, 2);
+    cursorLight.position.set(0, 0, 2.4);
+    scene.add(cursorLight);
 
-    const shellGeometry = new RoundedBoxGeometry(
-      MATTER.width,
-      thickness,
-      MATTER.depth,
-      2,
-      radius,
-    );
-    const coreGeometry = new RoundedBoxGeometry(
-      MATTER.width * 0.8,
-      thickness * 0.5,
-      MATTER.depth * 0.8,
-      2,
-      radius * 0.5,
-    );
+    const uniforms = {
+      uTime: { value: 0 },
+      uPulse: { value: 0 },
+      uAmp: { value: cap.tier === 2 ? 0.14 : 0.1 },
+      uPointer: { value: new Vector3(0, 0, 1) },
+    };
 
-    const shellMaterial = new MeshPhysicalMaterial({
-      color: new Color("#15151b"),
-      metalness: 0.62,
-      roughness: 0.26,
-      clearcoat: 0.7,
-      clearcoatRoughness: 0.35,
-      envMapIntensity: cap.tier === 2 ? 1.15 : 0.4,
-      sheen: 0.25,
-      sheenColor: new Color("#9aa4ff"),
+    const segments = cap.tier === 2 ? 160 : 72;
+    const geometry = new SphereGeometry(1, segments, segments);
+
+    const material = new MeshPhysicalMaterial({
+      color: new Color("#0c0c12"),
+      metalness: 1,
+      roughness: 0.16,
+      clearcoat: 1,
+      clearcoatRoughness: 0.08,
+      envMapIntensity: cap.tier === 2 ? 1.5 : 1,
+      iridescence: cap.tier === 2 ? 1 : 0,
+      iridescenceIOR: 1.7,
+      iridescenceThicknessRange: [120, 780],
     });
 
-    const coreMaterial = new MeshBasicMaterial({
-      color: new Color(ACCENT),
-      toneMapped: false,
-      transparent: true,
-      blending: AdditiveBlending,
-      depthWrite: false,
-    });
+    material.onBeforeCompile = (shader) => {
+      shader.uniforms.uTime = uniforms.uTime;
+      shader.uniforms.uPulse = uniforms.uPulse;
+      shader.uniforms.uAmp = uniforms.uAmp;
+      shader.uniforms.uPointer = uniforms.uPointer;
+      shader.vertexShader = `${DISPLACEMENT_GLSL}\n${shader.vertexShader}`;
+      shader.vertexShader = shader.vertexShader.replace(
+        "#include <beginnormal_vertex>",
+        "#include <beginnormal_vertex>\n  objectNormal = matterNormal(position, normal);",
+      );
+      shader.vertexShader = shader.vertexShader.replace(
+        "#include <begin_vertex>",
+        "#include <begin_vertex>\n  transformed = matterDisplaced(position, normal);",
+      );
+    };
+    material.customProgramCacheKey = () => "layer07-matter-orb";
 
-    const shell = new InstancedMesh(shellGeometry, shellMaterial, layers);
-    shell.instanceMatrix.setUsage(DynamicDrawUsage);
-    shell.frustumCulled = false;
+    const orb = new Mesh(geometry, material);
+    scene.add(orb);
+
+    const shell = new Mesh(
+      new IcosahedronGeometry(1.34, 1),
+      new MeshBasicMaterial({
+        color: new Color("#7a88ff"),
+        wireframe: true,
+        transparent: true,
+        opacity: 0.12,
+      }),
+    );
     scene.add(shell);
 
-    const core = new InstancedMesh(coreGeometry, coreMaterial, layers);
-    core.instanceMatrix.setUsage(DynamicDrawUsage);
-    core.frustumCulled = false;
-    scene.add(core);
-
-    let composer: EffectComposer | null = null;
-    let chromatic: ChromaticAberrationEffect | null = null;
-
-    if (cap.tier === 2) {
-      composer = new EffectComposer(renderer);
-      composer.addPass(new RenderPass(scene, camera));
-
-      const bloom = new BloomEffect({
-        luminanceThreshold: 0.5,
-        intensity: 1.15,
-        mipmapBlur: true,
-        radius: 0.72,
-      });
-      const vignette = new VignetteEffect({ darkness: 0.62, offset: 0.28 });
-      const noise = new NoiseEffect({
-        blendFunction: BlendFunction.OVERLAY,
-        premultiply: true,
-      });
-      noise.blendMode.opacity.value = 0.14;
-      chromatic = new ChromaticAberrationEffect({
-        offset: new Vector2(0.0006, 0.0006),
-        radialModulation: false,
-        modulationOffset: 0,
-      });
-
-      composer.addPass(
-        new EffectPass(camera, bloom, vignette, noise, chromatic),
-      );
-    }
-
-    const layerData = createLayers(layers);
-    const position = new Vector3();
-    const quaternion = new Quaternion();
-    const scale = new Vector3();
-    const coreScale = new Vector3();
-    const euler = new Euler();
-    const matrix = new Matrix4();
-    const camPosition = new Vector3();
-    const camTarget = new Vector3();
-    const camLook = new Vector3(-1.45, -0.05, 0);
-    const hitPoint = new Vector3();
-    const cursor = { x: 99, z: 99 };
-    const pointer = { x: 0.5, y: 0.5 };
-    const ndc = new Vector2();
-    const raycaster = new Raycaster();
-    const plane = new Plane(new Vector3(0, 0, 1), 0);
-
-    let progress = 0;
-    let lastProgress = 0;
-    let velocity = 0;
-    let time = 0;
+    const pointer = { x: 0, y: 0 };
+    const pointerTarget = { x: 0, y: 0 };
+    const pointerDirection = new Vector3();
+    const inverseRotation = new Quaternion();
     let pulse = 0;
-    let pulsePhase = 0;
-    let currentAct = -1;
-
-    gsap.registerPlugin(ScrollTrigger);
-    const trigger = ScrollTrigger.create({
-      trigger: root,
-      start: "top top",
-      end: "bottom bottom",
-      onUpdate: (self) => {
-        progress = self.progress;
-      },
-    });
-
-    const applyDom = (value: number) => {
-      const opacity = actOpacities(value);
-      if (cueRef.current) cueRef.current.style.opacity = String(opacity.cue);
-      if (heroTextRef.current) {
-        heroTextRef.current.style.opacity = String(opacity.hero);
-        heroTextRef.current.style.pointerEvents =
-          opacity.hero > 0.5 ? "auto" : "none";
-      }
-      if (capsRef.current) capsRef.current.style.opacity = String(opacity.capabilities);
-      if (manifestoRef.current) {
-        manifestoRef.current.style.opacity = String(opacity.manifesto);
-      }
-      if (wipeRef.current) {
-        wipeRef.current.style.transform = `translateY(${(1 - opacity.wipe) * 100}%)`;
-      }
-
-      const index = actIndex(value);
-      if (index !== currentAct && ticksRef.current) {
-        currentAct = index;
-        const ticks = ticksRef.current.querySelectorAll("[data-tick]");
-        ticks.forEach((tick, i) => {
-          tick.setAttribute("data-active", i === index ? "true" : "false");
-        });
-      }
-    };
 
     const resize = () => {
       const width = Math.max(1, stage.clientWidth);
@@ -301,28 +251,26 @@ export function DigitalMatterHero({
       renderer.setSize(width, height, false);
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
-      composer?.setSize(width, height);
     };
     resize();
 
     const onPointerMove = (event: PointerEvent) => {
-      pointer.x = event.clientX / window.innerWidth;
-      pointer.y = event.clientY / window.innerHeight;
+      const rect = stage.getBoundingClientRect();
+      pointerTarget.x = clamp01((event.clientX - rect.left) / rect.width) * 2 - 1;
+      pointerTarget.y = -clamp01((event.clientY - rect.top) / rect.height) * 2 + 1;
+    };
+    const onPointerLeave = () => {
+      pointerTarget.x = 0;
+      pointerTarget.y = 0;
     };
     const onPointerDown = () => {
       pulse = 1;
-      pulsePhase = 0;
-    };
-    const onTouchMove = (event: TouchEvent) => {
-      const touch = event.touches[0];
-      if (!touch) return;
-      pointer.x = touch.clientX / window.innerWidth;
-      pointer.y = touch.clientY / window.innerHeight;
     };
 
     let alive = true;
     let raf = 0;
     let last = performance.now();
+    let time = 0;
 
     const tick = (now: number) => {
       raf = requestAnimationFrame(tick);
@@ -332,81 +280,42 @@ export function DigitalMatterHero({
       last = now;
       time += dt;
 
-      if (pulse > 0) {
-        pulse = Math.max(0, pulse - dt / 0.9);
-        pulsePhase += dt * 9;
-      }
+      pointer.x = lerp(pointer.x, pointerTarget.x, 0.08);
+      pointer.y = lerp(pointer.y, pointerTarget.y, 0.08);
+      if (pulse > 0) pulse = Math.max(0, pulse - dt / 1.1);
 
-      cameraAt(progress, camPosition, camTarget);
+      uniforms.uTime.value = time;
+      uniforms.uPulse.value = pulse;
 
-      // Portrait screens: center the sculpture and pull back so type can sit above it.
-      if (camera.aspect < 0.95) {
-        camTarget.x *= 0.3;
-        camTarget.y -= 0.12;
-        camPosition.z += 1.1;
-      }
+      pointerDirection.set(pointer.x * 0.92, pointer.y * 0.92, 0);
+      const z = Math.sqrt(Math.max(0, 1 - pointerDirection.x ** 2 - pointerDirection.y ** 2));
+      pointerDirection.z = z;
+      inverseRotation.copy(orb.quaternion).invert();
+      uniforms.uPointer.value.copy(pointerDirection).applyQuaternion(inverseRotation);
 
-      camPosition.x += (pointer.x - 0.5) * 0.35;
-      camPosition.y += (0.5 - pointer.y) * 0.26;
-      camera.position.lerp(camPosition, 0.08);
-      camLook.lerp(camTarget, 0.08);
-      camera.lookAt(camLook);
+      orb.rotation.y += dt * 0.18;
+      orb.rotation.x = lerp(orb.rotation.x, -pointer.y * 0.3, 0.06);
+      shell.rotation.y -= dt * 0.06;
+      shell.rotation.x = orb.rotation.x * 0.5;
 
-      ndc.set(pointer.x * 2 - 1, -(pointer.y * 2 - 1));
-      raycaster.setFromCamera(ndc, camera);
-      const hit = raycaster.ray.intersectPlane(plane, hitPoint);
-      if (hit) {
-        cursor.x = hit.x;
-        cursor.z = hit.z;
-      }
+      cursorLight.position.set(pointer.x * 2.4, pointer.y * 2.4, 2.6);
+      cursorLight.intensity = 5 + pulse * 14;
 
-      for (let i = 0; i < layers; i += 1) {
-        const layerT = layers > 1 ? i / (layers - 1) : 0.5;
-        computeTransform(
-          layerData[i],
-          layerT,
-          progress,
-          MATTER.height,
-          cursor,
-          time,
-          pulse,
-          pulsePhase,
-          position,
-          quaternion,
-          scale,
-          euler,
-        );
+      const height = Math.max(1, root.offsetHeight);
+      const exit = clamp01((window.scrollY - height * 0.12) / (height * 0.72));
+      const scale = 1 - exit * 0.24;
+      orb.scale.setScalar(scale);
+      shell.scale.setScalar(scale);
+      orb.position.y = exit * 0.5;
+      shell.position.y = exit * 0.5;
+      canvas.style.opacity = String(1 - clamp01((exit - 0.3) / 0.7));
+      if (cueRef.current) cueRef.current.style.opacity = String(1 - exit * 1.6);
 
-        matrix.compose(position, quaternion, scale);
-        shell.setMatrixAt(i, matrix);
-
-        coreScale.set(scale.x * 0.8, scale.y * 0.5, scale.z * 0.8);
-        matrix.compose(position, quaternion, coreScale);
-        core.setMatrixAt(i, matrix);
-      }
-      shell.instanceMatrix.needsUpdate = true;
-      core.instanceMatrix.needsUpdate = true;
-
-      coreLight.intensity = 6 + pulse * 10 + Math.sin(time * 0.8) * 0.6;
-
-      const delta = Math.abs(progress - lastProgress);
-      velocity += (Math.min(1, delta * 6) - velocity) * 0.1;
-      lastProgress = progress;
-
-      applyDom(progress);
-
-      if (composer) {
-        if (chromatic) {
-          const amount = 0.0004 + velocity * 0.0016;
-          chromatic.offset.set(amount, amount);
-        }
-        composer.render(dt);
-      } else {
-        renderer.render(scene, camera);
-      }
+      renderer.render(scene, camera);
     };
 
-    applyDom(0);
+    canvas.style.opacity = "1";
+    if (fallbackRef.current) fallbackRef.current.style.opacity = "0";
     raf = requestAnimationFrame(tick);
 
     const onVisibility = () => {
@@ -419,7 +328,6 @@ export function DigitalMatterHero({
         raf = requestAnimationFrame(tick);
       }
     };
-
     const onContextLost = (event: Event) => {
       event.preventDefault();
       alive = false;
@@ -430,9 +338,9 @@ export function DigitalMatterHero({
     const resizeObserver = new ResizeObserver(resize);
     resizeObserver.observe(stage);
 
-    window.addEventListener("pointermove", onPointerMove, { passive: true });
-    window.addEventListener("pointerdown", onPointerDown, { passive: true });
-    window.addEventListener("touchmove", onTouchMove, { passive: true });
+    stage.addEventListener("pointermove", onPointerMove);
+    stage.addEventListener("pointerleave", onPointerLeave);
+    stage.addEventListener("pointerdown", onPointerDown);
     document.addEventListener("visibilitychange", onVisibility);
     canvas.addEventListener("webglcontextlost", onContextLost);
 
@@ -457,19 +365,17 @@ export function DigitalMatterHero({
       alive = false;
       cancelAnimationFrame(raf);
       context.revert();
-      trigger.kill();
       resizeObserver.disconnect();
-      window.removeEventListener("pointermove", onPointerMove);
-      window.removeEventListener("pointerdown", onPointerDown);
-      window.removeEventListener("touchmove", onTouchMove);
+      stage.removeEventListener("pointermove", onPointerMove);
+      stage.removeEventListener("pointerleave", onPointerLeave);
+      stage.removeEventListener("pointerdown", onPointerDown);
       document.removeEventListener("visibilitychange", onVisibility);
       canvas.removeEventListener("webglcontextlost", onContextLost);
-      shellGeometry.dispose();
-      coreGeometry.dispose();
-      shellMaterial.dispose();
-      coreMaterial.dispose();
-      envTarget?.dispose();
-      composer?.dispose();
+      geometry.dispose();
+      material.dispose();
+      shell.geometry.dispose();
+      (shell.material as MeshBasicMaterial).dispose();
+      environment.dispose();
       renderer.dispose();
     };
   }, []);
@@ -479,117 +385,67 @@ export function DigitalMatterHero({
       ref={rootRef}
       id="hero"
       data-field="0"
-      className="matter-hero relative"
+      className="matter-hero relative flex min-h-[100svh] flex-col overflow-hidden bg-bg"
     >
-      <div
-        ref={stageRef}
-        className="matter-stage sticky top-0 h-[100svh] overflow-hidden"
-      >
-        <canvas
-          ref={canvasRef}
-          aria-hidden
-          className="absolute inset-0 h-full w-full"
-        />
-        <div className="matter-vignette pointer-events-none absolute inset-0" aria-hidden />
-        <div className="grain pointer-events-none absolute inset-0 opacity-[0.08]" aria-hidden />
+      <div className="matter-glow pointer-events-none absolute inset-0" aria-hidden />
 
-        <div className="relative z-10 flex h-full flex-col">
-          <div className="shell flex items-center justify-between pt-24 md:pt-28">
+      <div className="shell relative flex flex-1 items-center pt-28 pb-4 md:pt-32">
+        <div className="grid w-full items-center gap-10 lg:grid-cols-12 lg:gap-6">
+          <div ref={textRef} className="order-2 lg:order-1 lg:col-span-6">
             <p className="eyebrow">{hero.eyebrow}</p>
-            <div
-              ref={ticksRef}
-              aria-hidden
-              className="hidden items-center gap-4 sm:flex"
-            >
-              {hero.acts.map((act, index) => (
-                <span
-                  key={act}
-                  data-tick
-                  data-active={index === 0}
-                  className="matter-tick"
-                >
-                  <span className="matter-tick-dot" />
-                  <span className="matter-tick-label">{act}</span>
+            <h1 className="display-xl mt-6 text-ink">
+              <span className="block overflow-hidden pb-[0.06em]">
+                <span data-hero-line className="block">
+                  {hero.title}
                 </span>
-              ))}
-            </div>
-          </div>
-
-          <div className="shell flex flex-1 items-center max-lg:items-start max-lg:pt-10">
-            <div ref={heroTextRef} className="max-w-3xl">
-              <h1 className="display-xl text-ink">
-                <span className="block overflow-hidden pb-[0.06em]">
-                  <span data-hero-line className="block">
-                    {hero.title}
-                  </span>
-                </span>
-                <span className="block overflow-hidden pb-[0.06em]">
-                  <span
-                    data-hero-line
-                    className="block italic text-accent"
-                  >
-                    {hero.titleAccent}
-                  </span>
-                </span>
-              </h1>
-              <p data-hero-fade className="lede mt-7 max-w-xl">
-                {hero.lede}
-              </p>
-              <div data-hero-fade className="mt-9 flex flex-wrap gap-3">
-                <Button href={`/${locale}/contact`}>{hero.primary}</Button>
-                <Button href={`/${locale}/work`} variant="outline">
-                  {hero.secondary}
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          <div className="shell flex items-end justify-between pb-10">
-            <div ref={cueRef} className="flex items-center gap-3">
-              <span className="matter-cue-line" aria-hidden />
-              <span className="font-mono text-[0.6875rem] tracking-[0.16em] text-ink-muted uppercase">
-                {hero.hint}
               </span>
+              <span className="block overflow-hidden pb-[0.06em]">
+                <span data-hero-line className="block italic text-accent">
+                  {hero.titleAccent}
+                </span>
+              </span>
+            </h1>
+            <p data-hero-fade className="lede mt-7 max-w-xl">
+              {hero.lede}
+            </p>
+            <div data-hero-fade className="mt-9 flex flex-wrap gap-3">
+              <Button href={`/${locale}/contact`}>{hero.primary}</Button>
+              <Button href={`/${locale}/work`} variant="outline">
+                {hero.secondary}
+              </Button>
             </div>
-            <span className="font-mono text-[0.6875rem] tracking-[0.16em] text-ink-muted uppercase">
-              {SITE.location}
-            </span>
+          </div>
+
+          <div className="order-1 lg:order-2 lg:col-span-6">
+            <div
+              ref={stageRef}
+              className="relative mx-auto aspect-square w-full max-w-[560px] max-lg:max-w-[340px]"
+            >
+              <div
+                ref={fallbackRef}
+                aria-hidden
+                className="matter-orb-fallback transition-opacity duration-1000"
+              />
+              <canvas
+                ref={canvasRef}
+                aria-hidden
+                className="absolute inset-0 h-full w-full opacity-0 transition-opacity duration-1000"
+              />
+            </div>
           </div>
         </div>
+      </div>
 
-        <div
-          ref={capsRef}
-          className="pointer-events-none absolute inset-0 z-10 flex items-center opacity-0"
-        >
-          <ul className="shell space-y-3">
-            {hero.capabilities.slice(0, 5).map((capability, index) => (
-              <li key={capability} className="flex items-baseline gap-4">
-                <span className="font-mono text-xs text-accent">
-                  0{index + 1}
-                </span>
-                <span className="font-display text-[clamp(1.5rem,3vw,2.5rem)] leading-tight tracking-[-0.02em] text-ink">
-                  {capability}
-                </span>
-              </li>
-            ))}
-          </ul>
+      <div className="shell relative flex items-end justify-between pb-8">
+        <div ref={cueRef} className="flex items-center gap-3">
+          <span className="matter-cue-line" aria-hidden />
+          <span className="font-mono text-[0.6875rem] tracking-[0.16em] text-ink-muted uppercase">
+            {hero.hint}
+          </span>
         </div>
-
-        <div
-          ref={manifestoRef}
-          className="pointer-events-none absolute inset-0 z-10 flex items-center opacity-0"
-        >
-          <p className="shell max-w-4xl font-display text-[clamp(1.9rem,5vw,4.25rem)] leading-[1.03] tracking-[-0.03em] text-ink">
-            {hero.manifesto}
-          </p>
-        </div>
-
-        <div
-          ref={wipeRef}
-          aria-hidden
-          className="absolute inset-0 z-20 bg-bg"
-          style={{ transform: "translateY(100%)" }}
-        />
+        <span className="font-mono text-[0.6875rem] tracking-[0.16em] text-ink-muted uppercase">
+          {SITE.location}
+        </span>
       </div>
     </section>
   );

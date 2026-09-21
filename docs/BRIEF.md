@@ -99,28 +99,27 @@ Todas las páginas viven bajo `src/app/[lang]/` (`es` | `en`).
 
 ## Hero — Digital Matter
 
-`src/components/hero/DigitalMatterHero.tsx` + `src/components/hero/matter.ts`.
+`src/components/hero/DigitalMatterHero.tsx`.
 
-Escultura propia del Home: un monolito de estratos (InstancedMesh de placas
-PBR) con núcleo emisivo que se revela al separarse. Tiene su **propio canvas,
-cámara, escenario y guion**; no es el fondo global.
+Una **esfera de metal líquido** con deformación orgánica en el vertex shader y
+normales recalculadas, material cromado iridiscente (`MeshPhysicalMaterial`) y
+reflejos PBR reales vía `RoomEnvironment`. Vive en su propia columna (caja
+cuadrada), por lo que el encuadre nunca se rompe; sin scroll-jack.
 
-- **Escenario propio tipo galería** (oscuro en ambos temas) → separación clara
-  con el resto del sitio. El header se invierte mientras el Hero está activo
-  (`[data-hero="active"] .site-header`).
-- **Interacción:** ripple magnético con el cursor (raycast a un plano),
-  parallax de cámara y pulso al hacer clic.
-- **Narrativa de scroll (5 actos, ~300vh, desktop):** Materia → Tacto →
-  Fractura (revela capacidades) → Estructura (frase-manifiesto) → Umbral
-  (la materia se aplana en banda y hace wipe hacia Work).
-- **Render:** `three` + `postprocessing` (Bloom, Vignette, Noise,
-  ChromaticAberration ligado a la velocidad de scroll), `RoomEnvironment` para
-  reflejos PBR y tone mapping ACES.
-- **Degradación:** reusa `detectCapability`. Tier 2 completo; tier 1 menos
-  capas, sin env map ni postproceso; tier 0 / `prefers-reduced-motion` sin
-  narrativa (contenido estático). En móvil baja la altura y centra la pieza.
-- **Handoff:** el `MaterialField` global se pausa y oculta mientras el Hero
-  está activo (`src/lib/hero-state.ts`) y se reanuda al entrar en Work.
+- **Composición:** dos columnas en desktop (texto a la izquierda, pieza a la
+  derecha); en móvil la pieza va arriba y el texto debajo. Glow de acento CSS
+  detrás. Sin escenario oscuro ni inversión del header.
+- **Interacción:** el cursor deforma la superficie (bulge que sigue al puntero
+  en espacio objeto), inclina la pieza y mueve una luz; clic lanza un pulso.
+- **Scroll:** la pieza se aleja y se desvanece mientras el Hero sale, dejando
+  paso a Work (separación clara, sin secuestro de scroll).
+- **Render:** `three` (vertex displacement + normal recompute), `RoomEnvironment`
+  + `PMREMGenerator`, luces de borde fría/cálida, tone mapping ACES.
+- **Degradación:** reusa `detectCapability`. Tier 2 con iridiscencia y mayor
+  detalle; tier 1 menor detalle sin iridiscencia; tier 0 / `prefers-reduced-motion`
+  muestran una órbita CSS estática.
+- **Handoff:** el `MaterialField` global se pausa mientras el Hero está activo
+  (`src/lib/hero-state.ts`) y se reanuda al entrar en Work.
 
 ## Contacto
 
