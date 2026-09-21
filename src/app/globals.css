@@ -317,6 +317,10 @@ html.lenis body {
   color: var(--ink);
 }
 
+.l07-hero {
+  height: 180svh;
+}
+
 .l07-fallback {
   position: absolute;
   inset: 0;

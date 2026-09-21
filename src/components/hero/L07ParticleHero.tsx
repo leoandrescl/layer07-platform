@@ -29,15 +29,15 @@ import {
   ToneMappingEffect,
   ToneMappingMode,
 } from "postprocessing";
-import gsap from "gsap";
-import { Button } from "@/components/ui/Button";
 import { detectCapability } from "@/lib/webgl/capability";
 import { setHeroActive } from "@/lib/hero-state";
-import { SITE } from "@/lib/site";
-import type { Locale } from "@/lib/i18n/config";
-import type { Dictionary } from "@/lib/i18n/dictionaries";
 import { GALAXY, buildGalaxySeven, buildStarfield } from "./particles";
-import { GALAXY_VERT, POINT_FRAG, STARFIELD_VERT, streakFragment } from "./hero-shaders";
+import {
+  GALAXY_VERT,
+  POINT_FRAG,
+  STARFIELD_VERT,
+  streakFragment,
+} from "./hero-shaders";
 
 function clamp(value: number, min = 0, max = 1) {
   return value < min ? min : value > max ? max : value;
@@ -66,18 +66,11 @@ class StreakEffect extends Effect {
   }
 }
 
-export function L07ParticleHero({
-  locale,
-  dict,
-}: {
-  locale: Locale;
-  dict: Dictionary;
-}) {
+export function L07ParticleHero() {
   const rootRef = useRef<HTMLElement | null>(null);
+  const stageRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const fallbackRef = useRef<HTMLDivElement | null>(null);
-
-  const { hero } = dict.home;
 
   useEffect(() => {
     const root = rootRef.current;
@@ -102,8 +95,9 @@ export function L07ParticleHero({
 
   useEffect(() => {
     const canvas = canvasRef.current;
+    const stage = stageRef.current;
     const root = rootRef.current;
-    if (!canvas || !root) return;
+    if (!canvas || !stage || !root) return;
 
     const cap = detectCapability();
     root.dataset.tier = String(cap.tier);
@@ -140,6 +134,7 @@ export function L07ParticleHero({
     const geometry = new BufferGeometry();
     geometry.setAttribute("position", new BufferAttribute(buffers.position, 3));
     geometry.setAttribute("aTarget", new BufferAttribute(buffers.aTarget, 3));
+    geometry.setAttribute("aTrail", new BufferAttribute(buffers.aTrail, 3));
     geometry.setAttribute("aPhase", new BufferAttribute(buffers.aPhase, 1));
     geometry.setAttribute("aSpeed", new BufferAttribute(buffers.aSpeed, 1));
     geometry.setAttribute("aArm", new BufferAttribute(buffers.aArm, 1));
@@ -154,6 +149,7 @@ export function L07ParticleHero({
     const uniforms = {
       uTime: new Uniform(0),
       uIntro: new Uniform(0),
+      uMorph: new Uniform(0),
       uArms: new Uniform(GALAXY.arms),
       uCoreRadius: new Uniform(GALAXY.coreRadius),
       uOuterRadius: new Uniform(GALAXY.outerRadius),
@@ -258,11 +254,10 @@ export function L07ParticleHero({
     });
     composer.addPass(new EffectPass(camera, streak, chromatic, toneMapping));
 
-    let dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
     const resize = () => {
-      const w = Math.max(1, root.clientWidth);
-      const h = Math.max(1, root.clientHeight);
-      dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
+      const w = Math.max(1, stage.clientWidth);
+      const h = Math.max(1, stage.clientHeight);
+      const dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
       renderer.setPixelRatio(dpr);
       renderer.setSize(w, h, false);
       composer.setSize(w, h);
@@ -287,15 +282,14 @@ export function L07ParticleHero({
       elapsed += dt;
 
       uniforms.uTime.value = elapsed;
-      uniforms.uIntro.value = reduced ? 1 : smoothstep(0.5, 2.6, elapsed);
+      uniforms.uIntro.value = reduced ? 1 : smoothstep(0.4, 2.4, elapsed);
       uniforms.uSpin.value = reduced ? 0 : GALAXY.spin;
       starUniforms.uReveal.value = smoothstep(0, 0.8, elapsed);
 
-      const height = Math.max(1, root.offsetHeight);
-      const exit = clamp((window.scrollY - height * 0.15) / (height * 0.7));
-      pivot.position.y = exit * 1.2;
-      pivot.rotation.y = exit * 0.4;
-      canvas.style.opacity = String(1 - clamp((exit - 0.2) / 0.7));
+      // Scroll morphs the galaxy into the 7.
+      const scrollable = Math.max(1, root.offsetHeight - window.innerHeight);
+      const progress = clamp(window.scrollY / scrollable);
+      uniforms.uMorph.value = smoothstep(0.05, 0.5, progress);
 
       composer.render(dt);
     };
@@ -323,25 +317,13 @@ export function L07ParticleHero({
     };
 
     const resizeObserver = new ResizeObserver(resize);
-    resizeObserver.observe(root);
+    resizeObserver.observe(stage);
     document.addEventListener("visibilitychange", onVisibility);
     canvas.addEventListener("webglcontextlost", onContextLost);
-
-    const context = gsap.context(() => {
-      if (reduced) return;
-      gsap
-        .timeline({ defaults: { ease: "power3.out" } })
-        .fromTo(
-          "[data-hero-fade]",
-          { autoAlpha: 0, y: 18 },
-          { autoAlpha: 1, y: 0, duration: 0.9, stagger: 0.1, delay: 1.1 },
-        );
-    }, root);
 
     return () => {
       alive = false;
       cancelAnimationFrame(raf);
-      context.revert();
       resizeObserver.disconnect();
       document.removeEventListener("visibilitychange", onVisibility);
       canvas.removeEventListener("webglcontextlost", onContextLost);
@@ -359,62 +341,21 @@ export function L07ParticleHero({
       ref={rootRef}
       id="hero"
       data-field="0"
-      className="l07-hero l07-stage relative flex min-h-[100svh] flex-col overflow-hidden"
+      className="l07-hero l07-stage relative"
     >
-      <div
-        ref={fallbackRef}
-        aria-hidden
-        className="l07-fallback transition-opacity duration-1000"
-      >
-        7
-      </div>
-      <canvas
-        ref={canvasRef}
-        aria-hidden
-        className="absolute inset-0 h-full w-full opacity-0 transition-opacity duration-1000"
-      />
-
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-72 bg-gradient-to-t from-black via-black/60 to-transparent"
-      />
-
-      <div className="pointer-events-none relative z-10 flex min-h-[100svh] flex-1 flex-col justify-between pt-24 pb-8">
-        <div className="shell">
-          <p data-hero-fade className="eyebrow text-center">
-            {hero.eyebrow}
-          </p>
+      <div ref={stageRef} className="sticky top-0 h-[100svh] overflow-hidden">
+        <div
+          ref={fallbackRef}
+          aria-hidden
+          className="l07-fallback transition-opacity duration-1000"
+        >
+          7
         </div>
-
-        <div className="shell flex flex-col items-center gap-7">
-          <h1 className="sr-only">
-            {hero.title} {hero.titleAccent}
-          </h1>
-          <p data-hero-fade className="lede mx-auto max-w-xl text-center">
-            {hero.lede}
-          </p>
-          <div
-            data-hero-fade
-            className="pointer-events-auto flex flex-wrap justify-center gap-3"
-          >
-            <Button href={`/${locale}/contact`}>{hero.primary}</Button>
-            <Button href={`/${locale}/work`} variant="outline">
-              {hero.secondary}
-            </Button>
-          </div>
-        </div>
-
-        <div className="shell flex items-end justify-between">
-          <div className="flex items-center gap-3">
-            <span className="l07-cue-line" aria-hidden />
-            <span className="font-mono text-[0.6875rem] tracking-[0.16em] text-ink-muted uppercase">
-              {hero.hint}
-            </span>
-          </div>
-          <span className="font-mono text-[0.6875rem] tracking-[0.16em] text-ink-muted uppercase">
-            {SITE.location}
-          </span>
-        </div>
+        <canvas
+          ref={canvasRef}
+          aria-hidden
+          className="absolute inset-0 h-full w-full opacity-0 transition-opacity duration-1000"
+        />
       </div>
     </section>
   );

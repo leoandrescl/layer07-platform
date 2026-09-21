@@ -134,6 +134,7 @@ function sampleTriangle(triangles: Triangle[], total: number) {
 export type GalaxyBuffers = {
   position: Float32Array;
   aTarget: Float32Array;
+  aTrail: Float32Array;
   aPhase: Float32Array;
   aSpeed: Float32Array;
   aArm: Float32Array;
@@ -150,6 +151,7 @@ export function buildGalaxySeven(count: number): GalaxyBuffers {
 
   const position = new Float32Array(count * 3);
   const aTarget = new Float32Array(count * 3);
+  const aTrail = new Float32Array(count * 3);
   const aPhase = new Float32Array(count);
   const aSpeed = new Float32Array(count);
   const aArm = new Float32Array(count);
@@ -169,6 +171,12 @@ export function buildGalaxySeven(count: number): GalaxyBuffers {
     aTarget[i3] = point.x * SEVEN.scale;
     aTarget[i3 + 1] = point.y * SEVEN.scale;
     aTarget[i3 + 2] = rand(-0.06, 0.06);
+
+    // The 7 is fed from the left: the trail sits behind each particle (to its
+    // left), so the whole mark is continuously drawn left to right.
+    aTrail[i3] = -rand(0.35, 1.7);
+    aTrail[i3 + 1] = gaussian() * 0.28;
+    aTrail[i3 + 2] = rand(-0.25, 0.25);
 
     aPhase[i] = Math.random();
     aSpeed[i] = rand(0.65, 1.35);
@@ -197,6 +205,7 @@ export function buildGalaxySeven(count: number): GalaxyBuffers {
   return {
     position,
     aTarget,
+    aTrail,
     aPhase,
     aSpeed,
     aArm,

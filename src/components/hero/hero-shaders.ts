@@ -31,6 +31,7 @@ export const GALAXY_VERT = /* glsl */ `
   const float PI = 3.14159265359;
 
   attribute vec3 aTarget;
+  attribute vec3 aTrail;
   attribute float aPhase;
   attribute float aSpeed;
   attribute float aArm;
@@ -53,6 +54,7 @@ export const GALAXY_VERT = /* glsl */ `
   uniform float uFlowSpeed;
   uniform float uFovScale;
   uniform float uSizeScale;
+  uniform float uMorph;
   uniform vec3 uCoreColor;
 
   varying vec3 vColor;
@@ -62,15 +64,13 @@ export const GALAXY_VERT = /* glsl */ `
   void main() {
     float life = fract(aPhase + uTime * uFlowSpeed * aSpeed);
 
-    // Phase 1: wind inward along the arm. Phase 2: settle onto the 7.
-    float travel = smoothstep(0.0, 0.5, life);
-    float rf = 1.0 - travel;
+    // ---- galaxy path (uses the whole life, recycles at the core) ----
+    float galaxyT = smoothstep(0.0, 1.0, life);
+    float rf = 1.0 - galaxyT;
     float r = uCoreRadius + (uOuterRadius - uCoreRadius) * pow(rf, uRadialCurve);
 
     vec2 target = aTarget.xy;
-    float rEnd = length(target);
     float thetaEnd = atan(target.y, target.x);
-
     float thetaStart;
     if (aArm >= 0.0) {
       thetaStart = aArm * (TAU / uArms) + aSpread * (0.35 + 0.65 * rf);
@@ -78,28 +78,34 @@ export const GALAXY_VERT = /* glsl */ `
       thetaStart = aSpread;
     }
     float dTheta = mod(thetaEnd - thetaStart + PI, TAU) - PI;
-    float theta = thetaStart + dTheta * travel
+    float theta = thetaStart + dTheta * galaxyT
       + uTwist * log(max(r, 0.08) / uOuterRadius)
       + uSpin * uTime;
 
     float thickness = uThickness * (0.18 + 0.82 * rf);
-    vec3 galaxy = vec3(cos(theta) * r, aHeight * thickness, sin(theta) * r);
+    vec3 galaxyPos = vec3(cos(theta) * r, aHeight * thickness, sin(theta) * r);
 
-    float settle = smoothstep(0.42, 0.6, life);
-    vec3 p = mix(galaxy, aTarget, settle);
+    // ---- 7 path: fed from the left, settles and holds ----
+    float travel = smoothstep(0.0, 0.45, life);
+    vec3 sevenPath = aTarget + aTrail * (1.0 - travel);
+    sevenPath.y += sin(uTime * 1.5 + aSeed * 6.2831) * 0.07 * (1.0 - travel);
+
+    vec3 p = mix(galaxyPos, sevenPath, uMorph);
 
     vec4 mv = modelViewMatrix * vec4(p, 1.0);
     gl_Position = projectionMatrix * mv;
-
-    float size = max(aSize, 0.006) * uSizeScale;
-    gl_PointSize = clamp(size * uFovScale / max(-mv.z, 0.001), 1.0, 76.0);
+    gl_PointSize = clamp(
+      max(aSize, 0.006) * uSizeScale * uFovScale / max(-mv.z, 0.001),
+      1.0,
+      76.0
+    );
 
     float fade = smoothstep(0.0, 0.05, life) * (1.0 - smoothstep(0.94, 1.0, life));
     float coreMix = 1.0 - smoothstep(uCoreRadius, uOuterRadius * 0.45, r);
     float twinkle = 0.72 + 0.28 * sin(uTime * 1.7 + aSeed * 30.0);
 
-    vColor = mix(aColor, uCoreColor, coreMix * 0.75);
-    vBright = aBright * uIntro * fade * twinkle * mix(0.5, 1.0, settle);
+    vColor = mix(aColor, uCoreColor, coreMix * 0.75 * (1.0 - uMorph));
+    vBright = aBright * uIntro * fade * twinkle;
     vSeed = aSeed;
   }
 `;
