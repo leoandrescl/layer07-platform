@@ -40,6 +40,7 @@ export const GALAXY_VERT = /* glsl */ `
   attribute float aBright;
   attribute float aLateral;
   attribute float aZ;
+  attribute float aGlyph;
   attribute vec3 aColor;
   attribute vec3 aScatter;
 
@@ -63,6 +64,8 @@ export const GALAXY_VERT = /* glsl */ `
   uniform vec2 uP1;
   uniform vec2 uC2;
   uniform vec2 uP2;
+  uniform vec2 uZeroCenter;
+  uniform vec2 uZeroR;
 
   varying vec3 vColor;
   varying float vBright;
@@ -96,20 +99,33 @@ export const GALAXY_VERT = /* glsl */ `
     float thickness = uThickness * (0.18 + 0.82 * rf);
     vec3 galaxyPos = vec3(cos(theta) * r, aHeight * thickness, sin(theta) * r);
 
-    // ---- river along the brush 7 ----
+    // ---- river along the brush mark ----
     vec2 center;
     vec2 segDir;
     float taper;
-    if (t < 0.5) {
-      float u = t * 2.0;
-      center = quadBezier(uP0, uC1, uP1, u);
-      segDir = normalize(quadTangent(uP0, uC1, uP1, u));
-      taper = mix(0.42, 1.0, smoothstep(0.0, 1.0, u));
+    float riverFade;
+
+    if (aGlyph < 0.5) {
+      // "0": closed loop, no seam, the river runs around forever
+      float ang = t * TAU;
+      center = uZeroCenter + vec2(cos(ang) * uZeroR.x, sin(ang) * uZeroR.y);
+      segDir = normalize(vec2(-sin(ang) * uZeroR.x, cos(ang) * uZeroR.y));
+      taper = 0.82 + 0.16 * cos(ang);
+      riverFade = 1.0;
     } else {
-      float u = (t - 0.5) * 2.0;
-      center = quadBezier(uP1, uC2, uP2, u);
-      segDir = normalize(quadTangent(uP1, uC2, uP2, u));
-      taper = mix(1.0, 0.06, smoothstep(0.0, 1.0, u));
+      // "7": bottom tip -> up the leg -> corner -> left along the bar
+      if (t < 0.5) {
+        float u = t * 2.0;
+        center = quadBezier(uP2, uC2, uP1, u);
+        segDir = normalize(quadTangent(uP2, uC2, uP1, u));
+        taper = mix(0.06, 1.0, smoothstep(0.0, 1.0, u));
+      } else {
+        float u = (t - 0.5) * 2.0;
+        center = quadBezier(uP1, uC1, uP0, u);
+        segDir = normalize(quadTangent(uP1, uC1, uP0, u));
+        taper = mix(1.0, 0.42, smoothstep(0.0, 1.0, u));
+      }
+      riverFade = smoothstep(0.0, 0.08, t) * (1.0 - smoothstep(0.9, 1.0, t));
     }
 
     vec2 perp = vec2(-segDir.y, segDir.x);
@@ -131,7 +147,6 @@ export const GALAXY_VERT = /* glsl */ `
     );
 
     float galaxyFade = smoothstep(0.0, 0.05, t) * (1.0 - smoothstep(0.94, 1.0, t));
-    float riverFade = smoothstep(0.0, 0.08, t) * (1.0 - smoothstep(0.9, 1.0, t));
     float baseFade = mix(galaxyFade, riverFade, uMorph);
     // while dispersed, every particle is visible
     float fade = mix(1.0, baseFade, uForm);

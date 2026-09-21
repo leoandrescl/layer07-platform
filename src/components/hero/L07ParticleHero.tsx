@@ -31,7 +31,7 @@ import {
 } from "postprocessing";
 import { detectCapability } from "@/lib/webgl/capability";
 import { setHeroActive } from "@/lib/hero-state";
-import { SEVEN_PATH } from "./glyphs";
+import { SEVEN_PATH, ZERO } from "./glyphs";
 import { GALAXY, buildGalaxySeven, buildStarfield } from "./particles";
 import {
   GALAXY_VERT,
@@ -136,6 +136,7 @@ export function L07ParticleHero() {
     geometry.setAttribute("aScatter", new BufferAttribute(buffers.aScatter, 3));
     geometry.setAttribute("aLateral", new BufferAttribute(buffers.aLateral, 1));
     geometry.setAttribute("aZ", new BufferAttribute(buffers.aZ, 1));
+    geometry.setAttribute("aGlyph", new BufferAttribute(buffers.aGlyph, 1));
     geometry.setAttribute("aPhase", new BufferAttribute(buffers.aPhase, 1));
     geometry.setAttribute("aSpeed", new BufferAttribute(buffers.aSpeed, 1));
     geometry.setAttribute("aArm", new BufferAttribute(buffers.aArm, 1));
@@ -168,6 +169,8 @@ export function L07ParticleHero() {
       uP1: new Uniform(new Vector2(SEVEN_PATH.p1.x, SEVEN_PATH.p1.y)),
       uC2: new Uniform(new Vector2(SEVEN_PATH.c2.x, SEVEN_PATH.c2.y)),
       uP2: new Uniform(new Vector2(SEVEN_PATH.p2.x, SEVEN_PATH.p2.y)),
+      uZeroCenter: new Uniform(new Vector2(ZERO.center.x, ZERO.center.y)),
+      uZeroR: new Uniform(new Vector2(ZERO.rx, ZERO.ry)),
     };
 
     const material = new ShaderMaterial({

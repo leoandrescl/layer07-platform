@@ -92,10 +92,12 @@ export type GalaxyBuffers = {
   aSize: Float32Array;
   aColor: Float32Array;
   aBright: Float32Array;
-  /** lateral offset across the stroke of the 7 */
+  /** lateral offset across the stroke of the mark */
   aLateral: Float32Array;
   /** depth offset for the river */
   aZ: Float32Array;
+  /** which glyph the particle belongs to: 0 = "0", 1 = "7" */
+  aGlyph: Float32Array;
 };
 
 export function buildGalaxySeven(count: number): GalaxyBuffers {
@@ -112,6 +114,7 @@ export function buildGalaxySeven(count: number): GalaxyBuffers {
   const aBright = new Float32Array(count);
   const aLateral = new Float32Array(count);
   const aZ = new Float32Array(count);
+  const aGlyph = new Float32Array(count);
 
   const { arms, armWidth, halo } = GALAXY;
 
@@ -147,6 +150,9 @@ export function buildGalaxySeven(count: number): GalaxyBuffers {
     aLateral[i] = gaussian() * (stray ? 0.34 : 0.11);
     aZ[i] = rand(-0.12, 0.12);
 
+    // the "0" loop is longer than the "7" path, so it gets a bit more matter
+    aGlyph[i] = Math.random() < 0.58 ? 0 : 1;
+
     pickColor(aColor, i3);
   }
 
@@ -164,6 +170,7 @@ export function buildGalaxySeven(count: number): GalaxyBuffers {
     aBright,
     aLateral,
     aZ,
+    aGlyph,
   };
 }
 
