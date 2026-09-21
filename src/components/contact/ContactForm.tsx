@@ -5,132 +5,120 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { cn } from "@/lib/cn";
+import type { Locale } from "@/lib/i18n/config";
+import type { Dictionary } from "@/lib/i18n/dictionaries";
 
 const schema = z.object({
-  name: z.string().min(2, "Nombre demasiado corto"),
-  email: z.string().email("Email inválido"),
+  name: z.string().min(2),
+  email: z.string().email(),
   company: z.string().optional(),
-  message: z.string().min(20, "Cuéntanos un poco más (mín. 20 caracteres)"),
+  message: z.string().min(20),
 });
 
 type FormValues = z.infer<typeof schema>;
 
-export function ContactForm() {
+export function ContactForm({
+  locale,
+  dict,
+}: {
+  locale: Locale;
+  dict: Dictionary;
+}) {
+  const t = dict.contact;
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">(
     "idle",
   );
-  const [serverMessage, setServerMessage] = useState("");
 
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<FormValues>({
-    resolver: zodResolver(schema),
-  });
+  } = useForm<FormValues>({ resolver: zodResolver(schema) });
 
   async function onSubmit(values: FormValues) {
     setStatus("loading");
-    setServerMessage("");
     try {
-      const res = await fetch("/api/contact", {
+      const response = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
+        body: JSON.stringify({ ...values, locale }),
       });
-      const data = (await res.json()) as { ok?: boolean; error?: string };
-      if (!res.ok) {
-        throw new Error(data.error ?? "Error de transmisión");
-      }
+      if (!response.ok) throw new Error("request failed");
       setStatus("success");
       reset();
-    } catch (err) {
+    } catch {
       setStatus("error");
-      setServerMessage(err instanceof Error ? err.message : "Fallo de red");
     }
   }
 
+  const fieldClass = (hasError?: boolean) =>
+    cn(
+      "mt-3 w-full border-b bg-transparent pb-3 text-[1.0625rem] text-ink outline-none transition-colors placeholder:text-ink-muted/60 focus:border-accent",
+      hasError ? "border-accent" : "border-line-strong",
+    );
+
   if (status === "success") {
     return (
-      <div className="wired-frame p-6 font-mono text-sm">
-        <p className="text-[#00ff66]">guest@layer07:~$ send --status ok</p>
-        <p className="mt-3 text-[#c8efe6]">
-          Transmisión recibida. Responderemos por el canal indicado.
+      <div className="rounded-2xl border border-line bg-surface/60 p-8">
+        <p className="eyebrow text-accent">{t.successTitle}</p>
+        <p className="mt-4 max-w-md leading-relaxed text-ink-soft">
+          {t.successBody}
         </p>
         <button
           type="button"
-          className="mt-6 cursor-pointer border border-dashed border-[#00ff66]/35 px-4 py-2 text-[11px] tracking-widest text-[#00f0ff] lowercase transition-all duration-200 hover:border-[#00f0ff] hover:bg-[#00f0ff]/10 hover:-translate-y-0.5"
           onClick={() => setStatus("idle")}
+          className="mt-8 rounded-full border border-line-strong px-5 py-3 text-[0.8125rem] text-ink transition-colors hover:bg-ink hover:text-bg"
         >
-          nueva transmisión
+          {t.again}
         </button>
       </div>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-8" noValidate>
       {(
         [
-          { name: "name", label: "Nombre", type: "text" },
-          { name: "email", label: "Email", type: "email" },
-          { name: "company", label: "Empresa (opcional)", type: "text" },
+          { name: "name", label: t.name, placeholder: t.namePlaceholder, type: "text" },
+          { name: "email", label: t.email, placeholder: t.emailPlaceholder, type: "email" },
+          { name: "company", label: t.company, placeholder: t.companyPlaceholder, type: "text" },
         ] as const
       ).map((field) => (
         <label key={field.name} className="block">
-          <span className="font-mono text-[10px] tracking-widest text-[#8fb8b0] uppercase">
-            {field.label}
-          </span>
+          <span className="eyebrow">{field.label}</span>
           <input
             type={field.type}
-            className={cn(
-              "mt-2 w-full border border-dashed bg-black/50 px-3 py-3 font-mono text-sm text-[#e8fff8] outline-none transition-colors placeholder:text-[#8fb8b0]/50 focus:border-[#7fffd4]",
-              errors[field.name] ? "border-[#ff0055]" : "border-[#00ff66]/30",
-            )}
-            placeholder={`> ${field.label.toLowerCase()}`}
+            className={fieldClass(Boolean(errors[field.name]))}
+            placeholder={field.placeholder}
             {...register(field.name)}
           />
-          {errors[field.name] ? (
-            <span className="mt-1 block font-mono text-[11px] text-[#ff0055]">
-              {errors[field.name]?.message}
-            </span>
-          ) : null}
         </label>
       ))}
 
       <label className="block">
-        <span className="font-mono text-[10px] tracking-widest text-[#8fb8b0] uppercase">
-          Mensaje
-        </span>
+        <span className="eyebrow">{t.message}</span>
         <textarea
-          rows={5}
-          className={cn(
-            "mt-2 w-full resize-y border border-dashed bg-black/50 px-3 py-3 font-mono text-sm text-[#e8fff8] outline-none transition-colors placeholder:text-[#8fb8b0]/50 focus:border-[#7fffd4]",
-            errors.message ? "border-[#ff0055]" : "border-[#00ff66]/30",
-          )}
-          placeholder="> describe el sistema, deadline e integraciones..."
+          rows={4}
+          className={cn(fieldClass(Boolean(errors.message)), "resize-y")}
+          placeholder={t.messagePlaceholder}
           {...register("message")}
         />
-        {errors.message ? (
-          <span className="mt-1 block font-mono text-[11px] text-[#ff0055]">
-            {errors.message.message}
-          </span>
-        ) : null}
       </label>
 
       {status === "error" ? (
-        <p className="font-mono text-xs text-[#ff0055]">
-          ERR: {serverMessage || "No se pudo enviar"}
-        </p>
+        <p className="text-sm text-accent">{t.error}</p>
       ) : null}
 
       <button
         type="submit"
         disabled={status === "loading"}
-        className="w-full cursor-pointer border border-dashed border-[#00ff66]/50 bg-[#00ff66]/10 px-4 py-3 font-mono text-xs tracking-[0.2em] text-[#7fffd4] lowercase transition-all duration-200 hover:bg-[#00ff66]/20 hover:-translate-y-0.5 hover:text-white active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
+        className="group inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3.5 text-[0.8125rem] font-medium text-accent-ink transition-all duration-300 hover:-translate-y-0.5 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
       >
-        {status === "loading" ? "transmitiendo..." : "enviar transmisión"}
+        {status === "loading" ? t.sending : t.submit}
+        <span aria-hidden className="transition-transform group-hover:translate-x-0.5">
+          →
+        </span>
       </button>
     </form>
   );

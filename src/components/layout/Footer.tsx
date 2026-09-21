@@ -1,88 +1,95 @@
 import Link from "next/link";
-import { NAV_LINKS, SITE, WIRED } from "@/lib/site";
+import { NAV, SITE } from "@/lib/site";
+import type { Locale } from "@/lib/i18n/config";
+import type { Dictionary } from "@/lib/i18n/dictionaries";
 
-export function Footer() {
+export function Footer({
+  locale,
+  dict,
+}: {
+  locale: Locale;
+  dict: Dictionary;
+}) {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="relative z-10 mt-auto border-t border-dashed border-[#00ff66]/25 bg-[#030b0c]">
-      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-3">
-        <div>
-          <p className="font-sans lain-glow text-lg tracking-[0.08em] text-[#e8fff8] lowercase">
-            {SITE.name}
-          </p>
-          <p className="mt-3 max-w-xs font-mono text-sm leading-relaxed text-[#8fb8b0]">
-            Nodo de ingeniería independiente. Desarrollo web, headless e-commerce
-            e integraciones API.
-          </p>
-          <p className="mt-4 font-mono text-[10px] tracking-[0.22em] text-[#7fffd4]/80">
-            a body in Santiago · a ghost in the Wired
-          </p>
-        </div>
+    <footer className="relative z-10 border-t border-line bg-bg/70 backdrop-blur-md">
+      <div className="shell py-16 md:py-24">
+        <div className="grid gap-12 md:grid-cols-[1.6fr_1fr_1fr]">
+          <div>
+            <p className="eyebrow">{SITE.name}</p>
+            <Link
+              href={`/${locale}/contact`}
+              className="display-md mt-6 inline-block max-w-md text-ink transition-colors hover:text-accent"
+            >
+              {dict.footer.tagline}
+            </Link>
+          </div>
 
-        <div>
-          <p className="mb-3 font-mono text-[10px] tracking-[0.28em] text-[#00f0ff] uppercase">
-            nodos
-          </p>
-          <ul className="space-y-2 font-mono text-sm text-[#8fb8b0]">
-            {NAV_LINKS.map((link) => (
-              <li key={link.href}>
-                <Link href={link.href} className="hover:text-[#7fffd4]">
-                  /{link.label.toLowerCase()}
-                </Link>
+          <nav aria-label={dict.footer.explore}>
+            <p className="eyebrow">{dict.footer.explore}</p>
+            <ul className="mt-6 space-y-3">
+              {NAV.map((item) => (
+                <li key={item.path}>
+                  <Link
+                    href={`/${locale}${item.path}`}
+                    className="link-line text-[0.9375rem] text-ink-soft transition-colors hover:text-ink"
+                  >
+                    {dict.nav[item.key]}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          <div>
+            <p className="eyebrow">{dict.footer.contact}</p>
+            <ul className="mt-6 space-y-3 text-[0.9375rem] text-ink-soft">
+              <li>
+                <a
+                  href={`mailto:${SITE.email}`}
+                  className="link-line transition-colors hover:text-ink"
+                >
+                  {SITE.email}
+                </a>
               </li>
-            ))}
-            <li>
-              <Link href={WIRED.href} className="hover:text-[#7fffd4]">
-                {WIRED.label}
-              </Link>
-            </li>
-          </ul>
+              <li>
+                <a
+                  href={`tel:${SITE.phone}`}
+                  className="link-line transition-colors hover:text-ink"
+                >
+                  {SITE.phoneDisplay}
+                </a>
+              </li>
+              <li>
+                <a
+                  href={SITE.social.github}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="link-line transition-colors hover:text-ink"
+                >
+                  GitHub
+                </a>
+              </li>
+              <li>
+                <a
+                  href={SITE.social.linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="link-line transition-colors hover:text-ink"
+                >
+                  LinkedIn
+                </a>
+              </li>
+            </ul>
+          </div>
         </div>
 
-        <div>
-          <p className="mb-3 font-mono text-[10px] tracking-[0.28em] text-[#00f0ff] uppercase">
-            red
-          </p>
-          <ul className="space-y-2 font-mono text-sm text-[#8fb8b0]">
-            <li>
-              <a href={`mailto:${SITE.email}`} className="hover:text-[#7fffd4]">
-                {SITE.email}
-              </a>
-            </li>
-            <li>
-              <a
-                href={SITE.social.github}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-[#7fffd4]"
-              >
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a
-                href={SITE.social.linkedin}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-[#7fffd4]"
-              >
-                LinkedIn
-              </a>
-            </li>
-            <li className="pt-2 text-[11px] tracking-widest uppercase">
-              {SITE.location}
-            </li>
-          </ul>
-        </div>
-      </div>
-
-      <div className="border-t border-dashed border-[#00ff66]/20">
-        <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-4 font-mono text-[10px] tracking-[0.22em] text-[#8fb8b0] uppercase sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <div className="mt-16 flex flex-col gap-3 border-t border-line pt-6 font-mono text-[0.6875rem] tracking-[0.16em] text-ink-muted uppercase sm:flex-row sm:items-center sm:justify-between">
           <span>
-            © {year} {SITE.name} · {SITE.founder.name}
+            © {year} {SITE.name} — {SITE.founder.name}
           </span>
-          <span className="text-[#7fffd4]/70">present day, present time.</span>
+          <span>{dict.footer.madeIn}</span>
         </div>
       </div>
     </footer>

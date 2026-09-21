@@ -11,16 +11,17 @@ export default function AppleIcon() {
           width: "100%",
           height: "100%",
           display: "flex",
-          flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          background: "#030b0c",
-          border: "4px dashed #7FFFD4",
-          color: "#7FFFD4",
+          background: "#0d0d0f",
+          color: "#f3f0ea",
+          fontSize: 88,
+          fontWeight: 700,
+          letterSpacing: -4,
         }}
       >
-        <div style={{ fontSize: 28, letterSpacing: 4, color: "#00F0FF" }}>LAYER</div>
-        <div style={{ fontSize: 64, fontWeight: 700, marginTop: 4 }}>07</div>
+        07
+        <span style={{ color: "#7a88ff" }}>.</span>
       </div>
     ),
     size,

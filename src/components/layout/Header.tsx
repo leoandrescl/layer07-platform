@@ -2,107 +2,232 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
-import { NAV_LINKS, SITE, WIRED } from "@/lib/site";
+import { useEffect, useRef, useState } from "react";
+import gsap from "gsap";
 import { cn } from "@/lib/cn";
+import { getLenis } from "@/lib/scroll";
+import { NAV, SITE } from "@/lib/site";
+import type { Locale } from "@/lib/i18n/config";
+import type { Dictionary } from "@/lib/i18n/dictionaries";
+import { Button } from "@/components/ui/Button";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { LocaleSwitcher } from "./LocaleSwitcher";
 
-export function Header() {
+export function Header({
+  locale,
+  dict,
+}: {
+  locale: Locale;
+  dict: Dictionary;
+}) {
   const pathname = usePathname();
+  const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const overlayRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    let frame = 0;
+    const onScroll = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => setScrolled(window.scrollY > 24));
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", onScroll);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    const el = overlayRef.current;
+    getLenis()?.stop();
+    document.documentElement.style.overflow = "hidden";
+
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let tween: gsap.core.Tween | undefined;
+
+    if (el && !reduced) {
+      const items = el.querySelectorAll("[data-menu-item]");
+      tween = gsap.fromTo(
+        items,
+        { yPercent: 130, opacity: 0 },
+        {
+          yPercent: 0,
+          opacity: 1,
+          duration: 0.9,
+          stagger: 0.06,
+          ease: "power4.out",
+          delay: 0.08,
+        },
+      );
+    }
+
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+
+    return () => {
+      tween?.kill();
+      window.removeEventListener("keydown", onKey);
+      getLenis()?.start();
+      document.documentElement.style.overflow = "";
+    };
+  }, [open]);
+
+  const isActive = (path: string) =>
+    pathname === `/${locale}${path}` ||
+    pathname.startsWith(`/${locale}${path}/`);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-dashed border-[#00ff66]/25 bg-[#030b0c]/80 backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
-        <div className="flex items-baseline gap-2">
+    <>
+      <header
+        className={cn(
+          "fixed inset-x-0 top-0 z-50 transition-colors duration-500",
+          scrolled && !open
+            ? "border-b border-line bg-bg/75 backdrop-blur-xl"
+            : "border-b border-transparent",
+        )}
+      >
+        <div className="shell flex h-16 items-center justify-between gap-6 md:h-20">
           <Link
-            href="/"
-            className="group"
+            href={`/${locale}`}
             onClick={() => setOpen(false)}
+            className="font-display text-[1.35rem] leading-none tracking-[-0.03em] text-ink"
           >
-            <span className="font-sans lain-glow text-lg tracking-[0.08em] text-[#e8fff8] lowercase sm:text-xl">
-              {SITE.name}
-            </span>
+            layer07<span className="text-accent">.</span>
           </Link>
-          <Link
-            href={WIRED.href}
-            className="hidden font-mono text-[10px] tracking-[0.22em] text-[#7fffd4]/70 hover:text-[#7fffd4] sm:inline"
-            onClick={() => setOpen(false)}
+
+          <nav
+            aria-label={dict.common.menu}
+            className="hidden items-center gap-7 lg:flex"
           >
-            {WIRED.label}
-          </Link>
-        </div>
-
-        <div className="hidden items-center gap-2 font-mono text-[10px] tracking-[0.22em] text-[#8fb8b0] md:flex">
-          <span className="inline-flex size-1.5 animate-pulse-online rounded-full bg-[#00ff66]" />
-          <span className="text-[#7fffd4]">present</span>
-          <span className="text-[#00ff66]/30">·</span>
-          <span>SCL</span>
-        </div>
-
-        <nav className="hidden items-center gap-1 lg:flex" aria-label="Principal">
-          {NAV_LINKS.map((link) => {
-            const active =
-              link.href === "/"
-                ? pathname === "/"
-                : pathname.startsWith(link.href);
-            return (
+            {NAV.map((item, index) => (
               <Link
-                key={link.href}
-                href={link.href}
+                key={item.path}
+                href={`/${locale}${item.path}`}
                 className={cn(
-                  "px-3 py-2 font-mono text-[11px] tracking-[0.16em] lowercase transition-colors",
-                  active
-                    ? "text-[#7fffd4] text-glow-neon"
-                    : "text-[#8fb8b0] hover:text-white",
+                  "inline-flex items-baseline gap-1.5 font-mono text-[0.6875rem] tracking-[0.18em] uppercase transition-colors",
+                  isActive(item.path)
+                    ? "text-ink"
+                    : "text-ink-muted hover:text-ink",
                 )}
               >
-                {link.label}
+                <span className="text-[0.5625rem] text-ink-muted/70">
+                  0{index + 1}
+                </span>
+                {dict.nav[item.key]}
               </Link>
-            );
-          })}
-        </nav>
+            ))}
+          </nav>
 
-        <button
-          type="button"
-          className="cursor-pointer border border-dashed border-[#00ff66]/35 px-3 py-2 font-mono text-[10px] tracking-widest text-[#8fb8b0] uppercase transition-all duration-200 hover:border-[#7fffd4]/60 hover:bg-[#00ff66]/10 hover:text-[#7fffd4] lg:hidden"
-          aria-expanded={open}
-          aria-controls="mobile-nav"
-          onClick={() => setOpen((v) => !v)}
-        >
-          {open ? "close" : "menu"}
-        </button>
-      </div>
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:block">
+              <LocaleSwitcher current={locale} label={dict.common.language} />
+            </div>
+            <ThemeToggle label={dict.common.theme} />
+            <Button
+              href={`/${locale}/contact`}
+              variant="solid"
+              className="hidden md:inline-flex"
+            >
+              {dict.common.startProject}
+            </Button>
+            <button
+              type="button"
+              onClick={() => setOpen((value) => !value)}
+              aria-expanded={open}
+              aria-controls="site-menu"
+              className="inline-flex h-9 items-center rounded-full border border-line px-3 font-mono text-[0.6875rem] tracking-[0.16em] text-ink uppercase transition-colors hover:border-line-strong lg:hidden"
+            >
+              {open ? dict.common.close : dict.common.menu}
+            </button>
+          </div>
+        </div>
+      </header>
 
       {open ? (
         <div
-          id="mobile-nav"
-          className="border-t border-dashed border-[#00ff66]/25 bg-black/70 lg:hidden"
+          id="site-menu"
+          ref={overlayRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label={dict.common.menu}
+          className="fixed inset-0 z-[60] flex flex-col bg-bg"
         >
-          <nav className="mx-auto flex max-w-6xl flex-col px-4 py-3 sm:px-6" aria-label="Móvil">
-            <div className="mb-2 flex items-center gap-2 font-mono text-[10px] tracking-[0.22em] text-[#7fffd4]">
-              <span className="inline-flex size-1.5 animate-pulse-online rounded-full bg-[#00ff66]" />
-              present day, present time.
-            </div>
-            {NAV_LINKS.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="border-b border-dashed border-[#00ff66]/15 py-3 font-mono text-sm tracking-wide text-[#c8efe6] hover:text-[#7fffd4]"
-                onClick={() => setOpen(false)}
-              >
-                <span className="text-[#00ff66]">&gt;</span> {link.label.toLowerCase()}
-              </Link>
-            ))}
+          <div className="shell flex h-16 items-center justify-between md:h-20">
             <Link
-              href={WIRED.href}
-              className="border-b border-dashed border-[#00ff66]/15 py-3 font-mono text-sm tracking-wide text-[#7fffd4] hover:text-white"
+              href={`/${locale}`}
               onClick={() => setOpen(false)}
+              className="font-display text-[1.35rem] leading-none tracking-[-0.03em] text-ink"
             >
-              <span className="text-[#00ff66]">&gt;</span> {WIRED.invite}
+              layer07<span className="text-accent">.</span>
             </Link>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="inline-flex h-9 items-center rounded-full border border-line px-3 font-mono text-[0.6875rem] tracking-[0.16em] text-ink uppercase transition-colors hover:border-line-strong"
+            >
+              {dict.common.close}
+            </button>
+          </div>
+
+          <nav className="shell flex flex-1 flex-col justify-center gap-1 py-8">
+            {NAV.map((item, index) => (
+              <div key={item.path} className="overflow-hidden">
+                <Link
+                  data-menu-item
+                  href={`/${locale}${item.path}`}
+                  onClick={() => setOpen(false)}
+                  className="group flex items-baseline gap-4 py-1.5 text-ink transition-colors hover:text-accent"
+                >
+                  <span className="font-mono text-xs text-ink-muted">
+                    0{index + 1}
+                  </span>
+                  <span className="font-display text-[clamp(2.5rem,9vw,5rem)] leading-[1.02] tracking-[-0.03em]">
+                    {dict.nav[item.key]}
+                  </span>
+                </Link>
+              </div>
+            ))}
           </nav>
+
+          <div className="shell flex flex-col gap-4 border-t border-line py-6 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-1">
+              <a
+                href={`mailto:${SITE.email}`}
+                className="link-line font-mono text-xs tracking-[0.08em] text-ink"
+              >
+                {SITE.email}
+              </a>
+              <span className="font-mono text-[0.6875rem] tracking-[0.14em] text-ink-muted uppercase">
+                {SITE.location}
+              </span>
+            </div>
+            <div className="flex items-center gap-5">
+              <LocaleSwitcher current={locale} label={dict.common.language} />
+              <a
+                href={SITE.social.github}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-mono text-[0.6875rem] tracking-[0.16em] text-ink-muted uppercase transition-colors hover:text-ink"
+              >
+                GitHub
+              </a>
+              <a
+                href={SITE.social.linkedin}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-mono text-[0.6875rem] tracking-[0.16em] text-ink-muted uppercase transition-colors hover:text-ink"
+              >
+                LinkedIn
+              </a>
+            </div>
+          </div>
         </div>
       ) : null}
-    </header>
+    </>
   );
 }

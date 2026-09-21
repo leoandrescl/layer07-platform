@@ -1,10 +1,9 @@
+import type { Locale } from "@/lib/i18n/config";
+
 export const SITE = {
   name: "layer07",
   domain: "layer07.cl",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://layer07.cl",
-  tagline: "Full Stack Engineering & High-Performance E-commerce",
-  description:
-    "Ingeniería de software a medida, headless e-commerce e integraciones API. Next.js, TypeScript y arquitecturas resilientes.",
   locale: "es_CL",
   location: "Santiago, Chile",
   email: "leoandrescl@gmail.com",
@@ -12,47 +11,47 @@ export const SITE = {
   phoneDisplay: "+56 9 4554 1859",
   whatsapp: "56945541859",
   social: {
-    github: process.env.NEXT_PUBLIC_GITHUB_URL ?? "https://github.com/leoandrescl",
+    github:
+      process.env.NEXT_PUBLIC_GITHUB_URL ?? "https://github.com/leoandrescl",
     linkedin:
       process.env.NEXT_PUBLIC_LINKEDIN_URL ?? "https://www.linkedin.com/",
   },
   founder: {
     name: "Leonardo Contreras",
-    role: "Lead Engineer / Product Engineer",
     years: "8+",
     stack: [
       "Next.js",
+      "React",
       "TypeScript",
-      "GraphQL",
       "PHP",
-      "SQL",
-      "Shopify",
+      "WordPress",
       "WooCommerce",
-      "AWS Lightsail",
-      "DigitalOcean",
+      "Shopify",
+      "APIs",
+      "PostgreSQL",
+      "AWS",
     ],
   },
 } as const;
 
-export const NAV_LINKS = [
-  { href: "/", label: "Inicio" },
-  { href: "/servicios", label: "Servicios" },
-  { href: "/nosotros", label: "Nosotros" },
-  { href: "/portafolio", label: "Portafolio" },
-  { href: "/contacto", label: "Contacto" },
-] as const;
+export type NavKey = "work" | "services" | "about" | "agency" | "contact";
 
-/** Firma inmersiva — no es un lab. */
-export const WIRED = {
-  href: "/seven",
-  name: "SEVEN",
-  label: "the Wired",
-  invite: "enter the Wired",
-} as const;
+export const NAV: { key: NavKey; path: string }[] = [
+  { key: "work", path: "/work" },
+  { key: "services", path: "/services" },
+  { key: "about", path: "/about" },
+  { key: "agency", path: "/agency" },
+  { key: "contact", path: "/contact" },
+];
+
+export function localizedHref(locale: Locale, path: string) {
+  const clean = path === "/" ? "" : path;
+  return `/${locale}${clean}`;
+}
 
 export function whatsappUrl(message?: string) {
   const text =
     message ??
-    "Hola layer07 — quiero iniciar una conexión sobre un proyecto de desarrollo.";
+    "Hola layer07 — quiero conversar sobre un proyecto de producto digital.";
   return `https://wa.me/${SITE.whatsapp}?text=${encodeURIComponent(text)}`;
 }

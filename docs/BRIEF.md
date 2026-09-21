@@ -4,64 +4,114 @@ Fuente de verdad para diseño, negocio y arquitectura. No re-pegar este document
 
 ## Stack
 
-- Next.js (App Router) + TypeScript + Tailwind CSS v4
-- Contenido en archivos (`src/lib/data/content.ts`) — sin CMS
-- Resend (formulario de contacto por API)
-
-## Negocio (estricto)
-
-Enfoque 100%: Desarrollo Web, Headless E-commerce, Sistemas a medida, Integraciones API.
-
-**Prohibido** como oferta: Marketing Digital, SEO orgánico como servicio, Ads, gestión de RRSS.
+- Next.js 16 (App Router, Turbopack) + React 19 + TypeScript
+- Tailwind CSS v4 (tokens en `src/app/globals.css`)
+- Three.js (WebGL) + GSAP (animación y ScrollTrigger) + Lenis (smooth scroll)
+- Resend + Zod + React Hook Form (formulario de contacto)
+- Contenido en archivos (`src/lib/content/*`) — sin CMS
 
 ## Marca & perfil
 
-- **Producto:** layer07.cl — Leonardo Contreras, Senior Full Stack / Product Engineer
-- **Experiencia:** 8+ años end-to-end
-- **Stack liderazgo:** Next.js, TypeScript, GraphQL, Shopify (Liquid/Storefront API), WooCommerce a medida, AWS Lightsail, DigitalOcean
+- **Producto:** layer07.cl — estudio de producto digital de Leonardo Contreras
+- **Perfil:** Senior Full Stack / Product Engineer, 8+ años end-to-end
+- **Stack de referencia:** Next.js, React, TypeScript, PHP, WordPress/WooCommerce,
+  Shopify, APIs, bases de datos, infraestructura cloud
+- **Público:** pymes y negocios locales, emprendedores, artistas y marcas
+  personales, empresas con sistemas a medida y agencias (white-label)
+
+## Posicionamiento
+
+El sitio debe comunicar **"este estudio puede construir algo así para mi
+negocio"** y, a la vez, **"puede ejecutar proyectos técnicos complejos"**.
+No es un portfolio de tecnologías: es un estudio de producto.
 
 ## Estética
 
-Cyberpunk retro-futurista / Serial Experiments Lain / Terminal CLI. Distópico pero legible y profesional.
+**Editorial design + premium digital studio + WebGL + product engineering.**
 
-| Token | Valor |
-| --- | --- |
-| bg | `#050505` / surface `#0a0a0c` |
-| neon | `#00FF66` / `#00FF41` |
-| cyan | `#00F0FF` |
-| magenta | `#FF0055` |
-| text | `#FFFFFF` / `#E2E8F0` |
+- Tipografía grande, composición asimétrica, mucho aire, jerarquía estricta.
+- Paleta muy controlada con un único acento (azul cobalto / señal).
+- WebGL como **materia digital viva**: reacciona a cursor y scroll y evoluciona
+  por sección. Nunca por encima del contenido; el sitio funciona sin él.
+- Prohibido: Matrix/cyberpunk, terminales, dashboards falsos, mundos 3D,
+  naves espaciales, exceso de partículas, efectos sobre el contenido.
 
-UI: glitch sutil en hover, bordes glow, mono (Geist Mono), `bg-grid`, scanline/typing. Preferir CSS/GPU; LCP &lt; 1s.
+### Temas
+
+Dos temas con un mismo sistema de variables. Editorial Light por defecto y
+Dark Premium con toggle global persistido en `localStorage`. El WebGL lee los
+tokens en runtime y se adapta al tema.
+
+| Token | Light | Dark |
+| --- | --- | --- |
+| bg | `#f3f0ea` | `#0a0a0c` |
+| surface | `#ece8e0` | `#151519` |
+| ink | `#0d0d0f` | `#f2efe9` |
+| ink-muted | `#6e6e76` | `#8a8a92` |
+| line | `rgba(13,13,15,.14)` | `rgba(242,239,233,.14)` |
+| accent | `#1b2cff` | `#7a88ff` |
+
+Tipografía: **Fraunces** (display serif editorial), **Inter** (texto/UI),
+**Geist Mono** (etiquetas técnicas). Cargadas con `next/font/google`.
 
 ## Rutas
 
-1. `/` — Inicio  
-2. `/servicios`  
-3. `/nosotros`  
-4. `/portafolio`  
-5. `/portafolio/[slug]`  
-6. `/contacto`  
+Todas las páginas viven bajo `src/app/[lang]/` (`es` | `en`).
 
-Layout global: Header (status ONLINE), Footer, WhatsApp flotante (+56945541859), SEO/OG.
+1. `/[lang]` — Home (Hero, Work, Capabilities, Services, About, Agency, Contact)
+2. `/[lang]/work` — Índice con filtros por categoría
+3. `/[lang]/work/[slug]` — Caso de estudio (problema, construcción, interacción)
+4. `/[lang]/services`
+5. `/[lang]/about`
+6. `/[lang]/agency` — Agencias / white-label
+7. `/[lang]/contact`
 
-## Contacto
+### i18n
 
-- Email: leoandrescl@gmail.com  
-- Tel/WhatsApp: +56945541859  
-- Ubicación: Santiago, Chile  
-- Redes: GitHub, LinkedIn (vía env)
+- `src/proxy.ts` detecta idioma (cookie `l07-locale` → `Accept-Language` →
+  `es`), redirige a `/[lang]/...` y aplica los redirects legacy.
+- Diccionarios tipados en `src/lib/i18n/es.ts` y `en.ts`.
+- `src/lib/i18n/dictionaries.ts` expone `getDictionary(locale)`.
+
+### Redirects legacy (308)
+
+`/portafolio[/:slug]` → `/work[/:slug]` · `/servicios` → `/services` ·
+`/nosotros` → `/about` · `/contacto` → `/contact` · `/seven`, `/neo`, `/labs`,
+`/s/*`, `/particle-genesis`, `/particles-galaxy` → home.
 
 ## Contenido
 
-Editar proyectos, logos y testimonios en `src/lib/data/content.ts`.
+- `src/lib/content/projects.ts` — 7 proyectos reales, bilingües y tipados.
+- `src/lib/content/offerings.ts` — 4 líneas de servicio.
+- Copy de UI en los diccionarios.
 
-## Resend
+## WebGL
 
-1. Crea API key en Resend.
-2. Define `RESEND_API_KEY` y `RESEND_FROM` en `.env.local`.
-3. Sin key, `/api/contact` responde en dry-run (útil en local).
+`src/components/webgl/MaterialField.tsx` — capa fija a pantalla completa.
 
-## Social
+- Shader de materia (domain warping + FBM) con iluminación y grano.
+- Reactiva a cursor (`uMouse`), scroll (`uScroll`, `uVelocity`), tema (`uTheme`)
+  y a la "mood" de cada sección (`[data-field]` + IntersectionObserver).
+- Degradación por tiers (`src/lib/webgl/capability.ts`): tier 0 usa un fallback
+  CSS estático (sin WebGL, `prefers-reduced-motion` o baja capacidad); tier 1
+  baja resolución/30fps; tier 2 resolución y 60fps.
+- Se pausa con `document.hidden` y ante pérdida de contexto.
 
-Define `NEXT_PUBLIC_GITHUB_URL` y `NEXT_PUBLIC_LINKEDIN_URL` en `.env.local`.
+## Contacto
+
+- Email: leoandrescl@gmail.com
+- Tel/WhatsApp: +56945541859
+- Ubicación: Santiago, Chile
+- Redes: GitHub, LinkedIn (vía env)
+- `/api/contact` con Resend; sin `RESEND_API_KEY` responde en dry-run.
+
+## Variables de entorno
+
+- `RESEND_API_KEY` / `RESEND_FROM` — envío real del formulario
+- `NEXT_PUBLIC_GITHUB_URL` / `NEXT_PUBLIC_LINKEDIN_URL` — redes
+- `NEXT_PUBLIC_SITE_URL` — URL canónica (sitemap / OG / JSON-LD)
+
+## Legacy
+
+La estética cyberpunk anterior vive en `archive/layer07-matrix/` (fuera del
+build y del lint) y no se sirve en ninguna ruta.

@@ -1,33 +1,25 @@
 import { cn } from "@/lib/cn";
 
-type SectionHeadingProps = {
-  eyebrow?: string;
-  title: string;
-  description?: string;
-  className?: string;
-};
-
 export function SectionHeading({
   eyebrow,
   title,
-  description,
+  intro,
   className,
-}: SectionHeadingProps) {
+  titleClassName,
+}: {
+  eyebrow?: string;
+  title: React.ReactNode;
+  intro?: string;
+  className?: string;
+  titleClassName?: string;
+}) {
   return (
-    <div className={cn("max-w-3xl", className)}>
-      {eyebrow ? (
-        <p className="mb-3 font-mono text-[11px] tracking-[0.28em] text-[#7fffd4] lowercase">
-          {eyebrow}
-        </p>
-      ) : null}
-      <h2 className="font-sans text-2xl font-normal tracking-[0.06em] text-[#e8fff8] lowercase sm:text-3xl">
+    <div className={cn("flex flex-col gap-5", className)}>
+      {eyebrow ? <p className="eyebrow">{eyebrow}</p> : null}
+      <h2 className={cn("display-lg max-w-4xl text-ink", titleClassName)}>
         {title}
       </h2>
-      {description ? (
-        <p className="mt-4 max-w-2xl font-mono text-sm leading-relaxed text-[#8fb8b0] sm:text-base">
-          {description}
-        </p>
-      ) : null}
+      {intro ? <p className="lede max-w-2xl">{intro}</p> : null}
     </div>
   );
 }
