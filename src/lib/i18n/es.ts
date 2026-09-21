@@ -48,6 +48,10 @@ export const es = {
         "Integraciones API",
         "Experiencias WebGL",
       ],
+      hint: "Mueve el cursor · haz clic",
+      manifesto:
+        "Construimos materia digital que un negocio puede operar.",
+      acts: ["Materia", "Tacto", "Fractura", "Estructura", "Umbral"],
     },
     work: {
       eyebrow: "Trabajo seleccionado",

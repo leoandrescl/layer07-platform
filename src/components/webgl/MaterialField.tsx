@@ -12,6 +12,7 @@ import {
   WebGLRenderer,
 } from "three";
 import { detectCapability } from "@/lib/webgl/capability";
+import { isHeroActive, subscribeHeroActive } from "@/lib/hero-state";
 import { MATERIAL_FRAG, MATERIAL_VERT } from "./material-shader";
 
 function readVar(name: string, fallback: string) {
@@ -34,6 +35,7 @@ function lerpColor(target: Color, to: Color, t: number) {
 export function MaterialField() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fallbackRef = useRef<HTMLDivElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -41,6 +43,17 @@ export function MaterialField() {
 
     const cap = detectCapability();
     if (cap.tier === 0) return;
+
+    let heroActive = isHeroActive();
+    if (wrapperRef.current) {
+      wrapperRef.current.style.opacity = heroActive ? "0" : "1";
+    }
+    const unsubscribeHero = subscribeHeroActive((active) => {
+      heroActive = active;
+      if (wrapperRef.current) {
+        wrapperRef.current.style.opacity = active ? "0" : "1";
+      }
+    });
 
     let renderer: WebGLRenderer;
     try {
@@ -167,7 +180,7 @@ export function MaterialField() {
 
     const tick = (now: number) => {
       raf = requestAnimationFrame(tick);
-      if (!alive) return;
+      if (!alive || heroActive) return;
       if (now - lastFrame < frameInterval - 1) return;
 
       const elapsed = now - last;
@@ -248,6 +261,7 @@ export function MaterialField() {
     return () => {
       alive = false;
       cancelAnimationFrame(raf);
+      unsubscribeHero();
       window.removeEventListener("resize", resize);
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerdown", onPointerDown);
@@ -263,8 +277,9 @@ export function MaterialField() {
 
   return (
     <div
+      ref={wrapperRef}
       aria-hidden
-      className="pointer-events-none fixed inset-0 z-0 overflow-hidden bg-bg"
+      className="pointer-events-none fixed inset-0 z-0 overflow-hidden bg-bg transition-opacity duration-700"
     >
       <div
         ref={fallbackRef}

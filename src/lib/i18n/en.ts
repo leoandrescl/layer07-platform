@@ -50,6 +50,9 @@ export const en: Dictionary = {
         "API integrations",
         "WebGL experiences",
       ],
+      hint: "Move the cursor · click",
+      manifesto: "We build digital matter a business can run.",
+      acts: ["Matter", "Touch", "Fracture", "Structure", "Threshold"],
     },
     work: {
       eyebrow: "Selected work",

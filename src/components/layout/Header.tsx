@@ -85,7 +85,7 @@ export function Header({
     <>
       <header
         className={cn(
-          "fixed inset-x-0 top-0 z-50 transition-colors duration-500",
+          "site-header fixed inset-x-0 top-0 z-50 transition-colors duration-500",
           scrolled && !open
             ? "border-b border-line bg-bg/75 backdrop-blur-xl"
             : "border-b border-transparent",
