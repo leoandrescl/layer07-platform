@@ -275,6 +275,47 @@ export function L07ParticleHero() {
     };
     resize();
 
+    // ---- drag to rotate (hold left mouse button) ----
+    const rot = { yaw: 0, yawTarget: 0, tiltOffset: 0, tiltTarget: 0 };
+    let dragging = false;
+    let lastX = 0;
+    let lastY = 0;
+    const DRAG_SENSITIVITY = 1.6;
+    const DAMPING = 0.05;
+    const DRAG_DAMPING = 0.24;
+    const MAX_TILT = 0.85;
+
+    const canStartDrag = (target: EventTarget | null) =>
+      target instanceof Element
+        ? !target.closest("a, button, input, textarea, select")
+        : true;
+
+    const onDragDown = (event: PointerEvent) => {
+      if (event.pointerType === "touch") return;
+      if (event.button !== 0) return;
+      if (!canStartDrag(event.target)) return;
+      dragging = true;
+      lastX = event.clientX;
+      lastY = event.clientY;
+      canvas.style.cursor = "grabbing";
+    };
+    const onDragMove = (event: PointerEvent) => {
+      if (!dragging) return;
+      const dx = (event.clientX - lastX) / window.innerWidth;
+      const dy = (event.clientY - lastY) / window.innerHeight;
+      rot.yawTarget += dx * Math.PI * DRAG_SENSITIVITY;
+      rot.tiltTarget = Math.max(
+        -MAX_TILT,
+        Math.min(MAX_TILT, rot.tiltTarget + dy * Math.PI * DRAG_SENSITIVITY),
+      );
+      lastX = event.clientX;
+      lastY = event.clientY;
+    };
+    const onDragUp = () => {
+      dragging = false;
+      canvas.style.cursor = "";
+    };
+
     let alive = true;
     let raf = 0;
     let elapsed = 0;
@@ -294,6 +335,16 @@ export function L07ParticleHero() {
       uniforms.uForm.value = reduced ? 1 : smoothstep(0.3, 1.35, elapsed);
       uniforms.uSpin.value = reduced ? 0 : GALAXY.spin;
       starUniforms.uReveal.value = smoothstep(0, 0.7, elapsed);
+
+      // Drag to rotate the disc.
+      const damp = Math.min(
+        1,
+        (dragging ? DRAG_DAMPING : DAMPING) + dt * 3,
+      );
+      rot.yaw += (rot.yawTarget - rot.yaw) * damp;
+      rot.tiltOffset += (rot.tiltTarget - rot.tiltOffset) * damp;
+      pivot.rotation.y = rot.yaw;
+      tiltGroup.rotation.x = 0.5 + rot.tiltOffset;
 
       // Scroll morphs the galaxy into the 7.
       const scrollable = Math.max(1, root.offsetHeight - window.innerHeight);
@@ -327,6 +378,10 @@ export function L07ParticleHero() {
     resizeObserver.observe(stage);
     document.addEventListener("visibilitychange", onVisibility);
     canvas.addEventListener("webglcontextlost", onContextLost);
+    window.addEventListener("pointerdown", onDragDown);
+    window.addEventListener("pointermove", onDragMove);
+    window.addEventListener("pointerup", onDragUp);
+    window.addEventListener("pointercancel", onDragUp);
 
     return () => {
       alive = false;
@@ -334,6 +389,10 @@ export function L07ParticleHero() {
       resizeObserver.disconnect();
       document.removeEventListener("visibilitychange", onVisibility);
       canvas.removeEventListener("webglcontextlost", onContextLost);
+      window.removeEventListener("pointerdown", onDragDown);
+      window.removeEventListener("pointermove", onDragMove);
+      window.removeEventListener("pointerup", onDragUp);
+      window.removeEventListener("pointercancel", onDragUp);
       geometry.dispose();
       starGeometry.dispose();
       material.dispose();
@@ -354,7 +413,7 @@ export function L07ParticleHero() {
         <canvas
           ref={canvasRef}
           aria-hidden
-          className="absolute inset-0 h-full w-full opacity-0 transition-opacity duration-1000"
+          className="absolute inset-0 h-full w-full cursor-grab opacity-0 transition-opacity duration-1000"
         />
       </div>
     </section>
