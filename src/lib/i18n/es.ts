@@ -48,7 +48,7 @@ export const es = {
         "Integraciones API",
         "Experiencias WebGL",
       ],
-      hint: "Mueve el cursor · haz clic",
+      hint: "Desliza",
     },
     work: {
       eyebrow: "Trabajo seleccionado",

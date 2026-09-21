@@ -50,7 +50,7 @@ export const en: Dictionary = {
         "API integrations",
         "WebGL experiences",
       ],
-      hint: "Move the cursor · click",
+      hint: "Scroll",
     },
     work: {
       eyebrow: "Selected work",

@@ -2,26 +2,32 @@
 
 import { useEffect, useRef } from "react";
 import {
-  ACESFilmicToneMapping,
   AdditiveBlending,
+  BufferAttribute,
   BufferGeometry,
-  Float32BufferAttribute,
+  Color,
+  Group,
+  HalfFloatType,
+  NoToneMapping,
   PerspectiveCamera,
   Points,
   Scene,
   ShaderMaterial,
   SRGBColorSpace,
+  Uniform,
   Vector2,
   WebGLRenderer,
 } from "three";
 import {
   BlendFunction,
   BloomEffect,
+  ChromaticAberrationEffect,
+  Effect,
   EffectComposer,
   EffectPass,
-  NoiseEffect,
   RenderPass,
-  VignetteEffect,
+  ToneMappingEffect,
+  ToneMappingMode,
 } from "postprocessing";
 import gsap from "gsap";
 import { Button } from "@/components/ui/Button";
@@ -30,21 +36,34 @@ import { setHeroActive } from "@/lib/hero-state";
 import { SITE } from "@/lib/site";
 import type { Locale } from "@/lib/i18n/config";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
-import { WORD_WIDTH } from "./glyphs";
-import { ARMS, buildFormation, buildStarfield } from "./particles";
-import { FORMATION_VERT, POINT_FRAG, STARFIELD_VERT } from "./hero-shaders";
+import { GALAXY, buildGalaxySeven, buildStarfield } from "./particles";
+import { GALAXY_VERT, POINT_FRAG, STARFIELD_VERT, streakFragment } from "./hero-shaders";
 
-function clamp01(value: number) {
-  return Math.min(1, Math.max(0, value));
-}
-
-function lerp(a: number, b: number, t: number) {
-  return a + (b - a) * t;
+function clamp(value: number, min = 0, max = 1) {
+  return value < min ? min : value > max ? max : value;
 }
 
 function smoothstep(edge0: number, edge1: number, x: number) {
-  const t = clamp01((x - edge0) / (edge1 - edge0 || 1));
+  const t = clamp((x - edge0) / (edge1 - edge0 || 1));
   return t * t * (3 - 2 * t);
+}
+
+class StreakEffect extends Effect {
+  constructor(samples: number) {
+    const tint = new Color("#9fe3ff");
+    super("StreakEffect", streakFragment(samples), {
+      blendFunction: BlendFunction.NORMAL,
+      uniforms: new Map<string, Uniform>([
+        ["uStrength", new Uniform(0.6)],
+        ["uThreshold", new Uniform(0.5)],
+        ["uTintR", new Uniform(tint.r)],
+        ["uTintG", new Uniform(tint.g)],
+        ["uTintB", new Uniform(tint.b)],
+        ["uVignette", new Uniform(0.55)],
+        ["uGrain", new Uniform(0.03)],
+      ]),
+    });
+  }
 }
 
 export function L07ParticleHero({
@@ -55,7 +74,6 @@ export function L07ParticleHero({
   dict: Dictionary;
 }) {
   const rootRef = useRef<HTMLElement | null>(null);
-  const stageRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const fallbackRef = useRef<HTMLDivElement | null>(null);
 
@@ -84,9 +102,8 @@ export function L07ParticleHero({
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    const stage = stageRef.current;
     const root = rootRef.current;
-    if (!canvas || !stage || !root) return;
+    if (!canvas || !root) return;
 
     const cap = detectCapability();
     root.dataset.tier = String(cap.tier);
@@ -98,8 +115,10 @@ export function L07ParticleHero({
     try {
       renderer = new WebGLRenderer({
         canvas,
+        alpha: false,
         antialias: false,
-        alpha: true,
+        depth: false,
+        stencil: false,
         powerPreference: "high-performance",
       });
     } catch {
@@ -107,209 +126,157 @@ export function L07ParticleHero({
       return;
     }
 
-    const ratio = Math.min(cap.dpr * cap.resolutionScale, cap.tier === 2 ? 1.5 : 1.15);
-    renderer.setPixelRatio(ratio);
-    renderer.toneMapping = ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.05;
+    const maxDpr = cap.tier === 2 ? 2 : 1.25;
     renderer.outputColorSpace = SRGBColorSpace;
-    renderer.setClearAlpha(0);
+    renderer.toneMapping = NoToneMapping;
+    renderer.setClearColor(0x000000, 1);
 
     const scene = new Scene();
-    const camera = new PerspectiveCamera(45, 1, 0.1, 100);
-    camera.position.set(0, 0, 6);
+    const camera = new PerspectiveCamera(42, 1, 0.1, 120);
+    camera.position.set(0, 0, 9);
 
-    const shared = {
-      uTime: { value: 0 },
-      uIntro: { value: 0 },
-      uReveal: { value: 0 },
-      uFovScale: { value: 1 },
-      uPointer: { value: new Vector2(999, 999) },
-      uPointerStrength: { value: 0 },
+    const count = cap.tier === 2 ? 14000 : 7000;
+    const buffers = buildGalaxySeven(count);
+    const geometry = new BufferGeometry();
+    geometry.setAttribute("position", new BufferAttribute(buffers.position, 3));
+    geometry.setAttribute("aTarget", new BufferAttribute(buffers.aTarget, 3));
+    geometry.setAttribute("aPhase", new BufferAttribute(buffers.aPhase, 1));
+    geometry.setAttribute("aSpeed", new BufferAttribute(buffers.aSpeed, 1));
+    geometry.setAttribute("aArm", new BufferAttribute(buffers.aArm, 1));
+    geometry.setAttribute("aSpread", new BufferAttribute(buffers.aSpread, 1));
+    geometry.setAttribute("aHeight", new BufferAttribute(buffers.aHeight, 1));
+    geometry.setAttribute("aSeed", new BufferAttribute(buffers.aSeed, 1));
+    geometry.setAttribute("aSize", new BufferAttribute(buffers.aSize, 1));
+    geometry.setAttribute("aColor", new BufferAttribute(buffers.aColor, 3));
+    geometry.setAttribute("aBright", new BufferAttribute(buffers.aBright, 1));
+
+    const coreColor = new Color("#ffd7a8");
+    const uniforms = {
+      uTime: new Uniform(0),
+      uIntro: new Uniform(0),
+      uArms: new Uniform(GALAXY.arms),
+      uCoreRadius: new Uniform(GALAXY.coreRadius),
+      uOuterRadius: new Uniform(GALAXY.outerRadius),
+      uTwist: new Uniform(GALAXY.twist),
+      uRadialCurve: new Uniform(GALAXY.radialCurve),
+      uThickness: new Uniform(GALAXY.thickness),
+      uSpin: new Uniform<number>(GALAXY.spin),
+      uFlowSpeed: new Uniform(GALAXY.flowSpeed),
+      uFovScale: new Uniform(1000),
+      uSizeScale: new Uniform(1),
+      uCoreColor: new Uniform(coreColor),
     };
 
-    const formationCount = cap.tier === 2 ? 28000 : 11000;
-    const starfieldCount = cap.tier === 2 ? 18000 : 7000;
-
-    const formation = buildFormation(formationCount);
-    const formationGeometry = new BufferGeometry();
-    formationGeometry.setAttribute(
-      "position",
-      new Float32BufferAttribute(formation.position, 3),
-    );
-    formationGeometry.setAttribute(
-      "aTarget",
-      new Float32BufferAttribute(formation.aTarget, 3),
-    );
-    formationGeometry.setAttribute(
-      "aPhase",
-      new Float32BufferAttribute(formation.aPhase, 1),
-    );
-    formationGeometry.setAttribute(
-      "aSpeed",
-      new Float32BufferAttribute(formation.aSpeed, 1),
-    );
-    formationGeometry.setAttribute(
-      "aSize",
-      new Float32BufferAttribute(formation.aSize, 1),
-    );
-    formationGeometry.setAttribute(
-      "aBright",
-      new Float32BufferAttribute(formation.aBright, 1),
-    );
-    formationGeometry.setAttribute(
-      "aSeed",
-      new Float32BufferAttribute(formation.aSeed, 1),
-    );
-    formationGeometry.setAttribute(
-      "aColor",
-      new Float32BufferAttribute(formation.aColor, 3),
-    );
-    formationGeometry.setAttribute(
-      "aRadius0",
-      new Float32BufferAttribute(formation.aRadius0, 1),
-    );
-    formationGeometry.setAttribute(
-      "aArm",
-      new Float32BufferAttribute(formation.aArm, 1),
-    );
-    formationGeometry.setAttribute(
-      "aSpread",
-      new Float32BufferAttribute(formation.aSpread, 1),
-    );
-    formationGeometry.setAttribute(
-      "aDepth",
-      new Float32BufferAttribute(formation.aDepth, 1),
-    );
-
-    const formationMaterial = new ShaderMaterial({
-      vertexShader: FORMATION_VERT,
+    const material = new ShaderMaterial({
+      uniforms,
+      vertexShader: GALAXY_VERT,
       fragmentShader: POINT_FRAG,
-      uniforms: {
-        ...shared,
-        uFlow: { value: 0.06 },
-        uTwist: { value: 1.7 },
-        uSpin: { value: 0.06 },
-        uArms: { value: ARMS },
-        uTurb: { value: cap.tier === 2 ? 0.42 : 0.3 },
-      },
       transparent: true,
+      blending: AdditiveBlending,
       depthTest: false,
       depthWrite: false,
-      blending: AdditiveBlending,
     });
 
-    const formationPoints = new Points(formationGeometry, formationMaterial);
-    formationPoints.frustumCulled = false;
-    scene.add(formationPoints);
+    const points = new Points(geometry, material);
+    points.frustumCulled = false;
 
-    const starfield = buildStarfield(starfieldCount);
-    const starfieldGeometry = new BufferGeometry();
-    starfieldGeometry.setAttribute(
+    const tiltGroup = new Group();
+    tiltGroup.rotation.x = 0.5;
+    tiltGroup.add(points);
+    const pivot = new Group();
+    pivot.add(tiltGroup);
+    scene.add(pivot);
+
+    const starCount = cap.tier === 2 ? 2500 : 1200;
+    const starBuffers = buildStarfield(starCount);
+    const starGeometry = new BufferGeometry();
+    starGeometry.setAttribute(
       "position",
-      new Float32BufferAttribute(starfield.position, 3),
+      new BufferAttribute(starBuffers.position, 3),
     );
-    starfieldGeometry.setAttribute(
-      "aBase",
-      new Float32BufferAttribute(starfield.aBase, 3),
-    );
-    starfieldGeometry.setAttribute(
-      "aSize",
-      new Float32BufferAttribute(starfield.aSize, 1),
-    );
-    starfieldGeometry.setAttribute(
+    starGeometry.setAttribute("aBase", new BufferAttribute(starBuffers.aBase, 3));
+    starGeometry.setAttribute("aSize", new BufferAttribute(starBuffers.aSize, 1));
+    starGeometry.setAttribute(
       "aBright",
-      new Float32BufferAttribute(starfield.aBright, 1),
+      new BufferAttribute(starBuffers.aBright, 1),
     );
-    starfieldGeometry.setAttribute(
-      "aSeed",
-      new Float32BufferAttribute(starfield.aSeed, 1),
-    );
-    starfieldGeometry.setAttribute(
+    starGeometry.setAttribute("aSeed", new BufferAttribute(starBuffers.aSeed, 1));
+    starGeometry.setAttribute(
       "aSpeed",
-      new Float32BufferAttribute(starfield.aSpeed, 1),
+      new BufferAttribute(starBuffers.aSpeed, 1),
     );
-    starfieldGeometry.setAttribute(
+    starGeometry.setAttribute(
       "aColor",
-      new Float32BufferAttribute(starfield.aColor, 3),
+      new BufferAttribute(starBuffers.aColor, 3),
     );
 
-    const starfieldMaterial = new ShaderMaterial({
+    const starUniforms = {
+      uTime: uniforms.uTime,
+      uReveal: new Uniform(0),
+      uFovScale: uniforms.uFovScale,
+    };
+    const starMaterial = new ShaderMaterial({
+      uniforms: starUniforms,
       vertexShader: STARFIELD_VERT,
       fragmentShader: POINT_FRAG,
-      uniforms: { ...shared },
       transparent: true,
+      blending: AdditiveBlending,
       depthTest: false,
       depthWrite: false,
-      blending: AdditiveBlending,
     });
+    const starPoints = new Points(starGeometry, starMaterial);
+    starPoints.frustumCulled = false;
+    scene.add(starPoints);
 
-    const starfieldPoints = new Points(starfieldGeometry, starfieldMaterial);
-    starfieldPoints.frustumCulled = false;
-    scene.add(starfieldPoints);
+    const composer = new EffectComposer(renderer, {
+      depthBuffer: false,
+      frameBufferType: HalfFloatType,
+      multisampling: 0,
+    });
+    composer.addPass(new RenderPass(scene, camera));
+    composer.addPass(
+      new EffectPass(
+        camera,
+        new BloomEffect({
+          intensity: 1,
+          luminanceThreshold: 0.1,
+          luminanceSmoothing: 0.24,
+          mipmapBlur: true,
+          radius: 0.82,
+          levels: cap.tier === 2 ? 7 : 5,
+        }),
+      ),
+    );
+    const streak = new StreakEffect(cap.tier === 2 ? 17 : 9);
+    const chromatic = new ChromaticAberrationEffect({
+      offset: new Vector2(0.0011, 0.0011),
+      radialModulation: true,
+      modulationOffset: 0.35,
+    });
+    const toneMapping = new ToneMappingEffect({
+      mode: ToneMappingMode.ACES_FILMIC,
+    });
+    composer.addPass(new EffectPass(camera, streak, chromatic, toneMapping));
 
-    let composer: EffectComposer | null = null;
-    if (cap.tier === 2) {
-      composer = new EffectComposer(renderer);
-      composer.addPass(new RenderPass(scene, camera));
-      const bloom = new BloomEffect({
-        luminanceThreshold: 0.28,
-        intensity: 0.8,
-        mipmapBlur: true,
-        radius: 0.85,
-      });
-      const vignette = new VignetteEffect({ darkness: 0.7, offset: 0.25 });
-      const noise = new NoiseEffect({
-        blendFunction: BlendFunction.OVERLAY,
-        premultiply: true,
-      });
-      noise.blendMode.opacity.value = 0.09;
-      composer.addPass(new EffectPass(camera, bloom, vignette, noise));
-    }
-
-    let fit = 1;
+    let dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
     const resize = () => {
-      const width = Math.max(1, stage.clientWidth);
-      const height = Math.max(1, stage.clientHeight);
-      renderer.setSize(width, height, false);
-      camera.aspect = width / height;
+      const w = Math.max(1, root.clientWidth);
+      const h = Math.max(1, root.clientHeight);
+      dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
+      renderer.setPixelRatio(dpr);
+      renderer.setSize(w, h, false);
+      composer.setSize(w, h);
+      camera.aspect = w / h;
       camera.updateProjectionMatrix();
-      composer?.setSize(width, height);
-
-      const visibleHeight =
-        2 * Math.tan(((camera.fov / 2) * Math.PI) / 180) * camera.position.z;
-      const visibleWidth = visibleHeight * camera.aspect;
-      fit = Math.min(
-        (visibleWidth * 0.44) / WORD_WIDTH,
-        (visibleHeight * 0.36) / 1,
-      );
-      formationPoints.scale.setScalar(fit);
-      shared.uFovScale.value =
-        (height * ratio) /
-        (2 * Math.tan(((camera.fov / 2) * Math.PI) / 180));
+      uniforms.uFovScale.value =
+        (h * dpr) / (2 * Math.tan((camera.fov * Math.PI) / 360));
     };
     resize();
 
-    const pointer = { x: 0, y: 0 };
-    const pointerTarget = { x: 0, y: 0 };
-    let strengthTarget = 0;
-
-    const onPointerMove = (event: PointerEvent) => {
-      const rect = stage.getBoundingClientRect();
-      pointerTarget.x = clamp01((event.clientX - rect.left) / rect.width) * 2 - 1;
-      pointerTarget.y = -clamp01((event.clientY - rect.top) / rect.height) * 2 + 1;
-      strengthTarget = 1;
-    };
-    const onPointerLeave = () => {
-      strengthTarget = 0;
-    };
-    const onPointerDown = () => {
-      strengthTarget = 2.6;
-    };
-
     let alive = true;
     let raf = 0;
+    let elapsed = 0;
     let last = performance.now();
-    let time = 0;
 
     const tick = (now: number) => {
       raf = requestAnimationFrame(tick);
@@ -317,54 +284,20 @@ export function L07ParticleHero({
 
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
-      time += dt;
+      elapsed += dt;
 
-      pointer.x = lerp(pointer.x, pointerTarget.x, 0.06);
-      pointer.y = lerp(pointer.y, pointerTarget.y, 0.06);
-
-      shared.uTime.value = time;
-      shared.uReveal.value = smoothstep(0, 0.9, time);
-      shared.uIntro.value = smoothstep(0.6, 3.2, time);
-
-      const visibleHeight =
-        2 * Math.tan(((camera.fov / 2) * Math.PI) / 180) * camera.position.z;
-      const visibleWidth = visibleHeight * camera.aspect;
-      shared.uPointer.value.set(
-        pointer.x * (visibleWidth / 2),
-        pointer.y * (visibleHeight / 2),
-      );
-      shared.uPointerStrength.value = lerp(
-        shared.uPointerStrength.value,
-        strengthTarget,
-        0.08,
-      );
-      strengthTarget = lerp(strengthTarget, 1, 0.02);
+      uniforms.uTime.value = elapsed;
+      uniforms.uIntro.value = reduced ? 1 : smoothstep(0.5, 2.6, elapsed);
+      uniforms.uSpin.value = reduced ? 0 : GALAXY.spin;
+      starUniforms.uReveal.value = smoothstep(0, 0.8, elapsed);
 
       const height = Math.max(1, root.offsetHeight);
-      const exit = clamp01((window.scrollY - height * 0.15) / (height * 0.7));
+      const exit = clamp((window.scrollY - height * 0.15) / (height * 0.7));
+      pivot.position.y = exit * 1.2;
+      pivot.rotation.y = exit * 0.4;
+      canvas.style.opacity = String(1 - clamp((exit - 0.2) / 0.7));
 
-      formationPoints.rotation.y = lerp(
-        formationPoints.rotation.y,
-        pointer.x * 0.2,
-        0.05,
-      );
-      formationPoints.rotation.x = lerp(
-        formationPoints.rotation.x,
-        -pointer.y * 0.1 + exit * 0.5,
-        0.05,
-      );
-      formationPoints.position.y = 0.45 + exit * 1.4;
-      formationPoints.position.z = -exit * 1.2;
-
-      starfieldPoints.position.y = exit * 0.5;
-
-      canvas.style.opacity = String(1 - clamp01((exit - 0.2) / 0.7));
-
-      if (composer) {
-        composer.render(dt);
-      } else {
-        renderer.render(scene, camera);
-      }
+      composer.render(dt);
     };
 
     canvas.style.opacity = "1";
@@ -390,11 +323,7 @@ export function L07ParticleHero({
     };
 
     const resizeObserver = new ResizeObserver(resize);
-    resizeObserver.observe(stage);
-
-    window.addEventListener("pointermove", onPointerMove, { passive: true });
-    window.addEventListener("pointerleave", onPointerLeave);
-    window.addEventListener("pointerdown", onPointerDown, { passive: true });
+    resizeObserver.observe(root);
     document.addEventListener("visibilitychange", onVisibility);
     canvas.addEventListener("webglcontextlost", onContextLost);
 
@@ -405,7 +334,7 @@ export function L07ParticleHero({
         .fromTo(
           "[data-hero-fade]",
           { autoAlpha: 0, y: 18 },
-          { autoAlpha: 1, y: 0, duration: 0.9, stagger: 0.1, delay: 1.2 },
+          { autoAlpha: 1, y: 0, duration: 0.9, stagger: 0.1, delay: 1.1 },
         );
     }, root);
 
@@ -414,16 +343,13 @@ export function L07ParticleHero({
       cancelAnimationFrame(raf);
       context.revert();
       resizeObserver.disconnect();
-      window.removeEventListener("pointermove", onPointerMove);
-      window.removeEventListener("pointerleave", onPointerLeave);
-      window.removeEventListener("pointerdown", onPointerDown);
       document.removeEventListener("visibilitychange", onVisibility);
       canvas.removeEventListener("webglcontextlost", onContextLost);
-      formationGeometry.dispose();
-      starfieldGeometry.dispose();
-      formationMaterial.dispose();
-      starfieldMaterial.dispose();
-      composer?.dispose();
+      geometry.dispose();
+      starGeometry.dispose();
+      material.dispose();
+      starMaterial.dispose();
+      composer.dispose();
       renderer.dispose();
     };
   }, []);
@@ -435,31 +361,25 @@ export function L07ParticleHero({
       data-field="0"
       className="l07-hero l07-stage relative flex min-h-[100svh] flex-col overflow-hidden"
     >
-      <div ref={stageRef} className="absolute inset-0">
-        <div
-          ref={fallbackRef}
-          aria-hidden
-          className="l07-fallback transition-opacity duration-1000"
-        >
-          L07
-        </div>
-        <canvas
-          ref={canvasRef}
-          aria-hidden
-          className="absolute inset-0 h-full w-full opacity-0 transition-opacity duration-1000"
-        />
+      <div
+        ref={fallbackRef}
+        aria-hidden
+        className="l07-fallback transition-opacity duration-1000"
+      >
+        7
       </div>
+      <canvas
+        ref={canvasRef}
+        aria-hidden
+        className="absolute inset-0 h-full w-full opacity-0 transition-opacity duration-1000"
+      />
 
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 z-[1] h-40 bg-gradient-to-b from-black to-transparent"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-72 bg-gradient-to-t from-black via-black/75 to-transparent"
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-72 bg-gradient-to-t from-black via-black/60 to-transparent"
       />
 
-      <div className="relative z-10 flex min-h-[100svh] flex-1 flex-col justify-between pt-24 pb-8">
+      <div className="pointer-events-none relative z-10 flex min-h-[100svh] flex-1 flex-col justify-between pt-24 pb-8">
         <div className="shell">
           <p data-hero-fade className="eyebrow text-center">
             {hero.eyebrow}
@@ -473,7 +393,10 @@ export function L07ParticleHero({
           <p data-hero-fade className="lede mx-auto max-w-xl text-center">
             {hero.lede}
           </p>
-          <div data-hero-fade className="flex flex-wrap justify-center gap-3">
+          <div
+            data-hero-fade
+            className="pointer-events-auto flex flex-wrap justify-center gap-3"
+          >
             <Button href={`/${locale}/contact`}>{hero.primary}</Button>
             <Button href={`/${locale}/work`} variant="outline">
               {hero.secondary}

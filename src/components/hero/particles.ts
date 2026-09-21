@@ -1,19 +1,35 @@
 import { ShapeUtils, type Shape, type Vector2 } from "three";
-import { buildGlyphShapes, GLYPH } from "./glyphs";
+import { buildSevenShape, SEVEN } from "./glyphs";
 
-export const ARMS = 3;
+/** Galaxy look copied from the archived particles-galaxy (closest to Astra). */
+export const GALAXY = {
+  arms: 3,
+  outerRadius: 3.8,
+  coreRadius: 0.18,
+  radialCurve: 2.3,
+  twist: 3.15,
+  spin: -0.2,
+  flowSpeed: 0.05,
+  thickness: 0.14,
+  armWidth: 0.3,
+  halo: 0.22,
+} as const;
+
+const SIZE_TIERS = [0.012, 0.02, 0.032, 0.05, 0.078, 0.12];
+const TIER_WEIGHTS = [0.33, 0.26, 0.18, 0.13, 0.07, 0.03];
+
+/** White / blue-white stars with amber and orange embers. */
+const PALETTE = [
+  { hex: "#ffffff", weight: 0.3 },
+  { hex: "#eaf2ff", weight: 0.22 },
+  { hex: "#bcd4ff", weight: 0.18 },
+  { hex: "#8fb8ff", weight: 0.12 },
+  { hex: "#ffd9a0", weight: 0.1 },
+  { hex: "#ffb066", weight: 0.06 },
+  { hex: "#ff7a6b", weight: 0.02 },
+];
 
 type ColorEntry = { r: number; g: number; b: number; cumulative: number };
-
-/** Star palette: cool white/blue with warm amber and a rare ember. */
-const STAR_PALETTE = [
-  { hex: "#ffffff", weight: 0.4 },
-  { hex: "#dbe7ff", weight: 0.22 },
-  { hex: "#9fc4ff", weight: 0.15 },
-  { hex: "#ffd9a0", weight: 0.12 },
-  { hex: "#ffb066", weight: 0.08 },
-  { hex: "#ff7a6b", weight: 0.03 },
-];
 
 function colorTable(palette: { hex: string; weight: number }[]): ColorEntry[] {
   const table: ColorEntry[] = [];
@@ -30,7 +46,7 @@ function colorTable(palette: { hex: string; weight: number }[]): ColorEntry[] {
   return table;
 }
 
-const COLOR_TABLE = colorTable(STAR_PALETTE);
+const COLOR_TABLE = colorTable(PALETTE);
 
 function pickColor(out: Float32Array, i3: number) {
   const r = Math.random();
@@ -54,21 +70,21 @@ function gaussian() {
   return Math.random() + Math.random() + Math.random() - 1.5;
 }
 
-function pickSize(tiers: number[], weights: number[], jitter = 0.35) {
+function pickSize() {
   let r = Math.random();
-  for (let t = 0; t < weights.length; t += 1) {
-    if (r < weights[t]) {
-      return tiers[t] * (1 - jitter + Math.random() * jitter * 2);
+  for (let t = 0; t < TIER_WEIGHTS.length; t += 1) {
+    if (r < TIER_WEIGHTS[t]) {
+      return Math.max(0.006, SIZE_TIERS[t] * rand(0.72, 1.28));
     }
-    r -= weights[t];
+    r -= TIER_WEIGHTS[t];
   }
-  return tiers[tiers.length - 1];
+  return SIZE_TIERS[SIZE_TIERS.length - 1];
 }
 
 type Triangle = { a: Vector2; b: Vector2; c: Vector2; cum: number };
 
 function triangulate(shape: Shape) {
-  const extracted = shape.extractPoints(64);
+  const extracted = shape.extractPoints(24);
   const faces = ShapeUtils.triangulateShape(extracted.shape, extracted.holes);
   const all = [...extracted.shape, ...extracted.holes.flat()];
 
@@ -115,72 +131,65 @@ function sampleTriangle(triangles: Triangle[], total: number) {
   };
 }
 
-/** Particles that wind inward along an arm and settle on the L07. */
-export type FormationBuffers = {
+export type GalaxyBuffers = {
   position: Float32Array;
   aTarget: Float32Array;
   aPhase: Float32Array;
   aSpeed: Float32Array;
-  aSize: Float32Array;
-  aBright: Float32Array;
-  aSeed: Float32Array;
-  aColor: Float32Array;
-  aRadius0: Float32Array;
   aArm: Float32Array;
   aSpread: Float32Array;
-  aDepth: Float32Array;
+  aHeight: Float32Array;
+  aSeed: Float32Array;
+  aSize: Float32Array;
+  aColor: Float32Array;
+  aBright: Float32Array;
 };
 
-export function buildFormation(count: number): FormationBuffers {
-  const glyphs = buildGlyphShapes().map((glyph) => ({
-    x: glyph.x,
-    ...triangulate(glyph.shape),
-  }));
-  const grandTotal = glyphs.reduce((sum, glyph) => sum + glyph.total, 0);
+export function buildGalaxySeven(count: number): GalaxyBuffers {
+  const seven = triangulate(buildSevenShape());
 
   const position = new Float32Array(count * 3);
   const aTarget = new Float32Array(count * 3);
   const aPhase = new Float32Array(count);
   const aSpeed = new Float32Array(count);
-  const aSize = new Float32Array(count);
-  const aBright = new Float32Array(count);
-  const aSeed = new Float32Array(count);
-  const aColor = new Float32Array(count * 3);
-  const aRadius0 = new Float32Array(count);
   const aArm = new Float32Array(count);
   const aSpread = new Float32Array(count);
-  const aDepth = new Float32Array(count);
+  const aHeight = new Float32Array(count);
+  const aSeed = new Float32Array(count);
+  const aSize = new Float32Array(count);
+  const aColor = new Float32Array(count * 3);
+  const aBright = new Float32Array(count);
 
-  const sizeTiers = [0.013, 0.021, 0.036, 0.062];
-  const sizeWeights = [0.5, 0.28, 0.15, 0.07];
+  const { arms, armWidth, halo } = GALAXY;
 
   for (let i = 0; i < count; i += 1) {
     const i3 = i * 3;
 
-    let pick = Math.random() * grandTotal;
-    let glyph = glyphs[glyphs.length - 1];
-    for (const candidate of glyphs) {
-      if (pick <= candidate.total) {
-        glyph = candidate;
-        break;
-      }
-      pick -= candidate.total;
-    }
-
-    const point = sampleTriangle(glyph.triangles, glyph.total);
-    aTarget[i3] = glyph.x + point.x;
-    aTarget[i3 + 1] = point.y - GLYPH.cap / 2;
-    aTarget[i3 + 2] = rand(-0.08, 0.08);
+    const point = sampleTriangle(seven.triangles, seven.total);
+    aTarget[i3] = point.x * SEVEN.scale;
+    aTarget[i3 + 1] = point.y * SEVEN.scale;
+    aTarget[i3 + 2] = rand(-0.06, 0.06);
 
     aPhase[i] = Math.random();
-    aSpeed[i] = rand(0.55, 1.45);
+    aSpeed[i] = rand(0.65, 1.35);
     aSeed[i] = Math.random();
-    aSize[i] = pickSize(sizeTiers, sizeWeights);
-    aBright[i] = rand(0.32, 0.95) * (1 + (aSize[i] / sizeTiers[3]) * 0.6);
-    aRadius0[i] = rand(4.2, 11.5);
-    aArm[i] = Math.floor(Math.random() * ARMS);
-    aSpread[i] = gaussian() * 0.42;
-    aDepth[i] = rand(-0.4, 0.4);
+
+    const isHalo = Math.random() < halo;
+    if (isHalo) {
+      aArm[i] = -1;
+      aSpread[i] = rand(-Math.PI, Math.PI);
+      aHeight[i] = gaussian() * 1.4;
+      aSize[i] = pickSize() * 0.7;
+      aBright[i] = rand(0.12, 0.38);
+    } else {
+      aArm[i] = Math.floor(Math.random() * arms);
+      aSpread[i] = gaussian() * armWidth;
+      aHeight[i] = gaussian() * (Math.random() < 0.12 ? 1.8 : 1);
+      aSize[i] = pickSize();
+      aBright[i] =
+        rand(0.5, 1.45) *
+        (1 + (aSize[i] / SIZE_TIERS[5]) * 0.35);
+    }
 
     pickColor(aColor, i3);
   }
@@ -190,18 +199,17 @@ export function buildFormation(count: number): FormationBuffers {
     aTarget,
     aPhase,
     aSpeed,
-    aSize,
-    aBright,
-    aSeed,
-    aColor,
-    aRadius0,
     aArm,
     aSpread,
-    aDepth,
+    aHeight,
+    aSeed,
+    aSize,
+    aColor,
+    aBright,
   };
 }
 
-/** Dense, mostly static starfield that fills the whole space. */
+/** Sparse, faint background stars so the void still has depth. */
 export type StarfieldBuffers = {
   position: Float32Array;
   aBase: Float32Array;
@@ -221,21 +229,14 @@ export function buildStarfield(count: number): StarfieldBuffers {
   const aSpeed = new Float32Array(count);
   const aColor = new Float32Array(count * 3);
 
-  const spreadX = 28;
-  const spreadY = 18;
-  const spreadZ = 14;
-
-  const sizeTiers = [0.006, 0.011, 0.019, 0.034];
-  const sizeWeights = [0.6, 0.25, 0.11, 0.04];
-
   for (let i = 0; i < count; i += 1) {
     const i3 = i * 3;
-    aBase[i3] = rand(-spreadX / 2, spreadX / 2);
-    aBase[i3 + 1] = rand(-spreadY / 2, spreadY / 2);
-    aBase[i3 + 2] = rand(-spreadZ / 2, spreadZ / 2);
+    aBase[i3] = rand(-14, 14);
+    aBase[i3 + 1] = rand(-9, 9);
+    aBase[i3 + 2] = rand(-7, 7);
 
-    aSize[i] = pickSize(sizeTiers, sizeWeights, 0.45);
-    aBright[i] = rand(0.16, 0.85) * (aSize[i] > 0.026 ? 1.5 : 1);
+    aSize[i] = rand(0.006, 0.02) * (Math.random() < 0.1 ? 1.8 : 1);
+    aBright[i] = rand(0.12, 0.5);
     aSeed[i] = Math.random();
     aSpeed[i] = rand(0.4, 1.6);
 
