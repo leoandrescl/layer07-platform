@@ -293,12 +293,35 @@ html.lenis body {
 }
 
 /* ------------------------------------------------------------------ *
- * L07 hero — interactive 3D monogram.
+ * L07 hero — particle monogram on a dark gallery stage.
  * ------------------------------------------------------------------ */
+
+.l07-stage,
+[data-hero="active"] .site-header {
+  --bg: #050507;
+  --bg-elevated: #0b0b10;
+  --surface: #101016;
+  --surface-strong: #17171f;
+  --ink: #f4f1ec;
+  --ink-soft: #c9c7c2;
+  --ink-muted: #8f8f98;
+  --line: rgba(244, 241, 236, 0.14);
+  --line-strong: rgba(244, 241, 236, 0.3);
+  --accent: #7a88ff;
+  --accent-ink: #050507;
+  --accent-soft: rgba(122, 136, 255, 0.18);
+}
+
+.l07-stage {
+  background:
+    radial-gradient(60% 60% at 50% 40%, #0b0b14 0%, #050507 62%),
+    #050507;
+  color: var(--ink);
+}
 
 .l07-glow {
   background: radial-gradient(
-    46% 52% at 50% 42%,
+    44% 50% at 50% 42%,
     var(--accent-soft),
     transparent 72%
   );

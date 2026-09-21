@@ -1,14 +1,12 @@
-import { ExtrudeGeometry, Path, Shape } from "three";
+import { Path, Shape } from "three";
 
 export const GLYPH = {
   cap: 1,
   stroke: 0.22,
-  depth: 0.34,
-  bevel: 0.026,
   spacing: 0.14,
 } as const;
 
-const { cap, stroke, depth, bevel, spacing } = GLYPH;
+const { cap, stroke, spacing } = GLYPH;
 
 const WIDTH = {
   L: 0.62,
@@ -97,35 +95,22 @@ function shapeSeven() {
   return shape;
 }
 
-export type Glyph = {
-  geometry: ExtrudeGeometry;
+export type GlyphShape = {
+  shape: Shape;
   x: number;
 };
 
-export function buildWord(): Glyph[] {
-  const extrude = {
-    depth,
-    bevelEnabled: true,
-    bevelThickness: bevel,
-    bevelSize: bevel,
-    bevelSegments: 3,
-    curveSegments: 18,
-    steps: 1,
-  };
-
+export function buildGlyphShapes(): GlyphShape[] {
   const offsetZero = WIDTH.L + spacing;
   const offsetSeven = offsetZero + WIDTH.zero + spacing;
   const total = offsetSeven + WIDTH.seven;
 
   return [
-    { geometry: new ExtrudeGeometry(shapeL(), extrude), x: -total / 2 },
-    {
-      geometry: new ExtrudeGeometry(shapeZero(), extrude),
-      x: -total / 2 + offsetZero,
-    },
-    {
-      geometry: new ExtrudeGeometry(shapeSeven(), extrude),
-      x: -total / 2 + offsetSeven,
-    },
+    { shape: shapeL(), x: -total / 2 },
+    { shape: shapeZero(), x: -total / 2 + offsetZero },
+    { shape: shapeSeven(), x: -total / 2 + offsetSeven },
   ];
 }
+
+export const WORD_WIDTH =
+  WIDTH.L + spacing + WIDTH.zero + spacing + WIDTH.seven;

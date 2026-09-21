@@ -3,7 +3,7 @@ import { AboutPreview } from "@/components/home/AboutPreview";
 import { Agency } from "@/components/home/Agency";
 import { Capabilities } from "@/components/home/Capabilities";
 import { ContactCta } from "@/components/home/ContactCta";
-import { L07Hero } from "@/components/hero/L07Hero";
+import { L07ParticleHero } from "@/components/hero/L07ParticleHero";
 import { ServicesPreview } from "@/components/home/ServicesPreview";
 import { WorkPreview } from "@/components/home/WorkPreview";
 import { Marquee } from "@/components/ui/Marquee";
@@ -21,7 +21,7 @@ export default async function HomePage({
 
   return (
     <>
-      <L07Hero locale={lang} dict={dict} />
+      <L07ParticleHero locale={lang} dict={dict} />
       <Marquee items={dict.home.hero.capabilities} />
       <WorkPreview locale={lang} dict={dict} />
       <Capabilities dict={dict} />

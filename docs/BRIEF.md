@@ -97,28 +97,34 @@ Todas las páginas viven bajo `src/app/[lang]/` (`es` | `en`).
   baja resolución/30fps; tier 2 resolución y 60fps.
 - Se pausa con `document.hidden` y ante pérdida de contexto.
 
-## Hero — L07 en 3D interactivo
+## Hero — L07 de partículas
 
-`src/components/hero/L07Hero.tsx` + `src/components/hero/glyphs.ts`.
+`src/components/hero/L07ParticleHero.tsx` + `glyphs.ts` + `particles.ts` +
+`hero-shaders.ts`.
 
-El monograma **L07** construido en 3D con geometría propia (`Shape` +
-`ExtrudeGeometry`, sin depender de fuentes externas). Cada glifo usa dos
-materiales: **caras en tinta** y **cantos en acento**, de modo que al girar se
-revelan los bordes de color. Referencia de vibra: tryand.co.
+El monograma **L07 formado por partículas** que fluyen y se alimentan de forma
+continua (técnica portada de `particles-galaxy`: posiciones calculadas en el
+vertex shader, sin trabajo por frame en CPU). Referencias: tryand.co (3D en el
+hero) y el campo de partículas de la página de OpenAI.
 
-- **Composición centrada:** el monograma es el protagonista, con un stage
-  16/9 (4/3 en móvil) que escala por aspecto (`fit`), así el encuadre nunca se
-  rompe. Eyebrow arriba, lede y CTAs debajo. Glow de acento CSS detrás.
-- **Interacción:** el cursor inclina el bloque en 3D, cada letra flota con fase
-  propia, la letra bajo el puntero se acerca (raycast) y el clic lanza un pulso.
-- **Entrada:** las letras crecen y se asientan con stagger; el copy hace fade.
-- **Scroll:** el bloque se inclina hacia atrás, sube y se desvanece al salir el
-  Hero (sin scroll-jack).
-- **Render:** `three`, `RoomEnvironment` + `PMREMGenerator`, luces de borde
-  fría/cálida y tone mapping ACES. Materiales que siguen los tokens del tema
-  (caras = `--ink`, cantos = `--accent`) y se actualizan al cambiar de tema.
-- **Degradación:** reusa `detectCapability`. Tier 1 sin antialias y con menos
-  resolución; tier 0 / `prefers-reduced-motion` muestran el monograma en HTML
+- **Las letras:** las formas se definen con `Shape` (sin fuentes externas) y se
+  muestrean con `ShapeUtils.triangulateShape` + muestreo baricéntrico ponderado
+  por área. Cada partícula tiene un `aTarget` en la letra y un `aScatter` lejano;
+  su `life` la trae desde fuera, la asienta y la mantiene, y la recicla → el
+  L07 se ve formado pero siempre vivo.
+- **Fondo continuo:** un segundo sistema de partículas ambientales en una caja
+  mayor, con deriva propia, que llena el encuadre en todo momento.
+- **Interacción:** el cursor repele las partículas (fuerza en espacio mundo),
+  inclina el bloque y el clic aumenta la fuerza.
+- **Escenario oscuro** (galería) en ambos temas; el header se invierte mientras
+  el Hero está activo (`[data-hero="active"] .site-header`).
+- **Render:** `three` (additive glow sprites: núcleo + halo), y en tier 2
+  `postprocessing` con Bloom + streak anamórfico + viñeta + grano. Tone mapping
+  ACES. Escala por aspecto (`fit`) para que el encuadre nunca se rompa.
+- **Scroll:** el bloque se inclina, sube y se desvanece al salir el Hero (sin
+  scroll-jack).
+- **Degradación:** reusa `detectCapability`. Tier 1 con menos partículas y sin
+  postproceso; tier 0 / `prefers-reduced-motion` muestran el monograma en HTML
   (`.l07-fallback`) sin WebGL.
 - **Handoff:** el `MaterialField` global se pausa mientras el Hero está activo
   (`src/lib/hero-state.ts`) y se reanuda al entrar en Work.
