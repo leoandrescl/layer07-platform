@@ -51,6 +51,11 @@ export const en: Dictionary = {
         "WebGL experiences",
       ],
       hint: "Scroll",
+      studio: "Digital product studio",
+      available: "Available for projects",
+      galaxy: "Galaxy · scattered particles",
+      formed: "07 · digital matter",
+      build: "Scroll to build",
     },
     work: {
       eyebrow: "Selected work",

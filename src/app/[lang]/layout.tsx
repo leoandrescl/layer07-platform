@@ -4,7 +4,7 @@ import { Fraunces, Geist_Mono, Inter } from "next/font/google";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { SmoothScroll } from "@/components/layout/SmoothScroll";
-import { MaterialField } from "@/components/webgl/MaterialField";
+import { Cosmos } from "@/components/layout/Cosmos";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 import { hasLocale, htmlLang, locales } from "@/lib/i18n/config";
@@ -29,7 +29,11 @@ const geistMono = Geist_Mono({
   display: "swap",
 });
 
-const themeScript = `(function(){try{var k='l07-theme';var t=localStorage.getItem(k);if(t!=='dark'&&t!=='light'){t='light';}document.documentElement.dataset.theme=t;}catch(e){document.documentElement.dataset.theme='light';}document.documentElement.classList.add('js');})();`;
+// The site is dark-only for now (cosmic narrative). The light theme tokens and
+// the theme toggle are kept in the codebase so light can be re-enabled later:
+// swap this back to reading `localStorage.getItem('l07-theme')` and restore the
+// <ThemeToggle /> in the header.
+const themeScript = `(function(){try{document.documentElement.dataset.theme='dark';}catch(e){}document.documentElement.classList.add('js');})();`;
 
 export function generateStaticParams() {
   return locales.map((lang) => ({ lang }));
@@ -112,7 +116,7 @@ export default async function LocaleLayout({
   return (
     <html
       lang={htmlLang[lang]}
-      data-theme="light"
+      data-theme="dark"
       suppressHydrationWarning
       className={`${fraunces.variable} ${inter.variable} ${geistMono.variable}`}
     >
@@ -124,7 +128,7 @@ export default async function LocaleLayout({
         />
         <ThemeProvider>
           <SmoothScroll />
-          <MaterialField />
+          <Cosmos />
           <div className="relative z-10 flex min-h-dvh flex-col">
             <Header locale={lang} dict={dict} />
             <main className="flex-1">{children}</main>

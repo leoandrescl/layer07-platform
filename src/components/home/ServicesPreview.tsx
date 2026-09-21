@@ -27,7 +27,7 @@ export function ServicesPreview({
       <div className="mt-14 grid gap-px overflow-hidden rounded-2xl border border-line bg-line md:grid-cols-2">
         {offerings.map((offering, index) => (
           <Reveal key={offering.id} delay={0.04}>
-            <article className="flex h-full flex-col gap-4 bg-bg p-8 transition-colors duration-500 hover:bg-surface md:p-10">
+            <article className="flex h-full flex-col gap-4 bg-bg/70 p-8 backdrop-blur-md transition-colors duration-500 hover:bg-surface/80 md:p-10">
               <span className="font-mono text-xs text-ink-muted">
                 0{index + 1}
               </span>

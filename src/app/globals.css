@@ -38,8 +38,8 @@
 [data-theme="dark"] {
   color-scheme: dark;
 
-  --bg: #0a0a0c;
-  --bg-elevated: #101013;
+  --bg: #05060b;
+  --bg-elevated: #0c0e16;
   --surface: #151519;
   --surface-strong: #1d1d22;
 
@@ -219,12 +219,6 @@
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
   }
 
-  .material-fallback {
-    background:
-      radial-gradient(120% 90% at 18% 8%, var(--accent-soft), transparent 55%),
-      radial-gradient(90% 80% at 88% 92%, var(--surface-strong), transparent 62%),
-      var(--bg);
-  }
 }
 
 @layer utilities {
@@ -296,22 +290,6 @@ html.lenis body {
  * L07 hero — particle monogram on a dark gallery stage.
  * ------------------------------------------------------------------ */
 
-.l07-stage,
-[data-hero="active"] .site-header {
-  --bg: #000000;
-  --bg-elevated: #0b0b10;
-  --surface: #101016;
-  --surface-strong: #17171f;
-  --ink: #f4f1ec;
-  --ink-soft: #c9c7c2;
-  --ink-muted: #8f8f98;
-  --line: rgba(244, 241, 236, 0.14);
-  --line-strong: rgba(244, 241, 236, 0.3);
-  --accent: #7a88ff;
-  --accent-ink: #050507;
-  --accent-soft: rgba(122, 136, 255, 0.18);
-}
-
 .l07-stage {
   background: #000000;
   color: var(--ink);
@@ -321,28 +299,243 @@ html.lenis body {
   height: 180svh;
 }
 
-.l07-cue-line {
-  width: 1px;
-  height: 34px;
-  background: linear-gradient(to bottom, var(--accent), transparent);
-  animation: l07-cue 2.4s var(--ease-in-out) infinite;
+/* Hero side instrumentation */
+.hero-side {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--ink) 42%, transparent);
+  writing-mode: vertical-rl;
+  white-space: nowrap;
 }
 
-@keyframes l07-cue {
-  0%,
-  100% {
-    transform: scaleY(0.4);
-    transform-origin: top;
-    opacity: 0.5;
+.hero-side,
+.hero-bottom {
+  animation: hero-in 1.4s var(--ease-out) 0.7s both;
+}
+
+@keyframes hero-in {
+  from {
+    opacity: 0;
   }
-  50% {
-    transform: scaleY(1);
+  to {
     opacity: 1;
   }
 }
 
+.hero-side-left {
+  left: clamp(0.7rem, 2.4vw, 1.9rem);
+}
+
+.hero-side-right {
+  right: clamp(0.7rem, 2.4vw, 1.9rem);
+  transform: translateY(-50%) rotate(180deg);
+}
+
+.hero-bottom {
+  position: absolute;
+  inset-inline: 0;
+  bottom: clamp(1rem, 3vh, 2.2rem);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-inline: clamp(0.7rem, 2.4vw, 1.9rem);
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--ink) 42%, transparent);
+}
+
+.hero-side-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--accent);
+  margin-bottom: 0.6em;
+  animation: hero-dot 2.4s ease-in-out infinite;
+}
+
+@keyframes hero-dot {
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent);
+  }
+  50% {
+    opacity: 0.55;
+    box-shadow: 0 0 0 5px transparent;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .l07-cue-line {
+  .hero-side-dot {
+    animation: none !important;
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Cosmos — site-wide deep space background (pure CSS).
+ * ------------------------------------------------------------------ */
+
+.cosmos {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background: radial-gradient(
+    130% 100% at 50% 0%,
+    #070912 0%,
+    #04050c 52%,
+    #02030a 100%
+  );
+}
+
+.cosmos-nebula {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  mix-blend-mode: screen;
+  will-change: transform;
+}
+
+.cosmos-nebula-a {
+  top: -22%;
+  left: -12%;
+  width: 72vw;
+  height: 72vw;
+  background: radial-gradient(circle, rgba(86, 108, 255, 0.16), transparent 70%);
+  animation: cosmos-a 52s ease-in-out infinite;
+}
+
+.cosmos-nebula-b {
+  top: 18%;
+  right: -22%;
+  width: 62vw;
+  height: 62vw;
+  background: radial-gradient(circle, rgba(128, 96, 255, 0.12), transparent 72%);
+  animation: cosmos-b 64s ease-in-out infinite;
+}
+
+.cosmos-nebula-c {
+  bottom: -26%;
+  left: 18%;
+  width: 68vw;
+  height: 68vw;
+  background: radial-gradient(circle, rgba(255, 122, 160, 0.07), transparent 72%);
+  animation: cosmos-c 72s ease-in-out infinite;
+}
+
+.cosmos-stars {
+  position: absolute;
+  inset: -12%;
+  background-repeat: repeat;
+}
+
+.cosmos-stars-a {
+  background-image:
+    radial-gradient(1px 1px at 30px 40px, rgba(255, 255, 255, 0.9), transparent),
+    radial-gradient(1px 1px at 140px 90px, rgba(210, 225, 255, 0.7), transparent),
+    radial-gradient(1.4px 1.4px at 80px 180px, rgba(255, 226, 190, 0.6), transparent),
+    radial-gradient(1px 1px at 220px 150px, rgba(255, 255, 255, 0.5), transparent);
+  background-size: 260px 260px;
+  opacity: 0.7;
+  animation: cosmos-drift-a 200s linear infinite;
+}
+
+.cosmos-stars-b {
+  background-image:
+    radial-gradient(1.5px 1.5px at 60px 20px, rgba(255, 255, 255, 0.8), transparent),
+    radial-gradient(1px 1px at 190px 130px, rgba(190, 210, 255, 0.6), transparent),
+    radial-gradient(1px 1px at 10px 200px, rgba(255, 255, 255, 0.4), transparent);
+  background-size: 420px 420px;
+  opacity: 0.5;
+  animation: cosmos-drift-b 320s linear infinite;
+}
+
+.cosmos-stars-c {
+  background-image:
+    radial-gradient(2px 2px at 100px 60px, rgba(255, 255, 255, 0.55), transparent),
+    radial-gradient(1px 1px at 300px 240px, rgba(200, 220, 255, 0.4), transparent);
+  background-size: 660px 660px;
+  opacity: 0.35;
+  animation: cosmos-drift-c 460s linear infinite;
+}
+
+.cosmos-grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.06;
+  mix-blend-mode: overlay;
+}
+
+@keyframes cosmos-a {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(10%, 12%, 0) scale(1.12);
+  }
+}
+
+@keyframes cosmos-b {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1.06);
+  }
+  50% {
+    transform: translate3d(-12%, 8%, 0) scale(0.94);
+  }
+}
+
+@keyframes cosmos-c {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(0.96);
+  }
+  50% {
+    transform: translate3d(10%, -10%, 0) scale(1.1);
+  }
+}
+
+@keyframes cosmos-drift-a {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -260px -260px;
+  }
+}
+
+@keyframes cosmos-drift-b {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -420px -420px;
+  }
+}
+
+@keyframes cosmos-drift-c {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -660px -660px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cosmos-nebula,
+  .cosmos-stars {
     animation: none !important;
   }
 }

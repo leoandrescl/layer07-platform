@@ -94,7 +94,7 @@ export default async function CaseStudyPage({
 
       <section className="shell grid gap-px overflow-hidden rounded-2xl border border-line bg-line py-0 md:grid-cols-3 mt-20 md:mt-28">
         {project.metrics.map((metric) => (
-          <div key={metric.value} className="bg-bg p-8">
+          <div key={metric.value} className="bg-bg/70 p-8 backdrop-blur-md">
             <p className="font-display text-[1.75rem] leading-tight tracking-[-0.02em] text-ink">
               {metric.value}
             </p>

@@ -10,7 +10,6 @@ import { NAV, SITE } from "@/lib/site";
 import type { Locale } from "@/lib/i18n/config";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
 import { Button } from "@/components/ui/Button";
-import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { LocaleSwitcher } from "./LocaleSwitcher";
 
 export function Header({
@@ -127,7 +126,6 @@ export function Header({
             <div className="hidden sm:block">
               <LocaleSwitcher current={locale} label={dict.common.language} />
             </div>
-            <ThemeToggle label={dict.common.theme} />
             <Button
               href={`/${locale}/contact`}
               variant="solid"

@@ -21,7 +21,7 @@ export default async function HomePage({
 
   return (
     <>
-      <L07ParticleHero />
+      <L07ParticleHero dict={dict} />
       <Marquee items={dict.home.hero.capabilities} />
       <WorkPreview locale={lang} dict={dict} />
       <Capabilities dict={dict} />

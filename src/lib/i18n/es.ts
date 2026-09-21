@@ -49,6 +49,11 @@ export const es = {
         "Experiencias WebGL",
       ],
       hint: "Desliza",
+      studio: "Estudio de producto digital",
+      available: "Disponible para proyectos",
+      galaxy: "Galaxia · partículas dispersas",
+      formed: "07 · materia digital",
+      build: "Desliza para construir",
     },
     work: {
       eyebrow: "Trabajo seleccionado",

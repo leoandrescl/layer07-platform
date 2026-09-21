@@ -46,7 +46,10 @@ export default async function AgencyPage({
         </Reveal>
         <div className="mt-14 grid gap-px overflow-hidden rounded-2xl border border-line bg-line sm:grid-cols-2">
           {agency.how.map((item, index) => (
-            <div key={item.title} className="bg-bg p-8 md:p-10">
+            <div
+              key={item.title}
+              className="bg-bg/70 p-8 backdrop-blur-md md:p-10"
+            >
               <span className="font-mono text-xs text-accent">
                 0{index + 1}
               </span>

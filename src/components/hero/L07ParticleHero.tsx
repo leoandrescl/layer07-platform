@@ -30,7 +30,7 @@ import {
   ToneMappingMode,
 } from "postprocessing";
 import { detectCapability } from "@/lib/webgl/capability";
-import { setHeroActive } from "@/lib/hero-state";
+import type { Dictionary } from "@/lib/i18n/dictionaries";
 import { SEVEN_PATH, ZERO } from "./glyphs";
 import { GALAXY, buildGalaxySeven, buildStarfield } from "./particles";
 import {
@@ -67,31 +67,13 @@ class StreakEffect extends Effect {
   }
 }
 
-export function L07ParticleHero() {
+export function L07ParticleHero({ dict }: { dict: Dictionary }) {
   const rootRef = useRef<HTMLElement | null>(null);
   const stageRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const labelRef = useRef<HTMLSpanElement | null>(null);
 
-  useEffect(() => {
-    const root = rootRef.current;
-    if (!root) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        const active = entry.isIntersecting;
-        setHeroActive(active);
-        document.documentElement.dataset.hero = active ? "active" : "";
-      },
-      { threshold: 0 },
-    );
-    observer.observe(root);
-
-    return () => {
-      observer.disconnect();
-      setHeroActive(false);
-      delete document.documentElement.dataset.hero;
-    };
-  }, []);
+  const { hero } = dict.home;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -349,10 +331,25 @@ export function L07ParticleHero() {
       pivot.rotation.y = rot.yaw;
       tiltGroup.rotation.x = 0.5 + rot.tiltOffset;
 
-      // Scroll morphs the galaxy into the 7.
+      // Scroll morphs the galaxy into the 07.
       const scrollable = Math.max(1, root.offsetHeight - window.innerHeight);
       const progress = clamp(window.scrollY / scrollable);
-      uniforms.uMorph.value = smoothstep(0.05, 0.5, progress);
+      const morph = smoothstep(0.05, 0.5, progress);
+      uniforms.uMorph.value = morph;
+
+      // side label narrates the state, then cycles the capabilities
+      if (labelRef.current) {
+        const copy = dict.home.hero;
+        const text =
+          morph < 0.5
+            ? copy.galaxy
+            : copy.capabilities[
+                Math.floor(elapsed / 1.5) % copy.capabilities.length
+              ];
+        if (labelRef.current.textContent !== text) {
+          labelRef.current.textContent = text;
+        }
+      }
 
       composer.render(dt);
     };
@@ -403,7 +400,7 @@ export function L07ParticleHero() {
       composer.dispose();
       renderer.dispose();
     };
-  }, []);
+  }, [dict]);
 
   return (
     <section
@@ -418,6 +415,19 @@ export function L07ParticleHero() {
           aria-hidden
           className="absolute inset-0 h-full w-full cursor-grab opacity-0 transition-opacity duration-1000"
         />
+
+        <div className="pointer-events-none absolute inset-0 z-10">
+          <span className="hero-side hero-side-left">{hero.studio}</span>
+          <div className="hero-side hero-side-right">
+            <span className="hero-side-dot" aria-hidden />
+            {hero.available}
+          </div>
+          <div className="hero-bottom">
+            <span>{hero.build}</span>
+            <span ref={labelRef}>{hero.galaxy}</span>
+            <span>07 — layer07</span>
+          </div>
+        </div>
       </div>
     </section>
   );

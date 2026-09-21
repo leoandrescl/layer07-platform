@@ -88,7 +88,10 @@ export default async function ServicesPage({
           </Reveal>
           <ol className="mt-14 grid gap-px overflow-hidden rounded-2xl border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
             {services.process.map((step) => (
-              <li key={step.step} className="flex flex-col gap-4 bg-bg p-8">
+              <li
+                key={step.step}
+                className="flex flex-col gap-4 bg-bg/70 p-8 backdrop-blur-md"
+              >
                 <span className="font-mono text-xs text-accent">
                   {step.step}
                 </span>
