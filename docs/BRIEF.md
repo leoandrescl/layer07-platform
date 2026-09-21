@@ -110,13 +110,15 @@ hero) y el campo de partículas de la página de OpenAI.
 - **Secuencia de carga:** primero el starfield sobre negro absoluto (ss1);
   luego las partículas se agrupan (ss2) y finalmente forman el L07 (ss3).
   Controlado con `uReveal` (starfield) y `uIntro` (convergencia) en el tiempo.
-- **Las letras:** formas con `Shape` (sin fuentes) muestreadas con
+- **Las letras:** logotipo fino y refinado (trazo 0.15, "0" ovalado, "7"
+  afilado) definido con `Shape` (sin fuentes) y muestreado con
   `ShapeUtils.triangulateShape` + muestreo baricéntrico por área. Cada partícula
-  tiene un `aTarget` en la letra y viaja desde `aRadius0` por un espiral
-  logarítmico (su "cola") hasta asentarse en la letra y mantenerse; al reciclarse
-  la cola se alimenta de nuevas partículas de forma continua.
-- **Fondo continuo:** starfield denso (blanco/azul/ámbar) que llena todo el
-  espacio, con deriva muy lenta y twinkle.
+  nace en uno de los **3 brazos** y viaja por un espiral logarítmico (su "cola")
+  hasta asentarse en la letra y mantenerse; al reciclarse la cola se alimenta de
+  nuevas partículas de forma continua.
+- **Full-bleed:** el canvas cubre todo el Hero (sin caja), con scrims superior e
+  inferior para la legibilidad del copy. Starfield denso (blanco/azul/ámbar) que
+  llena todo el espacio, con deriva muy lenta y twinkle.
 - **Interacción:** el cursor repele las partículas (fuerza en espacio mundo),
   inclina el bloque y el clic aumenta la fuerza.
 - **Escenario negro absoluto** en ambos temas; el header se invierte mientras el

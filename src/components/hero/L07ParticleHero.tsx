@@ -31,7 +31,7 @@ import { SITE } from "@/lib/site";
 import type { Locale } from "@/lib/i18n/config";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
 import { WORD_WIDTH } from "./glyphs";
-import { buildFormation, buildStarfield } from "./particles";
+import { ARMS, buildFormation, buildStarfield } from "./particles";
 import { FORMATION_VERT, POINT_FRAG, STARFIELD_VERT } from "./hero-shaders";
 
 function clamp01(value: number) {
@@ -110,12 +110,12 @@ export function L07ParticleHero({
     const ratio = Math.min(cap.dpr * cap.resolutionScale, cap.tier === 2 ? 1.5 : 1.15);
     renderer.setPixelRatio(ratio);
     renderer.toneMapping = ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.2;
+    renderer.toneMappingExposure = 1.05;
     renderer.outputColorSpace = SRGBColorSpace;
     renderer.setClearAlpha(0);
 
     const scene = new Scene();
-    const camera = new PerspectiveCamera(40, 1, 0.1, 100);
+    const camera = new PerspectiveCamera(45, 1, 0.1, 100);
     camera.position.set(0, 0, 6);
 
     const shared = {
@@ -127,8 +127,8 @@ export function L07ParticleHero({
       uPointerStrength: { value: 0 },
     };
 
-    const formationCount = cap.tier === 2 ? 20000 : 8000;
-    const starfieldCount = cap.tier === 2 ? 16000 : 6000;
+    const formationCount = cap.tier === 2 ? 28000 : 11000;
+    const starfieldCount = cap.tier === 2 ? 18000 : 7000;
 
     const formation = buildFormation(formationCount);
     const formationGeometry = new BufferGeometry();
@@ -169,8 +169,12 @@ export function L07ParticleHero({
       new Float32BufferAttribute(formation.aRadius0, 1),
     );
     formationGeometry.setAttribute(
-      "aSpin",
-      new Float32BufferAttribute(formation.aSpin, 1),
+      "aArm",
+      new Float32BufferAttribute(formation.aArm, 1),
+    );
+    formationGeometry.setAttribute(
+      "aSpread",
+      new Float32BufferAttribute(formation.aSpread, 1),
     );
     formationGeometry.setAttribute(
       "aDepth",
@@ -182,10 +186,11 @@ export function L07ParticleHero({
       fragmentShader: POINT_FRAG,
       uniforms: {
         ...shared,
-        uFlow: { value: 0.07 },
-        uTwist: { value: 2.6 },
-        uSpin: { value: 0.08 },
-        uTurb: { value: cap.tier === 2 ? 0.5 : 0.36 },
+        uFlow: { value: 0.06 },
+        uTwist: { value: 1.7 },
+        uSpin: { value: 0.06 },
+        uArms: { value: ARMS },
+        uTurb: { value: cap.tier === 2 ? 0.42 : 0.3 },
       },
       transparent: true,
       depthTest: false,
@@ -247,17 +252,17 @@ export function L07ParticleHero({
       composer = new EffectComposer(renderer);
       composer.addPass(new RenderPass(scene, camera));
       const bloom = new BloomEffect({
-        luminanceThreshold: 0.22,
-        intensity: 1.15,
+        luminanceThreshold: 0.28,
+        intensity: 0.8,
         mipmapBlur: true,
         radius: 0.85,
       });
-      const vignette = new VignetteEffect({ darkness: 0.72, offset: 0.24 });
+      const vignette = new VignetteEffect({ darkness: 0.7, offset: 0.25 });
       const noise = new NoiseEffect({
         blendFunction: BlendFunction.OVERLAY,
         premultiply: true,
       });
-      noise.blendMode.opacity.value = 0.1;
+      noise.blendMode.opacity.value = 0.09;
       composer.addPass(new EffectPass(camera, bloom, vignette, noise));
     }
 
@@ -274,8 +279,8 @@ export function L07ParticleHero({
         2 * Math.tan(((camera.fov / 2) * Math.PI) / 180) * camera.position.z;
       const visibleWidth = visibleHeight * camera.aspect;
       fit = Math.min(
-        (visibleWidth * 0.6) / WORD_WIDTH,
-        (visibleHeight * 0.42) / 1,
+        (visibleWidth * 0.44) / WORD_WIDTH,
+        (visibleHeight * 0.36) / 1,
       );
       formationPoints.scale.setScalar(fit);
       shared.uFovScale.value =
@@ -345,10 +350,10 @@ export function L07ParticleHero({
       );
       formationPoints.rotation.x = lerp(
         formationPoints.rotation.x,
-        -pointer.y * 0.12 + exit * 0.5,
+        -pointer.y * 0.1 + exit * 0.5,
         0.05,
       );
-      formationPoints.position.y = exit * 1.4;
+      formationPoints.position.y = 0.45 + exit * 1.4;
       formationPoints.position.z = -exit * 1.2;
 
       starfieldPoints.position.y = exit * 0.5;
@@ -388,8 +393,8 @@ export function L07ParticleHero({
     resizeObserver.observe(stage);
 
     window.addEventListener("pointermove", onPointerMove, { passive: true });
-    stage.addEventListener("pointerleave", onPointerLeave);
-    stage.addEventListener("pointerdown", onPointerDown);
+    window.addEventListener("pointerleave", onPointerLeave);
+    window.addEventListener("pointerdown", onPointerDown, { passive: true });
     document.addEventListener("visibilitychange", onVisibility);
     canvas.addEventListener("webglcontextlost", onContextLost);
 
@@ -410,8 +415,8 @@ export function L07ParticleHero({
       context.revert();
       resizeObserver.disconnect();
       window.removeEventListener("pointermove", onPointerMove);
-      stage.removeEventListener("pointerleave", onPointerLeave);
-      stage.removeEventListener("pointerdown", onPointerDown);
+      window.removeEventListener("pointerleave", onPointerLeave);
+      window.removeEventListener("pointerdown", onPointerDown);
       document.removeEventListener("visibilitychange", onVisibility);
       canvas.removeEventListener("webglcontextlost", onContextLost);
       formationGeometry.dispose();
@@ -430,53 +435,63 @@ export function L07ParticleHero({
       data-field="0"
       className="l07-hero l07-stage relative flex min-h-[100svh] flex-col overflow-hidden"
     >
-      <div className="shell relative flex flex-1 flex-col justify-center pt-28 pb-6 md:pt-32">
-        <p data-hero-fade className="eyebrow text-center">
-          {hero.eyebrow}
-        </p>
-
+      <div ref={stageRef} className="absolute inset-0">
         <div
-          ref={stageRef}
-          className="relative mx-auto mt-2 aspect-[16/9] w-full max-w-[1000px] max-lg:aspect-[4/3]"
+          ref={fallbackRef}
+          aria-hidden
+          className="l07-fallback transition-opacity duration-1000"
         >
-          <div
-            ref={fallbackRef}
-            aria-hidden
-            className="l07-fallback transition-opacity duration-1000"
-          >
-            L07
-          </div>
-          <canvas
-            ref={canvasRef}
-            aria-hidden
-            className="absolute inset-0 h-full w-full opacity-0 transition-opacity duration-1000"
-          />
+          L07
         </div>
-
-        <h1 className="sr-only">
-          {hero.title} {hero.titleAccent}
-        </h1>
-        <p data-hero-fade className="lede mx-auto mt-4 max-w-xl text-center">
-          {hero.lede}
-        </p>
-        <div data-hero-fade className="mt-8 flex flex-wrap justify-center gap-3">
-          <Button href={`/${locale}/contact`}>{hero.primary}</Button>
-          <Button href={`/${locale}/work`} variant="outline">
-            {hero.secondary}
-          </Button>
-        </div>
+        <canvas
+          ref={canvasRef}
+          aria-hidden
+          className="absolute inset-0 h-full w-full opacity-0 transition-opacity duration-1000"
+        />
       </div>
 
-      <div className="shell relative flex items-end justify-between pb-8">
-        <div className="flex items-center gap-3">
-          <span className="l07-cue-line" aria-hidden />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 z-[1] h-40 bg-gradient-to-b from-black to-transparent"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-72 bg-gradient-to-t from-black via-black/75 to-transparent"
+      />
+
+      <div className="relative z-10 flex min-h-[100svh] flex-1 flex-col justify-between pt-24 pb-8">
+        <div className="shell">
+          <p data-hero-fade className="eyebrow text-center">
+            {hero.eyebrow}
+          </p>
+        </div>
+
+        <div className="shell flex flex-col items-center gap-7">
+          <h1 className="sr-only">
+            {hero.title} {hero.titleAccent}
+          </h1>
+          <p data-hero-fade className="lede mx-auto max-w-xl text-center">
+            {hero.lede}
+          </p>
+          <div data-hero-fade className="flex flex-wrap justify-center gap-3">
+            <Button href={`/${locale}/contact`}>{hero.primary}</Button>
+            <Button href={`/${locale}/work`} variant="outline">
+              {hero.secondary}
+            </Button>
+          </div>
+        </div>
+
+        <div className="shell flex items-end justify-between">
+          <div className="flex items-center gap-3">
+            <span className="l07-cue-line" aria-hidden />
+            <span className="font-mono text-[0.6875rem] tracking-[0.16em] text-ink-muted uppercase">
+              {hero.hint}
+            </span>
+          </div>
           <span className="font-mono text-[0.6875rem] tracking-[0.16em] text-ink-muted uppercase">
-            {hero.hint}
+            {SITE.location}
           </span>
         </div>
-        <span className="font-mono text-[0.6875rem] tracking-[0.16em] text-ink-muted uppercase">
-          {SITE.location}
-        </span>
       </div>
     </section>
   );

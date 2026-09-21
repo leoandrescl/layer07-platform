@@ -1,52 +1,22 @@
 import { Path, Shape } from "three";
 
+/**
+ * Refined, light geometric logotype. Thin strokes and an oval counter so the
+ * particle formation reads as a delicate mark rather than a heavy block.
+ */
 export const GLYPH = {
   cap: 1,
-  stroke: 0.22,
-  spacing: 0.14,
+  stroke: 0.15,
+  spacing: 0.18,
 } as const;
 
 const { cap, stroke, spacing } = GLYPH;
 
 const WIDTH = {
-  L: 0.62,
-  zero: 0.66,
-  seven: 0.62,
+  L: 0.46,
+  zero: 0.6,
+  seven: 0.54,
 } as const;
-
-function roundedRect(
-  path: Path,
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-  radius: number,
-  clockwise: boolean,
-) {
-  const r = Math.min(radius, width / 2, height / 2);
-
-  if (clockwise) {
-    path.moveTo(x + r, y);
-    path.lineTo(x + width - r, y);
-    path.quadraticCurveTo(x + width, y, x + width, y + r);
-    path.lineTo(x + width, y + height - r);
-    path.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
-    path.lineTo(x + r, y + height);
-    path.quadraticCurveTo(x, y + height, x, y + height - r);
-    path.lineTo(x, y + r);
-    path.quadraticCurveTo(x, y, x + r, y);
-  } else {
-    path.moveTo(x + r, y);
-    path.quadraticCurveTo(x, y, x, y + r);
-    path.lineTo(x, y + height - r);
-    path.quadraticCurveTo(x, y + height, x + r, y + height);
-    path.lineTo(x + width - r, y + height);
-    path.quadraticCurveTo(x + width, y + height, x + width, y + height - r);
-    path.lineTo(x + width, y + r);
-    path.quadraticCurveTo(x + width, y, x + width - r, y);
-    path.lineTo(x + r, y);
-  }
-}
 
 function shapeL() {
   const shape = new Shape();
@@ -61,19 +31,15 @@ function shapeL() {
 }
 
 function shapeZero() {
+  const cx = WIDTH.zero / 2;
+  const rx = WIDTH.zero / 2;
+  const ry = cap / 2;
+
   const shape = new Shape();
-  roundedRect(shape, 0, 0, WIDTH.zero, cap, WIDTH.zero / 2, true);
+  shape.absellipse(cx, ry, rx, ry, 0, Math.PI * 2, false, 0);
 
   const hole = new Path();
-  roundedRect(
-    hole,
-    stroke,
-    stroke,
-    WIDTH.zero - stroke * 2,
-    cap - stroke * 2,
-    (WIDTH.zero - stroke * 2) / 2,
-    false,
-  );
+  hole.absellipse(cx, ry, rx - stroke, ry - stroke, 0, Math.PI * 2, true, 0);
   shape.holes.push(hole);
   return shape;
 }
@@ -86,10 +52,10 @@ function shapeSeven() {
   shape.moveTo(0, cap);
   shape.lineTo(w, cap);
   shape.lineTo(w, under);
-  shape.lineTo(0.58, under);
-  shape.lineTo(0.29, 0);
-  shape.lineTo(0.07, 0);
-  shape.lineTo(0.36, under);
+  shape.lineTo(0.4, under);
+  shape.lineTo(0.14, 0);
+  shape.lineTo(0, 0);
+  shape.lineTo(0.26, under);
   shape.lineTo(0, under);
   shape.lineTo(0, cap);
   return shape;

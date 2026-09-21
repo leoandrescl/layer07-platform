@@ -1,15 +1,17 @@
 import { ShapeUtils, type Shape, type Vector2 } from "three";
 import { buildGlyphShapes, GLYPH } from "./glyphs";
 
+export const ARMS = 3;
+
 type ColorEntry = { r: number; g: number; b: number; cumulative: number };
 
 /** Star palette: cool white/blue with warm amber and a rare ember. */
 const STAR_PALETTE = [
-  { hex: "#ffffff", weight: 0.42 },
+  { hex: "#ffffff", weight: 0.4 },
   { hex: "#dbe7ff", weight: 0.22 },
-  { hex: "#9fc4ff", weight: 0.14 },
+  { hex: "#9fc4ff", weight: 0.15 },
   { hex: "#ffd9a0", weight: 0.12 },
-  { hex: "#ffb066", weight: 0.07 },
+  { hex: "#ffb066", weight: 0.08 },
   { hex: "#ff7a6b", weight: 0.03 },
 ];
 
@@ -52,7 +54,7 @@ function gaussian() {
   return Math.random() + Math.random() + Math.random() - 1.5;
 }
 
-function pickSize(tiers: number[], weights: number[], jitter = 0.3) {
+function pickSize(tiers: number[], weights: number[], jitter = 0.35) {
   let r = Math.random();
   for (let t = 0; t < weights.length; t += 1) {
     if (r < weights[t]) {
@@ -66,7 +68,7 @@ function pickSize(tiers: number[], weights: number[], jitter = 0.3) {
 type Triangle = { a: Vector2; b: Vector2; c: Vector2; cum: number };
 
 function triangulate(shape: Shape) {
-  const extracted = shape.extractPoints(12);
+  const extracted = shape.extractPoints(64);
   const faces = ShapeUtils.triangulateShape(extracted.shape, extracted.holes);
   const all = [...extracted.shape, ...extracted.holes.flat()];
 
@@ -113,7 +115,7 @@ function sampleTriangle(triangles: Triangle[], total: number) {
   };
 }
 
-/** Particles that fly along a spiral and settle on the L07. */
+/** Particles that wind inward along an arm and settle on the L07. */
 export type FormationBuffers = {
   position: Float32Array;
   aTarget: Float32Array;
@@ -124,7 +126,8 @@ export type FormationBuffers = {
   aSeed: Float32Array;
   aColor: Float32Array;
   aRadius0: Float32Array;
-  aSpin: Float32Array;
+  aArm: Float32Array;
+  aSpread: Float32Array;
   aDepth: Float32Array;
 };
 
@@ -144,11 +147,12 @@ export function buildFormation(count: number): FormationBuffers {
   const aSeed = new Float32Array(count);
   const aColor = new Float32Array(count * 3);
   const aRadius0 = new Float32Array(count);
-  const aSpin = new Float32Array(count);
+  const aArm = new Float32Array(count);
+  const aSpread = new Float32Array(count);
   const aDepth = new Float32Array(count);
 
-  const sizeTiers = [0.02, 0.035, 0.055, 0.09];
-  const sizeWeights = [0.46, 0.3, 0.16, 0.08];
+  const sizeTiers = [0.013, 0.021, 0.036, 0.062];
+  const sizeWeights = [0.5, 0.28, 0.15, 0.07];
 
   for (let i = 0; i < count; i += 1) {
     const i3 = i * 3;
@@ -166,16 +170,17 @@ export function buildFormation(count: number): FormationBuffers {
     const point = sampleTriangle(glyph.triangles, glyph.total);
     aTarget[i3] = glyph.x + point.x;
     aTarget[i3 + 1] = point.y - GLYPH.cap / 2;
-    aTarget[i3 + 2] = rand(-0.05, 0.05);
+    aTarget[i3 + 2] = rand(-0.08, 0.08);
 
     aPhase[i] = Math.random();
-    aSpeed[i] = rand(0.6, 1.4);
+    aSpeed[i] = rand(0.55, 1.45);
     aSeed[i] = Math.random();
     aSize[i] = pickSize(sizeTiers, sizeWeights);
-    aBright[i] = rand(0.6, 1.5) * (1 + (aSize[i] / sizeTiers[3]) * 0.5);
-    aRadius0[i] = rand(3.6, 8.6);
-    aSpin[i] = gaussian() * 0.85;
-    aDepth[i] = rand(-0.3, 0.3);
+    aBright[i] = rand(0.32, 0.95) * (1 + (aSize[i] / sizeTiers[3]) * 0.6);
+    aRadius0[i] = rand(4.2, 11.5);
+    aArm[i] = Math.floor(Math.random() * ARMS);
+    aSpread[i] = gaussian() * 0.42;
+    aDepth[i] = rand(-0.4, 0.4);
 
     pickColor(aColor, i3);
   }
@@ -190,7 +195,8 @@ export function buildFormation(count: number): FormationBuffers {
     aSeed,
     aColor,
     aRadius0,
-    aSpin,
+    aArm,
+    aSpread,
     aDepth,
   };
 }
@@ -215,12 +221,12 @@ export function buildStarfield(count: number): StarfieldBuffers {
   const aSpeed = new Float32Array(count);
   const aColor = new Float32Array(count * 3);
 
-  const spreadX = 20;
-  const spreadY = 13;
-  const spreadZ = 9;
+  const spreadX = 28;
+  const spreadY = 18;
+  const spreadZ = 14;
 
-  const sizeTiers = [0.007, 0.013, 0.022, 0.04];
-  const sizeWeights = [0.58, 0.26, 0.12, 0.04];
+  const sizeTiers = [0.006, 0.011, 0.019, 0.034];
+  const sizeWeights = [0.6, 0.25, 0.11, 0.04];
 
   for (let i = 0; i < count; i += 1) {
     const i3 = i * 3;
@@ -228,8 +234,8 @@ export function buildStarfield(count: number): StarfieldBuffers {
     aBase[i3 + 1] = rand(-spreadY / 2, spreadY / 2);
     aBase[i3 + 2] = rand(-spreadZ / 2, spreadZ / 2);
 
-    aSize[i] = pickSize(sizeTiers, sizeWeights, 0.4);
-    aBright[i] = rand(0.18, 0.95) * (aSize[i] > 0.03 ? 1.5 : 1);
+    aSize[i] = pickSize(sizeTiers, sizeWeights, 0.45);
+    aBright[i] = rand(0.16, 0.85) * (aSize[i] > 0.026 ? 1.5 : 1);
     aSeed[i] = Math.random();
     aSpeed[i] = rand(0.4, 1.6);
 
