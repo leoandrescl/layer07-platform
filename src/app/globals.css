@@ -293,40 +293,39 @@ html.lenis body {
 }
 
 /* ------------------------------------------------------------------ *
- * Digital Matter hero — liquid metal orb on the editorial stage.
+ * L07 hero — interactive 3D monogram.
  * ------------------------------------------------------------------ */
 
-.matter-glow {
+.l07-glow {
   background: radial-gradient(
-    42% 46% at 72% 44%,
+    46% 52% at 50% 42%,
     var(--accent-soft),
-    transparent 70%
+    transparent 72%
   );
 }
 
-.matter-orb-fallback {
+.l07-fallback {
   position: absolute;
-  inset: 13%;
-  border-radius: 999px;
-  background: radial-gradient(
-    circle at 34% 28%,
-    #5b5b6a 0%,
-    #1a1a22 44%,
-    #07070c 80%
-  );
-  box-shadow:
-    0 50px 130px -50px rgba(0, 0, 0, 0.75),
-    inset -24px -34px 90px rgba(122, 136, 255, 0.22);
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: -0.04em;
+  font-size: clamp(3.5rem, 17vw, 12rem);
+  line-height: 1;
+  color: var(--ink);
 }
 
-.matter-cue-line {
+.l07-cue-line {
   width: 1px;
   height: 34px;
   background: linear-gradient(to bottom, var(--accent), transparent);
-  animation: matter-cue 2.4s var(--ease-in-out) infinite;
+  animation: l07-cue 2.4s var(--ease-in-out) infinite;
 }
 
-@keyframes matter-cue {
+@keyframes l07-cue {
   0%,
   100% {
     transform: scaleY(0.4);
@@ -340,7 +339,7 @@ html.lenis body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .matter-cue-line {
+  .l07-cue-line {
     animation: none !important;
   }
 }

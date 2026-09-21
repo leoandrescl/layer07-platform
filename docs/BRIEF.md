@@ -97,27 +97,29 @@ Todas las páginas viven bajo `src/app/[lang]/` (`es` | `en`).
   baja resolución/30fps; tier 2 resolución y 60fps.
 - Se pausa con `document.hidden` y ante pérdida de contexto.
 
-## Hero — Digital Matter
+## Hero — L07 en 3D interactivo
 
-`src/components/hero/DigitalMatterHero.tsx`.
+`src/components/hero/L07Hero.tsx` + `src/components/hero/glyphs.ts`.
 
-Una **esfera de metal líquido** con deformación orgánica en el vertex shader y
-normales recalculadas, material cromado iridiscente (`MeshPhysicalMaterial`) y
-reflejos PBR reales vía `RoomEnvironment`. Vive en su propia columna (caja
-cuadrada), por lo que el encuadre nunca se rompe; sin scroll-jack.
+El monograma **L07** construido en 3D con geometría propia (`Shape` +
+`ExtrudeGeometry`, sin depender de fuentes externas). Cada glifo usa dos
+materiales: **caras en tinta** y **cantos en acento**, de modo que al girar se
+revelan los bordes de color. Referencia de vibra: tryand.co.
 
-- **Composición:** dos columnas en desktop (texto a la izquierda, pieza a la
-  derecha); en móvil la pieza va arriba y el texto debajo. Glow de acento CSS
-  detrás. Sin escenario oscuro ni inversión del header.
-- **Interacción:** el cursor deforma la superficie (bulge que sigue al puntero
-  en espacio objeto), inclina la pieza y mueve una luz; clic lanza un pulso.
-- **Scroll:** la pieza se aleja y se desvanece mientras el Hero sale, dejando
-  paso a Work (separación clara, sin secuestro de scroll).
-- **Render:** `three` (vertex displacement + normal recompute), `RoomEnvironment`
-  + `PMREMGenerator`, luces de borde fría/cálida, tone mapping ACES.
-- **Degradación:** reusa `detectCapability`. Tier 2 con iridiscencia y mayor
-  detalle; tier 1 menor detalle sin iridiscencia; tier 0 / `prefers-reduced-motion`
-  muestran una órbita CSS estática.
+- **Composición centrada:** el monograma es el protagonista, con un stage
+  16/9 (4/3 en móvil) que escala por aspecto (`fit`), así el encuadre nunca se
+  rompe. Eyebrow arriba, lede y CTAs debajo. Glow de acento CSS detrás.
+- **Interacción:** el cursor inclina el bloque en 3D, cada letra flota con fase
+  propia, la letra bajo el puntero se acerca (raycast) y el clic lanza un pulso.
+- **Entrada:** las letras crecen y se asientan con stagger; el copy hace fade.
+- **Scroll:** el bloque se inclina hacia atrás, sube y se desvanece al salir el
+  Hero (sin scroll-jack).
+- **Render:** `three`, `RoomEnvironment` + `PMREMGenerator`, luces de borde
+  fría/cálida y tone mapping ACES. Materiales que siguen los tokens del tema
+  (caras = `--ink`, cantos = `--accent`) y se actualizan al cambiar de tema.
+- **Degradación:** reusa `detectCapability`. Tier 1 sin antialias y con menos
+  resolución; tier 0 / `prefers-reduced-motion` muestran el monograma en HTML
+  (`.l07-fallback`) sin WebGL.
 - **Handoff:** el `MaterialField` global se pausa mientras el Hero está activo
   (`src/lib/hero-state.ts`) y se reanuda al entrar en Work.
 
