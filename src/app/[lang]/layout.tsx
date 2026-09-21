@@ -129,7 +129,7 @@ export default async function LocaleLayout({
         <ThemeProvider>
           <SmoothScroll />
           <Cosmos />
-          <div className="relative z-10 flex min-h-dvh flex-col">
+          <div className="relative flex min-h-dvh flex-col">
             <Header locale={lang} dict={dict} />
             <main className="flex-1">{children}</main>
             <Footer locale={lang} dict={dict} />

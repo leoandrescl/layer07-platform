@@ -290,8 +290,9 @@ html.lenis body {
  * L07 hero — particle monogram on a dark gallery stage.
  * ------------------------------------------------------------------ */
 
+/* Transparent: the site cosmos shows through and the canvas screen-blends on
+ * top, so the hero and the rest of the site share one single background. */
 .l07-stage {
-  background: #04050c;
   color: var(--ink);
 }
 
@@ -632,21 +633,6 @@ html.lenis body {
     opacity: 0;
     transform: translate3d(52vw, 20vh, 0) rotate(18deg) scaleX(1);
   }
-}
-
-/* Hero blends into the site background instead of a hard cut */
-.l07-blend {
-  position: absolute;
-  inset-inline: 0;
-  bottom: 0;
-  height: 38vh;
-  background: linear-gradient(
-    to bottom,
-    rgba(4, 5, 12, 0) 0%,
-    rgba(4, 5, 12, 0.55) 66%,
-    #04050c 100%
-  );
-  pointer-events: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
