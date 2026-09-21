@@ -105,7 +105,8 @@ export function L07ParticleHero({ dict }: { dict: Dictionary }) {
     const maxDpr = cap.tier === 2 ? 2 : 1.25;
     renderer.outputColorSpace = SRGBColorSpace;
     renderer.toneMapping = NoToneMapping;
-    renderer.setClearColor(0x000000, 1);
+    // deep-space base that matches the site cosmos, so there is no hard cut
+    renderer.setClearColor(0x04050c, 1);
 
     const scene = new Scene();
     const camera = new PerspectiveCamera(42, 1, 0.1, 120);
@@ -415,6 +416,8 @@ export function L07ParticleHero({ dict }: { dict: Dictionary }) {
           aria-hidden
           className="absolute inset-0 h-full w-full cursor-grab opacity-0 transition-opacity duration-1000"
         />
+
+        <div className="l07-blend" aria-hidden />
 
         <div className="pointer-events-none absolute inset-0 z-10">
           <span className="hero-side hero-side-left">{hero.studio}</span>
