@@ -71,7 +71,6 @@ export function L07ParticleHero() {
   const rootRef = useRef<HTMLElement | null>(null);
   const stageRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const fallbackRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const root = rootRef.current;
@@ -134,6 +133,7 @@ export function L07ParticleHero() {
     const buffers = buildGalaxySeven(count);
     const geometry = new BufferGeometry();
     geometry.setAttribute("position", new BufferAttribute(buffers.position, 3));
+    geometry.setAttribute("aScatter", new BufferAttribute(buffers.aScatter, 3));
     geometry.setAttribute("aLateral", new BufferAttribute(buffers.aLateral, 1));
     geometry.setAttribute("aZ", new BufferAttribute(buffers.aZ, 1));
     geometry.setAttribute("aPhase", new BufferAttribute(buffers.aPhase, 1));
@@ -150,6 +150,7 @@ export function L07ParticleHero() {
     const uniforms = {
       uTime: new Uniform(0),
       uIntro: new Uniform(0),
+      uForm: new Uniform(0),
       uMorph: new Uniform(0),
       uArms: new Uniform(GALAXY.arms),
       uCoreRadius: new Uniform(GALAXY.coreRadius),
@@ -162,9 +163,11 @@ export function L07ParticleHero() {
       uFovScale: new Uniform(1000),
       uSizeScale: new Uniform(1),
       uCoreColor: new Uniform(coreColor),
-      uPathA: new Uniform(new Vector2(SEVEN_PATH.a.x, SEVEN_PATH.a.y)),
-      uPathB: new Uniform(new Vector2(SEVEN_PATH.b.x, SEVEN_PATH.b.y)),
-      uPathC: new Uniform(new Vector2(SEVEN_PATH.c.x, SEVEN_PATH.c.y)),
+      uP0: new Uniform(new Vector2(SEVEN_PATH.p0.x, SEVEN_PATH.p0.y)),
+      uC1: new Uniform(new Vector2(SEVEN_PATH.c1.x, SEVEN_PATH.c1.y)),
+      uP1: new Uniform(new Vector2(SEVEN_PATH.p1.x, SEVEN_PATH.p1.y)),
+      uC2: new Uniform(new Vector2(SEVEN_PATH.c2.x, SEVEN_PATH.c2.y)),
+      uP2: new Uniform(new Vector2(SEVEN_PATH.p2.x, SEVEN_PATH.p2.y)),
     };
 
     const material = new ShaderMaterial({
@@ -286,9 +289,11 @@ export function L07ParticleHero() {
       elapsed += dt;
 
       uniforms.uTime.value = elapsed;
-      uniforms.uIntro.value = reduced ? 1 : smoothstep(0.4, 2.4, elapsed);
+      // opening: dispersed field first, galaxy forms after ~1s
+      uniforms.uIntro.value = reduced ? 1 : smoothstep(0, 0.25, elapsed);
+      uniforms.uForm.value = reduced ? 1 : smoothstep(0.3, 1.35, elapsed);
       uniforms.uSpin.value = reduced ? 0 : GALAXY.spin;
-      starUniforms.uReveal.value = smoothstep(0, 0.8, elapsed);
+      starUniforms.uReveal.value = smoothstep(0, 0.7, elapsed);
 
       // Scroll morphs the galaxy into the 7.
       const scrollable = Math.max(1, root.offsetHeight - window.innerHeight);
@@ -299,7 +304,6 @@ export function L07ParticleHero() {
     };
 
     canvas.style.opacity = "1";
-    if (fallbackRef.current) fallbackRef.current.style.opacity = "0";
     raf = requestAnimationFrame(tick);
 
     const onVisibility = () => {
@@ -317,7 +321,6 @@ export function L07ParticleHero() {
       alive = false;
       cancelAnimationFrame(raf);
       canvas.style.opacity = "0";
-      if (fallbackRef.current) fallbackRef.current.style.opacity = "1";
     };
 
     const resizeObserver = new ResizeObserver(resize);
@@ -348,13 +351,6 @@ export function L07ParticleHero() {
       className="l07-hero l07-stage relative"
     >
       <div ref={stageRef} className="sticky top-0 h-[100svh] overflow-hidden">
-        <div
-          ref={fallbackRef}
-          aria-hidden
-          className="l07-fallback transition-opacity duration-1000"
-        >
-          7
-        </div>
         <canvas
           ref={canvasRef}
           aria-hidden

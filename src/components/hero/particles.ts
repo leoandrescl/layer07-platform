@@ -81,6 +81,8 @@ function pickSize() {
 
 export type GalaxyBuffers = {
   position: Float32Array;
+  /** wide random position used for the "dispersed" intro */
+  aScatter: Float32Array;
   aPhase: Float32Array;
   aSpeed: Float32Array;
   aArm: Float32Array;
@@ -98,6 +100,7 @@ export type GalaxyBuffers = {
 
 export function buildGalaxySeven(count: number): GalaxyBuffers {
   const position = new Float32Array(count * 3);
+  const aScatter = new Float32Array(count * 3);
   const aPhase = new Float32Array(count);
   const aSpeed = new Float32Array(count);
   const aArm = new Float32Array(count);
@@ -114,6 +117,11 @@ export function buildGalaxySeven(count: number): GalaxyBuffers {
 
   for (let i = 0; i < count; i += 1) {
     const i3 = i * 3;
+
+    // dispersed field across the whole viewport for the opening beat
+    aScatter[i3] = rand(-9, 9);
+    aScatter[i3 + 1] = rand(-5.5, 5.5);
+    aScatter[i3 + 2] = rand(-4, 4);
 
     aPhase[i] = Math.random();
     aSpeed[i] = rand(0.65, 1.35);
@@ -144,6 +152,7 @@ export function buildGalaxySeven(count: number): GalaxyBuffers {
 
   return {
     position,
+    aScatter,
     aPhase,
     aSpeed,
     aArm,

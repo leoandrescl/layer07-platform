@@ -41,9 +41,11 @@ export const GALAXY_VERT = /* glsl */ `
   attribute float aLateral;
   attribute float aZ;
   attribute vec3 aColor;
+  attribute vec3 aScatter;
 
   uniform float uTime;
   uniform float uIntro;
+  uniform float uForm;
   uniform float uMorph;
   uniform float uArms;
   uniform float uCoreRadius;
@@ -56,13 +58,24 @@ export const GALAXY_VERT = /* glsl */ `
   uniform float uFovScale;
   uniform float uSizeScale;
   uniform vec3 uCoreColor;
-  uniform vec2 uPathA;
-  uniform vec2 uPathB;
-  uniform vec2 uPathC;
+  uniform vec2 uP0;
+  uniform vec2 uC1;
+  uniform vec2 uP1;
+  uniform vec2 uC2;
+  uniform vec2 uP2;
 
   varying vec3 vColor;
   varying float vBright;
   varying float vSeed;
+
+  vec2 quadBezier(vec2 p0, vec2 c, vec2 p1, float u) {
+    float v = 1.0 - u;
+    return v * v * p0 + 2.0 * v * u * c + u * u * p1;
+  }
+
+  vec2 quadTangent(vec2 p0, vec2 c, vec2 p1, float u) {
+    return 2.0 * (1.0 - u) * (c - p0) + 2.0 * u * (p1 - c);
+  }
 
   void main() {
     float t = fract(aPhase + uTime * uFlowSpeed * aSpeed);
@@ -83,29 +96,31 @@ export const GALAXY_VERT = /* glsl */ `
     float thickness = uThickness * (0.18 + 0.82 * rf);
     vec3 galaxyPos = vec3(cos(theta) * r, aHeight * thickness, sin(theta) * r);
 
-    // ---- river along the 7 ----
-    float lenAB = length(uPathB - uPathA);
-    float lenBC = length(uPathC - uPathB);
-    float total = max(lenAB + lenBC, 0.0001);
-    float d = t * total;
-
+    // ---- river along the brush 7 ----
     vec2 center;
     vec2 segDir;
-    if (d < lenAB) {
-      center = mix(uPathA, uPathB, d / max(lenAB, 0.0001));
-      segDir = normalize(uPathB - uPathA);
+    float taper;
+    if (t < 0.5) {
+      float u = t * 2.0;
+      center = quadBezier(uP0, uC1, uP1, u);
+      segDir = normalize(quadTangent(uP0, uC1, uP1, u));
+      taper = mix(0.42, 1.0, smoothstep(0.0, 1.0, u));
     } else {
-      center = mix(uPathB, uPathC, (d - lenAB) / max(lenBC, 0.0001));
-      segDir = normalize(uPathC - uPathB);
+      float u = (t - 0.5) * 2.0;
+      center = quadBezier(uP1, uC2, uP2, u);
+      segDir = normalize(quadTangent(uP1, uC2, uP2, u));
+      taper = mix(1.0, 0.06, smoothstep(0.0, 1.0, u));
     }
 
     vec2 perp = vec2(-segDir.y, segDir.x);
-    vec2 riverXY = center + perp * aLateral;
+    vec2 riverXY = center + perp * aLateral * taper;
     riverXY.x += sin(uTime * 1.3 + aSeed * 6.2831) * 0.03;
     riverXY.y += cos(uTime * 1.1 + aSeed * 6.2831) * 0.03;
     vec3 riverPos = vec3(riverXY, aZ);
 
-    vec3 p = mix(galaxyPos, riverPos, uMorph);
+    // dispersed field -> galaxy -> 7
+    vec3 p = mix(aScatter, galaxyPos, uForm);
+    p = mix(p, riverPos, uMorph);
 
     vec4 mv = modelViewMatrix * vec4(p, 1.0);
     gl_Position = projectionMatrix * mv;
@@ -117,7 +132,9 @@ export const GALAXY_VERT = /* glsl */ `
 
     float galaxyFade = smoothstep(0.0, 0.05, t) * (1.0 - smoothstep(0.94, 1.0, t));
     float riverFade = smoothstep(0.0, 0.08, t) * (1.0 - smoothstep(0.9, 1.0, t));
-    float fade = mix(galaxyFade, riverFade, uMorph);
+    float baseFade = mix(galaxyFade, riverFade, uMorph);
+    // while dispersed, every particle is visible
+    float fade = mix(1.0, baseFade, uForm);
 
     float coreMix = 1.0 - smoothstep(uCoreRadius, uOuterRadius * 0.45, r);
     float twinkle = 0.72 + 0.28 * sin(uTime * 1.7 + aSeed * 30.0);
