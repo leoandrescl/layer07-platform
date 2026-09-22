@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { ButtonLayers, useButtonFx } from "@/components/ui/button-fx";
 import { cn } from "@/lib/cn";
 import type { Locale } from "@/lib/i18n/config";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
@@ -25,6 +26,8 @@ export function ContactForm({
   dict: Dictionary;
 }) {
   const t = dict.contact;
+  const { ref: submitRef, handlers: submitHandlers } =
+    useButtonFx<HTMLButtonElement>();
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">(
     "idle",
   );
@@ -111,14 +114,16 @@ export function ContactForm({
       ) : null}
 
       <button
+        ref={submitRef}
         type="submit"
         disabled={status === "loading"}
-        className="group inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3.5 text-[0.8125rem] font-medium text-accent-ink transition-all duration-300 hover:-translate-y-0.5 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
+        className="btn btn-solid disabled:cursor-not-allowed"
+        {...submitHandlers}
       >
-        {status === "loading" ? t.sending : t.submit}
-        <span aria-hidden className="transition-transform group-hover:translate-x-0.5">
-          →
-        </span>
+        <ButtonLayers>
+          {status === "loading" ? t.sending : t.submit}
+          <span aria-hidden>→</span>
+        </ButtonLayers>
       </button>
     </form>
   );
