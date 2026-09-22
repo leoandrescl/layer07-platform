@@ -376,37 +376,8 @@ html.lenis body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-.hero-label-wrap {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: min(62vw, 24rem);
-  height: 1.2em;
-}
-
 .hero-label {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  white-space: nowrap;
-  opacity: 0;
-  transform: translateY(8px);
-  transition:
-    opacity 0.6s var(--ease-out),
-    transform 0.6s var(--ease-out);
-}
-
-.hero-label.is-active {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.hero-label.is-leaving {
-  opacity: 0;
-  transform: translateY(-8px);
+  transition: opacity 0.32s var(--ease-out);
 }
 
 .hero-side-dot {
