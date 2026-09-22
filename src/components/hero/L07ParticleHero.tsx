@@ -75,7 +75,7 @@ export function L07ParticleHero({ dict }: { dict: Dictionary }) {
   const rootRef = useRef<HTMLElement | null>(null);
   const stageRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const labelRef = useRef<HTMLSpanElement | null>(null);
+
 
   const { hero } = dict.home;
 
@@ -320,9 +320,6 @@ export function L07ParticleHero({ dict }: { dict: Dictionary }) {
     let raf = 0;
     let elapsed = 0;
     let last = performance.now();
-    let labelCurrent = dict.home.hero.galaxy;
-    let labelVisible = 1;
-    let labelSwapAt = 0;
 
     const tick = (now: number) => {
       raf = requestAnimationFrame(tick);
@@ -354,30 +351,6 @@ export function L07ParticleHero({ dict }: { dict: Dictionary }) {
       const progress = clamp(window.scrollY / scrollable);
       const morph = smoothstep(0.05, 0.5, progress);
       uniforms.uMorph.value = morph;
-
-      // side label narrates the state, then cycles the capabilities,
-      // fading out/in so the swap is never abrupt
-      const labelEl = labelRef.current;
-      if (labelEl) {
-        const copy = dict.home.hero;
-        const desired =
-          morph < 0.5
-            ? copy.galaxy
-            : copy.capabilities[
-                Math.floor(elapsed / 1.5) % copy.capabilities.length
-              ];
-        if (desired !== labelCurrent && labelVisible === 1) {
-          labelVisible = 0;
-          labelEl.style.opacity = "0";
-          labelSwapAt = elapsed + 0.32;
-        }
-        if (labelVisible === 0 && elapsed >= labelSwapAt) {
-          labelCurrent = desired;
-          labelEl.textContent = desired;
-          labelVisible = 1;
-          labelEl.style.opacity = "1";
-        }
-      }
 
       composer.render(dt);
     };
@@ -455,9 +428,6 @@ export function L07ParticleHero({ dict }: { dict: Dictionary }) {
           </div>
           <div className="hero-bottom">
             <span>{hero.build}</span>
-            <span ref={labelRef} className="hero-label">
-              {hero.galaxy}
-            </span>
             <span>07 — layer07</span>
           </div>
         </div>

@@ -376,10 +376,6 @@ html.lenis body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-.hero-label {
-  transition: opacity 0.32s var(--ease-out);
-}
-
 .hero-side-dot {
     animation: none !important;
   }
