@@ -219,6 +219,227 @@
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
   }
 
+  /* ---- Buttons: "digital matter" ---- */
+  .btn {
+    --mx: 50%;
+    --my: 50%;
+    --dx: 0px;
+    --dy: 0px;
+    --tx: 0px;
+    --ty: 0px;
+    --ring-a: #6d7bff;
+    --ring-b: #a06bff;
+    --ring-c: #ff5c9e;
+
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: 999px;
+    padding: 0.75rem 1.35rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    isolation: isolate;
+    overflow: hidden;
+    cursor: pointer;
+    transform: translate(var(--tx), var(--ty));
+    transition:
+      transform 0.5s var(--ease-out),
+      color 0.4s var(--ease-out),
+      background-color 0.4s var(--ease-out),
+      box-shadow 0.5s var(--ease-out);
+    will-change: transform;
+  }
+
+  .btn:active {
+    transform: translate(var(--tx), var(--ty)) scale(0.96);
+  }
+
+  /* rotating nebula ring around the border */
+  .btn::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: conic-gradient(
+      from var(--btn-angle, 0deg),
+      transparent,
+      var(--ring-a),
+      var(--ring-b),
+      var(--ring-c),
+      transparent 76%
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0.4;
+    animation: btn-ring 8s linear infinite;
+    transition: opacity 0.4s var(--ease-out);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .btn:hover::before {
+    opacity: 1;
+    animation-duration: 2.2s;
+  }
+
+  /* dust that gravitates toward the cursor */
+  .btn-dust {
+    position: absolute;
+    inset: -45%;
+    background-image:
+      radial-gradient(1px 1px at 20% 30%, rgba(255, 255, 255, 0.9), transparent),
+      radial-gradient(1px 1px at 72% 62%, rgba(200, 220, 255, 0.75), transparent),
+      radial-gradient(1.4px 1.4px at 46% 82%, rgba(255, 226, 190, 0.75), transparent),
+      radial-gradient(1px 1px at 88% 18%, rgba(255, 255, 255, 0.6), transparent);
+    background-size: 46px 46px;
+    opacity: 0.28;
+    transform: translate(var(--dx), var(--dy));
+    transition:
+      transform 0.7s var(--ease-out),
+      opacity 0.4s var(--ease-out);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .btn:hover .btn-dust {
+    opacity: 0.85;
+  }
+
+  /* glow that follows the cursor */
+  .btn-glow {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+      95px 95px at var(--mx) var(--my),
+      color-mix(in srgb, var(--accent) 62%, transparent),
+      transparent 72%
+    );
+    opacity: 0;
+    transition: opacity 0.4s var(--ease-out);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .btn:hover .btn-glow {
+    opacity: 1;
+  }
+
+  .btn-label {
+    position: relative;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .btn-burst-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 3;
+  }
+
+  /* variants */
+  .btn-solid {
+    background: var(--accent);
+    color: var(--accent-ink);
+  }
+
+  .btn-solid:hover {
+    box-shadow: 0 14px 44px -14px color-mix(in srgb, var(--accent) 75%, transparent);
+  }
+
+  .btn-solid .btn-glow {
+    background: radial-gradient(
+      95px 95px at var(--mx) var(--my),
+      rgba(255, 255, 255, 0.6),
+      transparent 70%
+    );
+  }
+
+  .btn-outline {
+    background: color-mix(in srgb, var(--bg) 52%, transparent);
+    color: var(--ink);
+    backdrop-filter: blur(10px);
+  }
+
+  .btn-outline:hover {
+    color: #ffffff;
+  }
+
+  .btn-ghost {
+    padding-inline: 0;
+    color: var(--ink);
+  }
+
+  .btn-ghost::before,
+  .btn-ghost .btn-dust {
+    display: none;
+  }
+
+}
+
+@property --btn-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes btn-ring {
+  to {
+    --btn-angle: 360deg;
+  }
+}
+
+@keyframes btn-burst {
+  0% {
+    transform: scale(0.15);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(9);
+    opacity: 0;
+  }
+}
+
+.btn-burst {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  margin: -5px 0 0 -5px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow:
+    0 0 14px color-mix(in srgb, var(--accent) 75%, transparent),
+    inset 0 0 8px rgba(255, 255, 255, 0.65);
+  pointer-events: none;
+  animation: btn-burst 0.7s var(--ease-out) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn,
+  .btn::before,
+  .btn-dust,
+  .btn-glow {
+    transition: none !important;
+    animation: none !important;
+  }
+  .btn {
+    transform: none !important;
+  }
+  .btn-burst {
+    animation: none !important;
+    display: none !important;
+  }
 }
 
 @layer utilities {
