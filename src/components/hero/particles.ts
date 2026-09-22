@@ -5,8 +5,8 @@ export const GALAXY = {
   coreRadius: 0.18,
   radialCurve: 2.3,
   twist: 3.15,
-  /** slow spin (was -0.2): a full turn takes several minutes */
-  spin: -0.04,
+  /** very slow spin: a full turn takes many minutes */
+  spin: -0.018,
   flowSpeed: 0.06,
   thickness: 0.14,
   armWidth: 0.3,

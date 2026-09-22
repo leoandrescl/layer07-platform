@@ -49,6 +49,10 @@ function smoothstep(edge0: number, edge1: number, x: number) {
   return t * t * (3 - 2 * t);
 }
 
+const BASE_Z = 9;
+const GALAXY_DIAMETER = GALAXY.outerRadius * 2;
+const VIEW_FILL = 0.92;
+
 class StreakEffect extends Effect {
   constructor(samples: number) {
     const tint = new Color("#9fe3ff");
@@ -257,6 +261,15 @@ export function L07ParticleHero({ dict }: { dict: Dictionary }) {
       composer.setSize(w, h);
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
+
+      // Pull the camera back on narrow screens so the whole galaxy (and the
+      // 07) always fits inside the viewport width.
+      const visibleHeight =
+        2 * Math.tan((camera.fov * Math.PI) / 360) * BASE_Z;
+      const visibleWidth = visibleHeight * camera.aspect;
+      const needed = GALAXY_DIAMETER / (visibleWidth * VIEW_FILL);
+      camera.position.z = BASE_Z * Math.max(1, needed);
+
       uniforms.uFovScale.value =
         (h * dpr) / (2 * Math.tan((camera.fov * Math.PI) / 360));
     };
@@ -307,6 +320,9 @@ export function L07ParticleHero({ dict }: { dict: Dictionary }) {
     let raf = 0;
     let elapsed = 0;
     let last = performance.now();
+    let labelCurrent = dict.home.hero.galaxy;
+    let labelVisible = 1;
+    let labelSwapAt = 0;
 
     const tick = (now: number) => {
       raf = requestAnimationFrame(tick);
@@ -339,17 +355,27 @@ export function L07ParticleHero({ dict }: { dict: Dictionary }) {
       const morph = smoothstep(0.05, 0.5, progress);
       uniforms.uMorph.value = morph;
 
-      // side label narrates the state, then cycles the capabilities
-      if (labelRef.current) {
+      // side label narrates the state, then cycles the capabilities,
+      // fading out/in so the swap is never abrupt
+      const labelEl = labelRef.current;
+      if (labelEl) {
         const copy = dict.home.hero;
-        const text =
+        const desired =
           morph < 0.5
             ? copy.galaxy
             : copy.capabilities[
                 Math.floor(elapsed / 1.5) % copy.capabilities.length
               ];
-        if (labelRef.current.textContent !== text) {
-          labelRef.current.textContent = text;
+        if (desired !== labelCurrent && labelVisible === 1) {
+          labelVisible = 0;
+          labelEl.style.opacity = "0";
+          labelSwapAt = elapsed + 0.32;
+        }
+        if (labelVisible === 0 && elapsed >= labelSwapAt) {
+          labelCurrent = desired;
+          labelEl.textContent = desired;
+          labelVisible = 1;
+          labelEl.style.opacity = "1";
         }
       }
 
@@ -429,7 +455,9 @@ export function L07ParticleHero({ dict }: { dict: Dictionary }) {
           </div>
           <div className="hero-bottom">
             <span>{hero.build}</span>
-            <span ref={labelRef}>{hero.galaxy}</span>
+            <span ref={labelRef} className="hero-label">
+              {hero.galaxy}
+            </span>
             <span>07 — layer07</span>
           </div>
         </div>
