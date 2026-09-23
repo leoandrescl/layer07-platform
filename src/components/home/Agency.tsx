@@ -28,7 +28,7 @@ export function Agency({
             />
           </Reveal>
           <Reveal delay={0.12}>
-            <Button href={`/${locale}/agency`} className="mt-10">
+            <Button href={`/${locale}/agency`} variant="solid" className="mt-10">
               {agency.cta}
             </Button>
           </Reveal>

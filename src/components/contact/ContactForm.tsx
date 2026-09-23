@@ -117,7 +117,7 @@ export function ContactForm({
         ref={submitRef}
         type="submit"
         disabled={status === "loading"}
-        className="btn btn-solid disabled:cursor-not-allowed"
+        className="btn btn-outline disabled:cursor-not-allowed"
         {...submitHandlers}
       >
         <ButtonLayers>

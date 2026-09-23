@@ -17,7 +17,7 @@ type ButtonProps = {
 export function Button({
   href,
   children,
-  variant = "solid",
+  variant = "outline",
   external,
   className,
   ...rest
