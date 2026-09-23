@@ -114,9 +114,9 @@ export const en: Dictionary = {
     agency: {
       eyebrow: "Agencies & white-label",
       title: "Your agency's technical partner",
-      body: "I turn Figma designs into real products and deliver frontend and full stack development under your brand. Clean, documented code that is ready to maintain.",
+      body: "I turn designs — or an idea — into real products and deliver frontend and full stack development under your brand. Clean, documented code that is ready to maintain.",
       bullets: [
-        "High-fidelity Figma-to-code",
+        "Design to code, from any source",
         "White-label frontend & full stack",
         "WebGL and interactive prototypes",
         "Extra capacity during peak workload",
@@ -226,12 +226,12 @@ export const en: Dictionary = {
     title: "Agencies & white-label",
     intro: "Senior technical capacity for your agency, under your brand.",
     lead: "Add a full stack developer who ships complex designs and technical projects without friction.",
-    body: "I work as a white-label technical partner: I take your Figma design and turn it into a real product, or join as extra capacity on frontend and full stack projects. Without competing for the client and without exposing my brand.",
+    body: "I work as a white-label technical partner: I take your design — Figma, screenshots, references, Photoshop — or even an idea, and turn it into a real product. I also join as extra capacity on frontend and full stack projects. Without competing for the client and without exposing my brand.",
     howTitle: "How I collaborate",
     how: [
       {
-        title: "Figma-to-code",
-        body: "High-fidelity implementation: design system, responsive, animation and accessibility.",
+        title: "Design to code",
+        body: "High-fidelity implementation from any starting point: Figma, screenshots, references from other sites, Photoshop or a simple idea. Design system, responsive, animation and accessibility.",
       },
       {
         title: "White-label development",

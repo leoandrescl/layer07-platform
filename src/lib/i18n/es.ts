@@ -112,9 +112,9 @@ export const es = {
     agency: {
       eyebrow: "Agencias & white-label",
       title: "El partner técnico de tu agencia",
-      body: "Convierto diseños de Figma en productos reales y ejecuto desarrollo frontend y full stack bajo tu marca. Entrego código limpio, documentado y listo para mantener.",
+      body: "Convierto diseños —o una idea— en productos reales y ejecuto desarrollo frontend y full stack bajo tu marca. Entrego código limpio, documentado y listo para mantener.",
       bullets: [
-        "Figma-to-code de alta fidelidad",
+        "Del diseño al código, desde cualquier fuente",
         "Frontend y full stack white-label",
         "WebGL y prototipos interactivos",
         "Capacidad extra en picos de trabajo",
@@ -225,12 +225,12 @@ export const es = {
     title: "Agencias & white-label",
     intro: "Capacidad técnica senior para tu agencia, bajo tu marca.",
     lead: "Suma un desarrollador full stack que ejecuta diseños complejos y proyectos técnicos sin fricción.",
-    body: "Trabajo como partner técnico white-label: recibo tu diseño de Figma y lo convierto en un producto real, o entro como capacidad extra en proyectos frontend y full stack. Sin competir por el cliente, sin exponer mi marca.",
+    body: "Trabajo como partner técnico white-label: recibo tu diseño —Figma, capturas, referencias, Photoshop— o incluso una idea, y lo convierto en un producto real. También entro como capacidad extra en proyectos frontend y full stack. Sin competir por el cliente, sin exponer mi marca.",
     howTitle: "Cómo colaboro",
     how: [
       {
-        title: "Figma-to-code",
-        body: "Implementación de alta fidelidad: sistema de diseño, responsive, animaciones y accesibilidad.",
+        title: "Del diseño al código",
+        body: "Implementación de alta fidelidad desde cualquier punto de partida: Figma, capturas, referencias de otras webs, Photoshop o una simple idea. Sistema de diseño, responsive, animaciones y accesibilidad.",
       },
       {
         title: "Desarrollo white-label",
