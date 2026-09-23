@@ -893,3 +893,22 @@ html.lenis body {
     animation: none !important;
   }
 }
+
+/* Software rasterisers only (e.g. broken/absent GPU driver): the animated
+ * full-screen blur is what kills these machines, so tame it. Hardware
+ * accelerated machines are completely unaffected. */
+[data-gpu="software"] .cosmos-nebula {
+  filter: blur(34px);
+  animation: none;
+}
+
+[data-gpu="software"] .cosmos-stars,
+[data-gpu="software"] .cosmos-twinkle span,
+[data-gpu="software"] .cosmos-dust span,
+[data-gpu="software"] .cosmos-shoot {
+  animation: none !important;
+}
+
+[data-gpu="software"] .cosmos-grain {
+  mix-blend-mode: normal;
+}

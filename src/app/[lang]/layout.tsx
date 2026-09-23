@@ -33,7 +33,7 @@ const geistMono = Geist_Mono({
 // the theme toggle are kept in the codebase so light can be re-enabled later:
 // swap this back to reading `localStorage.getItem('l07-theme')` and restore the
 // <ThemeToggle /> in the header.
-const themeScript = `(function(){try{document.documentElement.dataset.theme='dark';}catch(e){}document.documentElement.classList.add('js');})();`;
+const themeScript = `(function(){try{document.documentElement.dataset.theme='dark';}catch(e){}document.documentElement.classList.add('js');try{var c=document.createElement('canvas');var g=c.getContext('webgl2')||c.getContext('webgl');if(!g){document.documentElement.dataset.gpu='none';}else{var d=g.getExtension('WEBGL_debug_renderer_info');var r=String((d?g.getParameter(d.UNMASKED_RENDERER_WEBGL):g.getParameter(g.RENDERER))||'').toLowerCase();if(/swiftshader|basic render|warp|llvmpipe|software|microsoft basic/.test(r)){document.documentElement.dataset.gpu='software';}}}catch(e){}`;
 
 export function generateStaticParams() {
   return locales.map((lang) => ({ lang }));

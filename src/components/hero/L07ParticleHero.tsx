@@ -87,7 +87,7 @@ export function L07ParticleHero({ dict }: { dict: Dictionary }) {
 
     const cap = detectCapability();
     root.dataset.tier = String(cap.tier);
-    if (cap.tier === 0) return;
+    if (cap.tier === 0 && !cap.software) return;
 
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -356,7 +356,18 @@ export function L07ParticleHero({ dict }: { dict: Dictionary }) {
     };
 
     canvas.style.opacity = "1";
-    raf = requestAnimationFrame(tick);
+
+    if (cap.software) {
+      // Software rasteriser: draw the finished mark once and stop. Keeps the
+      // page usable (and the 07 visible) without any per-frame WebGL cost.
+      uniforms.uIntro.value = 1;
+      uniforms.uForm.value = 1;
+      uniforms.uMorph.value = 1;
+      starUniforms.uReveal.value = 1;
+      renderer.render(scene, camera);
+    } else {
+      raf = requestAnimationFrame(tick);
+    }
 
     const onVisibility = () => {
       if (document.hidden) {
