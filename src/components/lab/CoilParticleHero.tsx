@@ -116,13 +116,10 @@ export function CoilParticleHero({ dict }: LabHeroProps) {
 
     const count = cap.tier === 2 ? 14000 : 7000;
     const buffers = buildGalaxySeven(count);
-    const aCoil = new Float32Array(count);
-    for (let i = 0; i < count; i += 1) aCoil[i] = Math.random();
 
     const geometry = new BufferGeometry();
     geometry.setAttribute("position", new BufferAttribute(buffers.position, 3));
     geometry.setAttribute("aScatter", new BufferAttribute(buffers.aScatter, 3));
-    geometry.setAttribute("aLateral", new BufferAttribute(buffers.aLateral, 1));
     geometry.setAttribute("aZ", new BufferAttribute(buffers.aZ, 1));
     geometry.setAttribute("aGlyph", new BufferAttribute(buffers.aGlyph, 1));
     geometry.setAttribute("aPhase", new BufferAttribute(buffers.aPhase, 1));
@@ -134,7 +131,6 @@ export function CoilParticleHero({ dict }: LabHeroProps) {
     geometry.setAttribute("aSize", new BufferAttribute(buffers.aSize, 1));
     geometry.setAttribute("aColor", new BufferAttribute(buffers.aColor, 3));
     geometry.setAttribute("aBright", new BufferAttribute(buffers.aBright, 1));
-    geometry.setAttribute("aCoil", new BufferAttribute(aCoil, 1));
 
     const coreColor = new Color("#ffd7a8");
     const uniforms = {
@@ -151,11 +147,11 @@ export function CoilParticleHero({ dict }: LabHeroProps) {
       uSpin: new Uniform<number>(GALAXY.spin),
       uFlowSpeed: new Uniform(GALAXY.flowSpeed),
       uFovScale: new Uniform(1000),
-      uSizeScale: new Uniform(1),
-      uCoilRadius: new Uniform(0.14),
-      uCoilTurns: new Uniform(10),
-      uCoilSpin: new Uniform(0.5),
-      uCoilDepth: new Uniform(0.7),
+      uSizeScale: new Uniform(0.78),
+      uCoilRadius: new Uniform(0.21),
+      uCoilTurns: new Uniform(8),
+      uCoilSpin: new Uniform(0.35),
+      uCoilDepth: new Uniform(0.36),
       uCoreColor: new Uniform(coreColor),
       uP0: new Uniform(new Vector2(SEVEN_PATH.p0.x, SEVEN_PATH.p0.y)),
       uC1: new Uniform(new Vector2(SEVEN_PATH.c1.x, SEVEN_PATH.c1.y)),

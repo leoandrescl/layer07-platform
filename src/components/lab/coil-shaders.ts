@@ -18,10 +18,8 @@ export const COIL_VERT = /* glsl */ `
   attribute float aSeed;
   attribute float aSize;
   attribute float aBright;
-  attribute float aLateral;
   attribute float aZ;
   attribute float aGlyph;
-  attribute float aCoil;
   attribute vec3 aColor;
   attribute vec3 aScatter;
 
@@ -114,12 +112,16 @@ export const COIL_VERT = /* glsl */ `
     // ---- coil wrapped around the centerline ----
     // radius runs along perp, depth runs along z, so the front projection
     // of the helix concentrates its density on two edges: the "2 lines".
+    // (aSeed is reused as the coil phase to stay within the vertex
+    //  attribute budget of ShaderMaterial.)
     float rad = uCoilRadius * taper;
-    float loose = step(0.78, aSeed);
-    rad *= mix(1.0, 0.2 + fract(aSeed * 13.7) * 0.7, loose);
-    rad *= 0.92 + 0.16 * fract(aSeed * 51.3);
+    float hashLoose = fract(aSeed * 13.7);
+    float loose = step(0.78, hashLoose);
+    rad *= mix(1.0, 0.2 + hashLoose * 0.7, loose);
+    rad *= 0.96 + 0.08 * fract(aSeed * 51.3);
 
-    float phase = aCoil * TAU + t * uCoilTurns * TAU + uTime * uCoilSpin;
+    float coil = fract(aSeed * 7.13 + 0.37);
+    float phase = coil * TAU + t * uCoilTurns * TAU + uTime * uCoilSpin;
     vec2 perp = vec2(-segDir.y, segDir.x);
     vec2 riverXY = center + perp * (rad * cos(phase));
     riverXY.x += sin(uTime * 1.3 + aSeed * 6.2831) * 0.03;
