@@ -117,6 +117,10 @@ export function CoilParticleHero({ dict }: LabHeroProps) {
     renderer.outputColorSpace = SRGBColorSpace;
     renderer.toneMapping = NoToneMapping;
     renderer.setClearColor(0x000000, 1);
+    // The canvas is screen-blended over the page cosmos: any dithering on the
+    // near-black frame would show up as moving diagonal banding over the clean
+    // CSS background, so turn it off.
+    renderer.getContext().disable(renderer.getContext().DITHER);
 
     const scene = new Scene();
     const camera = new PerspectiveCamera(42, 1, 0.1, 120);
@@ -253,6 +257,10 @@ export function CoilParticleHero({ dict }: LabHeroProps) {
       ),
     );
     const streak = new StreakEffect(cap.tier === 2 ? 17 : 9);
+    // Keep the hero backdrop 100% clean: the grain would be screen-blended
+    // over the page cosmos and read as moving noise/dither.
+    const streakGrain = streak.uniforms.get("uGrain");
+    if (streakGrain) streakGrain.value = 0;
     const chromatic = new ChromaticAberrationEffect({
       offset: new Vector2(0.0011, 0.0011),
       radialModulation: true,
