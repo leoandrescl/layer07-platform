@@ -26,6 +26,11 @@ export function ContactForm({
   dict: Dictionary;
 }) {
   const t = dict.contact;
+  const errorText: Record<string, string> = {
+    name: t.errName,
+    email: t.errEmail,
+    message: t.errMessage,
+  };
   const { ref: submitRef, handlers: submitHandlers } =
     useButtonFx<HTMLButtonElement>();
   const { ref: againRef, handlers: againHandlers } =
@@ -99,10 +104,16 @@ export function ContactForm({
           <span className="eyebrow">{field.label}</span>
           <input
             type={field.type}
+            aria-invalid={Boolean(errors[field.name])}
             className={fieldClass(Boolean(errors[field.name]))}
             placeholder={field.placeholder}
             {...register(field.name)}
           />
+          {errors[field.name] ? (
+            <span className="mt-2 block text-[0.8125rem] text-accent">
+              {errorText[field.name]}
+            </span>
+          ) : null}
         </label>
       ))}
 
@@ -112,8 +123,14 @@ export function ContactForm({
           rows={4}
           className={cn(fieldClass(Boolean(errors.message)), "resize-y")}
           placeholder={t.messagePlaceholder}
+          aria-invalid={Boolean(errors.message)}
           {...register("message")}
         />
+        {errors.message ? (
+          <span className="mt-2 block text-[0.8125rem] text-accent">
+            {errorText.message}
+          </span>
+        ) : null}
       </label>
 
       {status === "error" ? (
