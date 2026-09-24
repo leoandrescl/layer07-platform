@@ -1,12 +1,15 @@
 "use client";
 
 import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 import Lenis from "lenis";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { setLenis } from "@/lib/scroll";
+import { getLenis, setLenis } from "@/lib/scroll";
 
 export function SmoothScroll() {
+  const pathname = usePathname();
+
   useEffect(() => {
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduced) return;
@@ -36,6 +39,28 @@ export function SmoothScroll() {
       setLenis(null);
     };
   }, []);
+
+  // Always start each route at the top: Lenis keeps its own scroll state, so it
+  // has to be reset explicitly or it re-applies the previous position.
+  useEffect(() => {
+    if ("scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
+
+    const reset = () => {
+      const lenis = getLenis();
+      if (lenis) {
+        lenis.resize();
+        lenis.scrollTo(0, { immediate: true, force: true });
+      } else {
+        window.scrollTo(0, 0);
+      }
+    };
+
+    reset();
+    const frame = requestAnimationFrame(reset);
+    return () => cancelAnimationFrame(frame);
+  }, [pathname]);
 
   return null;
 }
