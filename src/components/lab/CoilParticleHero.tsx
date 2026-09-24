@@ -37,7 +37,7 @@ import {
   STARFIELD_VERT,
   streakFragment,
 } from "@/components/hero/hero-shaders";
-import { COIL_VERT, CORE_FRAG, CORE_VERT } from "./coil-shaders";
+import { COIL_VERT } from "./coil-shaders";
 import type { LabHeroProps } from "@/lib/lab/heroes";
 
 function clamp(value: number, min = 0, max = 1) {
@@ -52,6 +52,14 @@ function smoothstep(edge0: number, edge1: number, x: number) {
 const BASE_Z = 9;
 const GALAXY_DIAMETER = GALAXY.outerRadius * 2;
 const VIEW_FILL = 0.92;
+
+// The coil hero pulls the "0" and the "7" closer together and runs the whole
+// mark (and the galaxy that feeds it) much slower than the home hero.
+const ZERO_SHIFT = 0.3;
+const SEVEN_SHIFT = -0.3;
+const SLOW_SPIN = -0.005;
+const SLOW_FLOW = 0.016;
+const SLOW_COIL_SPIN = 0.1;
 
 class StreakEffect extends Effect {
   constructor(samples: number) {
@@ -144,21 +152,23 @@ export function CoilParticleHero({ dict }: LabHeroProps) {
       uTwist: new Uniform(GALAXY.twist),
       uRadialCurve: new Uniform(GALAXY.radialCurve),
       uThickness: new Uniform(GALAXY.thickness),
-      uSpin: new Uniform<number>(GALAXY.spin),
-      uFlowSpeed: new Uniform(GALAXY.flowSpeed),
+      uSpin: new Uniform<number>(SLOW_SPIN),
+      uFlowSpeed: new Uniform(SLOW_FLOW),
       uFovScale: new Uniform(1000),
       uSizeScale: new Uniform(0.78),
       uCoilRadius: new Uniform(0.21),
       uCoilTurns: new Uniform(8),
-      uCoilSpin: new Uniform(0.35),
+      uCoilSpin: new Uniform(SLOW_COIL_SPIN),
       uCoilDepth: new Uniform(0.36),
       uCoreColor: new Uniform(coreColor),
-      uP0: new Uniform(new Vector2(SEVEN_PATH.p0.x, SEVEN_PATH.p0.y)),
-      uC1: new Uniform(new Vector2(SEVEN_PATH.c1.x, SEVEN_PATH.c1.y)),
-      uP1: new Uniform(new Vector2(SEVEN_PATH.p1.x, SEVEN_PATH.p1.y)),
-      uC2: new Uniform(new Vector2(SEVEN_PATH.c2.x, SEVEN_PATH.c2.y)),
-      uP2: new Uniform(new Vector2(SEVEN_PATH.p2.x, SEVEN_PATH.p2.y)),
-      uZeroCenter: new Uniform(new Vector2(ZERO.center.x, ZERO.center.y)),
+      uP0: new Uniform(new Vector2(SEVEN_PATH.p0.x + SEVEN_SHIFT, SEVEN_PATH.p0.y)),
+      uC1: new Uniform(new Vector2(SEVEN_PATH.c1.x + SEVEN_SHIFT, SEVEN_PATH.c1.y)),
+      uP1: new Uniform(new Vector2(SEVEN_PATH.p1.x + SEVEN_SHIFT, SEVEN_PATH.p1.y)),
+      uC2: new Uniform(new Vector2(SEVEN_PATH.c2.x + SEVEN_SHIFT, SEVEN_PATH.c2.y)),
+      uP2: new Uniform(new Vector2(SEVEN_PATH.p2.x + SEVEN_SHIFT, SEVEN_PATH.p2.y)),
+      uZeroCenter: new Uniform(
+        new Vector2(ZERO.center.x + ZERO_SHIFT, ZERO.center.y),
+      ),
       uZeroR: new Uniform(new Vector2(ZERO.rx, ZERO.ry)),
     };
 
@@ -181,34 +191,6 @@ export function CoilParticleHero({ dict }: LabHeroProps) {
     const pivot = new Group();
     pivot.add(tiltGroup);
     scene.add(pivot);
-
-    // ---- luminous nucleus inside the "0" ----
-    const coreGeometry = new BufferGeometry();
-    coreGeometry.setAttribute(
-      "position",
-      new BufferAttribute(
-        new Float32Array([ZERO.center.x, ZERO.center.y, 0]),
-        3,
-      ),
-    );
-    const coreUniforms = {
-      uFovScale: uniforms.uFovScale,
-      uSize: new Uniform(0.7),
-      uColor: new Uniform(new Color("#fff0d6")),
-      uOpacity: new Uniform(0),
-    };
-    const coreMaterial = new ShaderMaterial({
-      uniforms: coreUniforms,
-      vertexShader: CORE_VERT,
-      fragmentShader: CORE_FRAG,
-      transparent: true,
-      blending: AdditiveBlending,
-      depthTest: false,
-      depthWrite: false,
-    });
-    const corePoints = new Points(coreGeometry, coreMaterial);
-    corePoints.frustumCulled = false;
-    tiltGroup.add(corePoints);
 
     const starCount = cap.tier === 2 ? 2500 : 1200;
     const starBuffers = buildStarfield(starCount);
@@ -359,7 +341,7 @@ export function CoilParticleHero({ dict }: LabHeroProps) {
       uniforms.uTime.value = elapsed;
       uniforms.uIntro.value = reduced ? 1 : smoothstep(0, 0.25, elapsed);
       uniforms.uForm.value = reduced ? 1 : smoothstep(0.3, 1.35, elapsed);
-      uniforms.uSpin.value = reduced ? 0 : GALAXY.spin;
+      uniforms.uSpin.value = reduced ? 0 : SLOW_SPIN;
       starUniforms.uReveal.value = smoothstep(0, 0.7, elapsed);
 
       const damp = Math.min(1, (dragging ? DRAG_DAMPING : DAMPING) + dt * 3);
@@ -373,11 +355,6 @@ export function CoilParticleHero({ dict }: LabHeroProps) {
       const morph = smoothstep(0.05, 0.5, progress);
       uniforms.uMorph.value = morph;
 
-      const corePulse = 0.55 + 0.45 * Math.sin(elapsed * 1.5);
-      coreUniforms.uOpacity.value = reduced
-        ? morph
-        : morph * corePulse * smoothstep(0.2, 1.0, elapsed);
-
       composer.render(dt);
     };
 
@@ -388,7 +365,6 @@ export function CoilParticleHero({ dict }: LabHeroProps) {
       uniforms.uForm.value = 1;
       uniforms.uMorph.value = 1;
       starUniforms.uReveal.value = 1;
-      coreUniforms.uOpacity.value = 1;
       renderer.render(scene, camera);
     } else {
       raf = requestAnimationFrame(tick);
@@ -431,10 +407,8 @@ export function CoilParticleHero({ dict }: LabHeroProps) {
       window.removeEventListener("pointerup", onDragUp);
       window.removeEventListener("pointercancel", onDragUp);
       geometry.dispose();
-      coreGeometry.dispose();
       starGeometry.dispose();
       material.dispose();
-      coreMaterial.dispose();
       starMaterial.dispose();
       composer.dispose();
       renderer.dispose();

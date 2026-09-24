@@ -153,39 +153,3 @@ export const COIL_VERT = /* glsl */ `
     vSeed = aSeed;
   }
 `;
-
-/** Soft luminous nucleus glowing inside the "0". */
-export const CORE_VERT = /* glsl */ `
-  uniform float uFovScale;
-  uniform float uSize;
-  uniform vec3 uColor;
-  uniform float uOpacity;
-
-  varying vec3 vColor;
-  varying float vOpacity;
-
-  void main() {
-    vColor = uColor;
-    vOpacity = uOpacity;
-    vec4 mv = modelViewMatrix * vec4(position, 1.0);
-    gl_Position = projectionMatrix * mv;
-    gl_PointSize = clamp(uSize * uFovScale / max(-mv.z, 0.001), 1.0, 520.0);
-  }
-`;
-
-export const CORE_FRAG = /* glsl */ `
-  varying vec3 vColor;
-  varying float vOpacity;
-
-  void main() {
-    vec2 c = gl_PointCoord - 0.5;
-    float d = length(c) * 2.0;
-    if (d > 1.0) discard;
-
-    float fall = max(1.0 - d, 0.0);
-    float nucleus = pow(fall, 7.0);
-    float halo = pow(fall, 1.8) * 0.4;
-    vec3 col = vColor * (nucleus + halo) * vOpacity;
-    gl_FragColor = vec4(col, 1.0);
-  }
-`;
