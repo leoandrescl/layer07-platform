@@ -442,7 +442,7 @@ export function CoilParticleHero({ dict }: LabHeroProps) {
           </div>
           <div className="hero-bottom">
             <span>{copy?.build ?? "Desliza para construir"}</span>
-            <span>coil · lab</span>
+            <span>07 — layer07</span>
           </div>
         </div>
       </div>

@@ -51,13 +51,13 @@ export const LAB_HEROES: LabHero[] = [
   {
     slug: "l07-particle",
     name: "L07 en partículas",
-    tagline: "El hero actual del sitio, como punto de comparación",
+    tagline: "El hero anterior del sitio, conservado como referencia",
     description:
-      "Partículas que nacen en una galaxia espiral y se asientan sobre el monograma L07, con starfield denso, bloom y streak anamórfico. Es la referencia contra la que se comparan los experimentos.",
+      "Partículas que nacen en una galaxia espiral y se asientan sobre el monograma L07 en una sola línea, con starfield denso, bloom y streak anamórfico. Es la referencia contra la que se comparan los experimentos.",
     tags: ["galaxia", "partículas", "referencia"],
     accent: "#9fe3ff",
     preview: "particles",
-    status: "active",
+    status: "prototype",
     component: L07ParticleHero,
   },
   {
@@ -65,11 +65,11 @@ export const LAB_HEROES: LabHero[] = [
     name: "07 espiral (coil)",
     tagline: "El 07 como espiral: dos líneas que nacen de la galaxia",
     description:
-      "Copia del hero actual, pero el trazo del 07 ya no es una línea simple: cada stroke es un coil (hélice) que envuelve la línea central. De frente se lee como dos líneas con materia suelta dentro, y se forma desde la galaxia igual que el marca actual. Núcleo luminoso dentro del 0.",
-    tags: ["galaxia", "coil", "doble línea", "núcleo"],
+      "Hero oficial del home. El trazo del 07 no es una línea simple: cada stroke es un coil (hélice) que envuelve la línea central. De frente se lee como dos líneas con materia suelta dentro, y se forma desde la galaxia. Movimiento y velocidades reducidas.",
+    tags: ["galaxia", "coil", "doble línea", "home"],
     accent: "#ffd7a8",
     preview: "particles",
-    status: "prototype",
+    status: "active",
     component: CoilParticleHero,
   },
 ];
@@ -88,7 +88,7 @@ export function isLabHeroSlug(slug: string): boolean {
  * The hero the official home renders. Swap it in one line here, or set
  * `NEXT_PUBLIC_HERO` in the environment (no deploy of code needed).
  */
-export const ACTIVE_HERO_SLUG = process.env.NEXT_PUBLIC_HERO ?? "l07-particle";
+export const ACTIVE_HERO_SLUG = process.env.NEXT_PUBLIC_HERO ?? "07-espiral";
 
 export function getActiveHero(): LabHero {
   return (
