@@ -28,6 +28,8 @@ export function ContactForm({
   const t = dict.contact;
   const { ref: submitRef, handlers: submitHandlers } =
     useButtonFx<HTMLButtonElement>();
+  const { ref: againRef, handlers: againHandlers } =
+    useButtonFx<HTMLButtonElement>();
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">(
     "idle",
   );
@@ -69,11 +71,16 @@ export function ContactForm({
           {t.successBody}
         </p>
         <button
+          ref={againRef}
           type="button"
-          onClick={() => setStatus("idle")}
-          className="mt-8 rounded-full border border-line-strong px-5 py-3 text-[0.8125rem] text-ink transition-colors hover:bg-ink hover:text-bg"
+          {...againHandlers}
+          onClick={(event) => {
+            setStatus("idle");
+            againHandlers.onClick(event);
+          }}
+          className="btn btn-solid mt-8"
         >
-          {t.again}
+          <ButtonLayers>{t.again}</ButtonLayers>
         </button>
       </div>
     );
