@@ -3,6 +3,7 @@ import type { Dictionary } from "@/lib/i18n/dictionaries";
 import { L07ParticleHero } from "@/components/hero/L07ParticleHero";
 import { NebulaHero } from "@/components/lab/NebulaHero";
 import { ConstellationHero } from "@/components/lab/ConstellationHero";
+import { CoilParticleHero } from "@/components/lab/CoilParticleHero";
 
 export type LabHeroProps = { dict: Dictionary };
 
@@ -59,6 +60,18 @@ export const LAB_HEROES: LabHero[] = [
     status: "active",
     component: L07ParticleHero,
   },
+  {
+    slug: "07-espiral",
+    name: "07 espiral (coil)",
+    tagline: "El 07 como espiral: dos líneas que nacen de la galaxia",
+    description:
+      "Copia del hero actual, pero el trazo del 07 ya no es una línea simple: cada stroke es un coil (hélice) que envuelve la línea central. De frente se lee como dos líneas con materia suelta dentro, y se forma desde la galaxia igual que el marca actual. Núcleo luminoso dentro del 0.",
+    tags: ["galaxia", "coil", "doble línea", "núcleo"],
+    accent: "#ffd7a8",
+    preview: "particles",
+    status: "prototype",
+    component: CoilParticleHero,
+  },
 ];
 
 const BY_SLUG = new Map(LAB_HEROES.map((hero) => [hero.slug, hero]));
@@ -78,5 +91,9 @@ export function isLabHeroSlug(slug: string): boolean {
 export const ACTIVE_HERO_SLUG = process.env.NEXT_PUBLIC_HERO ?? "l07-particle";
 
 export function getActiveHero(): LabHero {
-  return BY_SLUG.get(ACTIVE_HERO_SLUG) ?? LAB_HEROES[LAB_HEROES.length - 1];
+  return (
+    BY_SLUG.get(ACTIVE_HERO_SLUG) ??
+    BY_SLUG.get("l07-particle") ??
+    LAB_HEROES[0]
+  );
 }
