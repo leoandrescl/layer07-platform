@@ -135,6 +135,7 @@ export const en: Dictionary = {
     intro: "A selection of products, systems and storefronts in production.",
     filterAll: "All",
     problem: "The problem",
+    solution: "How I solved it",
     built: "What I built",
     interactions: "Technology & interaction",
     results: "Results",

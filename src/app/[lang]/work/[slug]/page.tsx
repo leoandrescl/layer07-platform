@@ -59,7 +59,7 @@ export default async function CaseStudyPage({
 
   const blocks = [
     { label: dict.work.problem, body: project.problem[lang] },
-    { label: dict.work.built, body: project.built[lang] },
+    { label: dict.work.solution, body: project.built[lang] },
     { label: dict.work.interactions, body: project.interactions[lang] },
   ];
 

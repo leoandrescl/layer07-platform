@@ -134,6 +134,7 @@ export const es = {
       "Una selección de productos, sistemas y storefronts en producción.",
     filterAll: "Todos",
     problem: "El problema",
+    solution: "Cómo lo resolví",
     built: "Qué construí",
     interactions: "Tecnología e interacción",
     results: "Resultados",
