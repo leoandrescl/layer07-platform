@@ -33,6 +33,16 @@ export async function POST(request: Request) {
       company,
       locale,
     });
+
+    // Locally a dry run is convenient; in production a missing key is a
+    // misconfiguration, so fail loudly instead of faking a successful send.
+    if (process.env.NODE_ENV === "production") {
+      return Response.json(
+        { error: "Email service is not configured" },
+        { status: 503 },
+      );
+    }
+
     return Response.json({
       ok: true,
       dryRun: true,
