@@ -36,6 +36,11 @@ export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const locale = resolveLocale(request);
 
+  // The hero lab has its own root layout and is deliberately locale-agnostic.
+  if (pathname === "/lab" || pathname.startsWith("/lab/")) {
+    return NextResponse.next();
+  }
+
   if (hasLocalePrefix(pathname)) return NextResponse.next();
 
   const url = request.nextUrl.clone();

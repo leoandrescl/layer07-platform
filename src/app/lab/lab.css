@@ -1,0 +1,323 @@
+/* ------------------------------------------------------------------ *
+ * Hero lab — /lab. A dark, cinematic bench for full-screen hero
+ * experiments. Deliberately self-contained so the marketing site is
+ * untouched: the lab runs on its own root layout.
+ * ------------------------------------------------------------------ */
+
+.lab-body {
+  background: var(--bg);
+}
+
+/* ---------- index ---------- */
+
+.lab-index {
+  padding: clamp(5rem, 12vh, 9rem) 0 clamp(4rem, 10vh, 7rem);
+}
+
+.lab-shell {
+  width: min(100% - 3rem, 78rem);
+  margin-inline: auto;
+}
+
+.lab-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.lab-eyebrow::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+.lab-title {
+  margin-top: 1.4rem;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(2.6rem, 7vw, 5.4rem);
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+}
+
+.lab-title em {
+  font-style: italic;
+  color: var(--accent);
+}
+
+.lab-lede {
+  margin-top: 1.3rem;
+  max-width: 44rem;
+  font-size: clamp(0.95rem, 1.4vw, 1.15rem);
+  line-height: 1.6;
+  color: var(--ink-muted);
+}
+
+.lab-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+  margin-top: 2rem;
+  padding-top: 1.4rem;
+  border-top: 1px solid var(--line);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.lab-meta a {
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.lab-meta a:hover {
+  color: var(--accent);
+}
+
+.lab-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+  gap: 1.25rem;
+  margin-top: clamp(2.5rem, 6vh, 4.5rem);
+  padding: 0;
+  list-style: none;
+}
+
+.lab-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--surface) 55%, transparent);
+  color: var(--ink);
+  text-decoration: none;
+  transition:
+    border-color 0.4s var(--ease-out),
+    transform 0.5s var(--ease-out);
+}
+
+.lab-card:hover {
+  border-color: var(--line-strong);
+  transform: translateY(-4px);
+}
+
+.lab-card-art {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border-bottom: 1px solid var(--line);
+  background: #04050a;
+}
+
+.lab-card-art svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.lab-card-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 1.25rem 1.35rem 1.45rem;
+}
+
+.lab-card-num {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.2em;
+  color: var(--ink-muted);
+}
+
+.lab-card-body h2 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.5rem;
+  letter-spacing: -0.02em;
+}
+
+.lab-card-body p {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--ink-muted);
+}
+
+.lab-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: auto;
+  padding-top: 0.9rem;
+  list-style: none;
+}
+
+.lab-tags li {
+  padding: 0.22rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.lab-card-status {
+  position: absolute;
+  top: 0.9rem;
+  right: 0.9rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bg) 60%, transparent);
+  backdrop-filter: blur(8px);
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+/* ---------- full-screen hero stage ---------- */
+
+.lab-hero {
+  position: relative;
+  height: 200svh;
+}
+
+.lab-cosmos {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: radial-gradient(
+    120% 95% at 50% 5%,
+    #070a16 0%,
+    #03040b 58%,
+    #010206 100%
+  );
+}
+
+.lab-cosmos-wash {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  mix-blend-mode: screen;
+  will-change: transform;
+}
+
+.lab-cosmos-wash.w1 {
+  top: -18%;
+  left: -10%;
+  width: 62vw;
+  height: 62vw;
+  background: radial-gradient(circle, rgba(122, 90, 255, 0.22), transparent 70%);
+  animation: lab-drift-a 40s ease-in-out infinite;
+}
+
+.lab-cosmos-wash.w2 {
+  bottom: -24%;
+  right: -12%;
+  width: 56vw;
+  height: 56vw;
+  background: radial-gradient(circle, rgba(79, 216, 255, 0.14), transparent 72%);
+  animation: lab-drift-b 52s ease-in-out infinite;
+}
+
+@keyframes lab-drift-a {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(9%, 11%, 0) scale(1.12);
+  }
+}
+
+@keyframes lab-drift-b {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1.05);
+  }
+  50% {
+    transform: translate3d(-10%, 7%, 0) scale(0.94);
+  }
+}
+
+.lab-fallback-mark {
+  position: absolute;
+  inset: 0;
+  display: none;
+  place-items: center;
+  font-family: var(--font-display);
+  font-size: clamp(6rem, 24vw, 18rem);
+  letter-spacing: -0.05em;
+  color: color-mix(in srgb, var(--ink) 18%, transparent);
+}
+
+[data-tier="0"] .lab-fallback-mark {
+  display: grid;
+}
+
+.lab-hero::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 18vh;
+  background: linear-gradient(to top, var(--bg), transparent);
+  pointer-events: none;
+}
+
+/* ---------- lab chrome on the hero pages ---------- */
+
+.lab-chrome {
+  position: fixed;
+  inset-inline: 0;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem clamp(0.9rem, 3vw, 2rem);
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--ink) 55%, transparent);
+  pointer-events: none;
+}
+
+.lab-chrome a {
+  color: inherit;
+  text-decoration: none;
+  pointer-events: auto;
+  transition: color 0.3s var(--ease-out);
+}
+
+.lab-chrome a:hover {
+  color: var(--ink);
+}
+
+.lab-chrome-name {
+  color: var(--ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lab-cosmos-wash {
+    animation: none !important;
+  }
+}

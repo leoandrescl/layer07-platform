@@ -3,12 +3,12 @@ import { AboutPreview } from "@/components/home/AboutPreview";
 import { Agency } from "@/components/home/Agency";
 import { Capabilities } from "@/components/home/Capabilities";
 import { ContactCta } from "@/components/home/ContactCta";
-import { L07ParticleHero } from "@/components/hero/L07ParticleHero";
 import { ServicesPreview } from "@/components/home/ServicesPreview";
 import { WorkPreview } from "@/components/home/WorkPreview";
 import { Marquee } from "@/components/ui/Marquee";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 import { hasLocale } from "@/lib/i18n/config";
+import { getActiveHero } from "@/lib/lab/heroes";
 
 export default async function HomePage({
   params,
@@ -18,10 +18,11 @@ export default async function HomePage({
   const { lang } = await params;
   if (!hasLocale(lang)) notFound();
   const dict = getDictionary(lang);
+  const Hero = getActiveHero().component;
 
   return (
     <>
-      <L07ParticleHero dict={dict} />
+      <Hero dict={dict} />
       <Marquee items={dict.home.hero.capabilities} />
       <WorkPreview locale={lang} dict={dict} />
       <Capabilities dict={dict} />
