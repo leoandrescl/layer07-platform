@@ -23,6 +23,8 @@ export function Header({
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const overlayRef = useRef<HTMLDivElement>(null);
+  const toggleRef = useRef<HTMLButtonElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     let frame = 0;
@@ -41,6 +43,7 @@ export function Header({
   useEffect(() => {
     if (!open) return;
     const el = overlayRef.current;
+    const toggle = toggleRef.current;
     getLenis()?.stop();
     document.documentElement.style.overflow = "hidden";
 
@@ -63,8 +66,30 @@ export function Header({
       );
     }
 
+    const focusables = () =>
+      el
+        ? el.querySelectorAll<HTMLElement>("a[href], button:not([disabled])")
+        : null;
+
+    closeRef.current?.focus();
+
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
+      if (event.key === "Escape") {
+        setOpen(false);
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const nodes = focusables();
+      if (!nodes || nodes.length === 0) return;
+      const first = nodes[0];
+      const last = nodes[nodes.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
     };
     window.addEventListener("keydown", onKey);
 
@@ -73,6 +98,7 @@ export function Header({
       window.removeEventListener("keydown", onKey);
       getLenis()?.start();
       document.documentElement.style.overflow = "";
+      toggle?.focus();
     };
   }, [open]);
 
@@ -134,11 +160,12 @@ export function Header({
               {dict.common.startProject}
             </Button>
             <button
+              ref={toggleRef}
               type="button"
               onClick={() => setOpen((value) => !value)}
               aria-expanded={open}
               aria-controls="site-menu"
-              className="inline-flex h-9 items-center rounded-full border border-line px-3 font-mono text-[0.6875rem] tracking-[0.16em] text-ink uppercase transition-colors hover:border-line-strong lg:hidden"
+              className="inline-flex h-11 items-center rounded-full border border-line px-4 font-mono text-[0.6875rem] tracking-[0.16em] text-ink uppercase transition-colors hover:border-line-strong lg:hidden"
             >
               {open ? dict.common.close : dict.common.menu}
             </button>
@@ -164,9 +191,10 @@ export function Header({
               layer07<span className="text-accent">.</span>
             </Link>
             <button
+              ref={closeRef}
               type="button"
               onClick={() => setOpen(false)}
-              className="inline-flex h-9 items-center rounded-full border border-line px-3 font-mono text-[0.6875rem] tracking-[0.16em] text-ink uppercase transition-colors hover:border-line-strong"
+              className="inline-flex h-11 items-center rounded-full border border-line px-4 font-mono text-[0.6875rem] tracking-[0.16em] text-ink uppercase transition-colors hover:border-line-strong"
             >
               {dict.common.close}
             </button>

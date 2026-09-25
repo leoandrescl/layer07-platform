@@ -55,7 +55,7 @@ export function WorkGrid({
               onClick={() => setActive(filter.value)}
               aria-pressed={isActive}
               className={cn(
-                "rounded-full border px-4 py-2 font-mono text-[0.6875rem] tracking-[0.14em] uppercase transition-colors",
+                "inline-flex min-h-11 items-center rounded-full border px-4 font-mono text-[0.6875rem] tracking-[0.14em] uppercase transition-colors",
                 isActive
                   ? "border-transparent bg-ink text-bg"
                   : "border-line text-ink-muted hover:border-line-strong hover:text-ink",

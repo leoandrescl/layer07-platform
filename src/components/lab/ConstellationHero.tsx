@@ -357,11 +357,7 @@ export function ConstellationHero({ dict }: LabHeroProps) {
   }, [dict]);
 
   return (
-    <section
-      ref={rootRef}
-      data-field="0"
-      className="lab-hero lab-constellation relative"
-    >
+    <section ref={rootRef} className="lab-hero lab-constellation relative">
       <div
         ref={stageRef}
         className="lab-stage sticky top-0 h-[100svh] overflow-hidden"

@@ -15,7 +15,6 @@ export function PageIntro({
 }) {
   return (
     <header
-      data-field="0.12"
       className={cn("shell pt-36 pb-16 md:pt-44 md:pb-24", className)}
     >
       {eyebrow ? <p className="eyebrow">{eyebrow}</p> : null}

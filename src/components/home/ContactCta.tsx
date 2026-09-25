@@ -13,7 +13,7 @@ export function ContactCta({
   const { contact } = dict.home;
 
   return (
-    <section data-field="1" className="shell py-28 text-center md:py-40">
+    <section className="shell py-28 text-center md:py-40">
       <Reveal>
         <p className="eyebrow">{contact.eyebrow}</p>
       </Reveal>

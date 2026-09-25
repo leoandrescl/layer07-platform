@@ -6,7 +6,7 @@ export function Capabilities({ dict }: { dict: Dictionary }) {
   const { capabilities } = dict.home;
 
   return (
-    <section data-field="0.45" className="border-t border-line">
+    <section className="border-t border-line">
       <div className="shell grid gap-12 py-24 md:py-32 lg:grid-cols-[0.85fr_1.15fr] lg:gap-20">
         <div className="lg:sticky lg:top-32 lg:h-fit">
           <Reveal>

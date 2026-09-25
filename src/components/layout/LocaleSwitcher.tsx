@@ -32,8 +32,8 @@ export function LocaleSwitcher({
               aria-current={active ? "true" : undefined}
               className={
                 active
-                  ? "text-ink"
-                  : "text-ink-muted transition-colors hover:text-ink"
+                  ? "inline-flex min-h-11 items-center px-1 text-ink"
+                  : "inline-flex min-h-11 items-center px-1 text-ink-muted transition-colors hover:text-ink"
               }
             >
               {localeLabels[locale]}

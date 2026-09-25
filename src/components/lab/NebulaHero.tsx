@@ -512,11 +512,7 @@ export function NebulaHero({ dict }: LabHeroProps) {
   }, [dict]);
 
   return (
-    <section
-      ref={rootRef}
-      data-field="0"
-      className="lab-hero lab-nebula relative"
-    >
+    <section ref={rootRef} className="lab-hero lab-nebula relative">
       <div
         ref={stageRef}
         className="lab-stage sticky top-0 h-[100svh] overflow-hidden"

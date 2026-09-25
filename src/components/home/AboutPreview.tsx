@@ -14,7 +14,7 @@ export function AboutPreview({
   const { about } = dict.home;
 
   return (
-    <section data-field="0.74" className="border-t border-line">
+    <section className="border-t border-line">
       <div className="shell grid gap-14 py-24 md:py-32 lg:grid-cols-12">
         <div className="lg:col-span-5">
           <Reveal>

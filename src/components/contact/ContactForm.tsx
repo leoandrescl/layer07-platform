@@ -70,7 +70,10 @@ export function ContactForm({
 
   if (status === "success") {
     return (
-      <div className="rounded-2xl border border-line bg-surface/60 p-8">
+      <div
+        role="status"
+        className="rounded-2xl border border-line bg-surface/60 p-8"
+      >
         <p className="eyebrow text-accent">{t.successTitle}</p>
         <p className="mt-4 max-w-md leading-relaxed text-ink-soft">
           {t.successBody}
@@ -105,12 +108,19 @@ export function ContactForm({
           <input
             type={field.type}
             aria-invalid={Boolean(errors[field.name])}
+            aria-describedby={
+              errors[field.name] ? `${field.name}-error` : undefined
+            }
             className={fieldClass(Boolean(errors[field.name]))}
             placeholder={field.placeholder}
             {...register(field.name)}
           />
           {errors[field.name] ? (
-            <span className="mt-2 block text-[0.8125rem] text-accent">
+            <span
+              id={`${field.name}-error`}
+              role="alert"
+              className="mt-2 block text-[0.8125rem] text-accent"
+            >
               {errorText[field.name]}
             </span>
           ) : null}
@@ -124,23 +134,35 @@ export function ContactForm({
           className={cn(fieldClass(Boolean(errors.message)), "resize-y")}
           placeholder={t.messagePlaceholder}
           aria-invalid={Boolean(errors.message)}
+          aria-describedby={errors.message ? "message-error" : undefined}
           {...register("message")}
         />
         {errors.message ? (
-          <span className="mt-2 block text-[0.8125rem] text-accent">
+          <span
+            id="message-error"
+            role="alert"
+            className="mt-2 block text-[0.8125rem] text-accent"
+          >
             {errorText.message}
           </span>
         ) : null}
       </label>
 
+      <p role="status" className="sr-only">
+        {status === "loading" ? t.sending : ""}
+      </p>
+
       {status === "error" ? (
-        <p className="text-sm text-accent">{t.error}</p>
+        <p role="alert" className="text-sm text-accent">
+          {t.error}
+        </p>
       ) : null}
 
       <button
         ref={submitRef}
         type="submit"
         disabled={status === "loading"}
+        aria-busy={status === "loading"}
         className="btn btn-outline disabled:cursor-not-allowed"
         {...submitHandlers}
       >

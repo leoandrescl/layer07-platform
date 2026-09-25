@@ -15,7 +15,7 @@ export function ServicesPreview({
   const { services } = dict.home;
 
   return (
-    <section data-field="0.58" className="shell py-24 md:py-32">
+    <section className="shell py-24 md:py-32">
       <Reveal>
         <SectionHeading
           eyebrow={services.eyebrow}

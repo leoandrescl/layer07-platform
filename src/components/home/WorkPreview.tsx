@@ -24,7 +24,7 @@ export function WorkPreview({
   const projects = getFeaturedProjects(4);
 
   return (
-    <section data-field="0.22" className="shell py-24 md:py-32">
+    <section className="shell py-24 md:py-32">
       <Reveal>
         <SectionHeading
           eyebrow={dict.home.work.eyebrow}

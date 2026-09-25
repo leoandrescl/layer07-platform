@@ -94,6 +94,7 @@ export function CoilParticleHero({ dict }: LabHeroProps) {
 
     const cap = detectCapability();
     root.dataset.tier = String(cap.tier);
+    root.dataset.software = cap.software ? "true" : "false";
     if (cap.tier === 0 && !cap.software) return;
 
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -424,16 +425,14 @@ export function CoilParticleHero({ dict }: LabHeroProps) {
   }, [dict]);
 
   return (
-    <section
-      ref={rootRef}
-      id="hero"
-      data-field="0"
-      className="l07-hero l07-stage relative"
-    >
+    <section ref={rootRef} id="hero" className="l07-hero l07-stage relative">
       <div
         ref={stageRef}
         className="sticky top-0 h-[100svh] overflow-hidden mix-blend-screen"
       >
+        <span className="l07-fallback" aria-hidden>
+          07
+        </span>
         <canvas
           ref={canvasRef}
           aria-hidden

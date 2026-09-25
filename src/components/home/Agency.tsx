@@ -14,10 +14,7 @@ export function Agency({
   const { agency } = dict.home;
 
   return (
-    <section
-      data-field="0.86"
-      className="border-y border-line bg-surface/60 backdrop-blur-sm"
-    >
+    <section className="border-y border-line bg-surface/60 backdrop-blur-sm">
       <div className="shell grid gap-14 py-24 md:py-32 lg:grid-cols-[1.1fr_0.9fr] lg:gap-20">
         <div>
           <Reveal>

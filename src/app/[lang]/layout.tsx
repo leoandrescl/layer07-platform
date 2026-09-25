@@ -5,7 +5,6 @@ import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { SmoothScroll } from "@/components/layout/SmoothScroll";
 import { Cosmos } from "@/components/layout/Cosmos";
-import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 import { hasLocale, htmlLang, locales } from "@/lib/i18n/config";
 import { SITE } from "@/lib/site";
@@ -29,10 +28,9 @@ const geistMono = Geist_Mono({
   display: "swap",
 });
 
-// The site is dark-only for now (cosmic narrative). The light theme tokens and
-// the theme toggle are kept in the codebase so light can be re-enabled later:
-// swap this back to reading `localStorage.getItem('l07-theme')` and restore the
-// <ThemeToggle /> in the header.
+// The site is dark-only for now (cosmic narrative). The light theme tokens in
+// globals.css are reserved for a future light mode; re-enabling it means a
+// toggle plus reading `localStorage.getItem('l07-theme')` here again.
 const themeScript = `(function(){try{document.documentElement.dataset.theme='dark';}catch(e){}document.documentElement.classList.add('js');try{var c=document.createElement('canvas');var g=c.getContext('webgl2')||c.getContext('webgl');if(!g){document.documentElement.dataset.gpu='none';}else{var d=g.getExtension('WEBGL_debug_renderer_info');var r=String((d?g.getParameter(d.UNMASKED_RENDERER_WEBGL):g.getParameter(g.RENDERER))||'').toLowerCase();if(/swiftshader|basic render|warp|llvmpipe|software|microsoft basic/.test(r)){document.documentElement.dataset.gpu='software';}}}catch(e){}`;
 
 export function generateStaticParams() {
@@ -126,15 +124,13 @@ export default async function LocaleLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
-        <ThemeProvider>
-          <SmoothScroll />
-          <Cosmos />
-          <div className="relative flex min-h-dvh flex-col">
-            <Header locale={lang} dict={dict} />
-            <main className="flex-1">{children}</main>
-            <Footer locale={lang} dict={dict} />
-          </div>
-        </ThemeProvider>
+        <SmoothScroll />
+        <Cosmos />
+        <div className="relative flex min-h-dvh flex-col">
+          <Header locale={lang} dict={dict} />
+          <main className="flex-1">{children}</main>
+          <Footer locale={lang} dict={dict} />
+        </div>
       </body>
     </html>
   );
