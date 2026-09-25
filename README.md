@@ -28,7 +28,7 @@ npm run lint     # eslint
 - `src/proxy.ts` — detección de idioma y redirects legacy
 - `src/lib/content/` — proyectos y servicios
 - `src/lib/i18n/` — configuración y diccionarios
-- `src/components/webgl/` — capa WebGL (materia viva)
+- `src/components/hero/` y `src/components/lab/` — heroes WebGL; `src/components/layout/Cosmos.tsx` — fondo cósmico
 - `docs/BRIEF.md` — brief de producto y diseño
 
 ## Variables de entorno

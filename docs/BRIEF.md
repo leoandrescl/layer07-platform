@@ -38,9 +38,10 @@ No es un portfolio de tecnologías: es un estudio de producto.
 
 ### Temas
 
-Dos temas con un mismo sistema de variables. Editorial Light por defecto y
-Dark Premium con toggle global persistido en `localStorage`. El WebGL lee los
-tokens en runtime y se adapta al tema.
+El sitio se sirve **dark-only** hoy (narrativa cósmica): el root layout fija
+`data-theme="dark"`. Los tokens Light siguen definidos en `globals.css` como
+reserva para reactivar el modo claro más adelante (implica reponer un toggle).
+El WebGL lee los tokens en runtime.
 
 | Token | Light | Dark |
 | --- | --- | --- |
@@ -87,15 +88,16 @@ Todas las páginas viven bajo `src/app/[lang]/` (`es` | `en`).
 
 ## WebGL
 
-`src/components/webgl/MaterialField.tsx` — capa fija a pantalla completa.
-
-- Shader de materia (domain warping + FBM) con iluminación y grano.
-- Reactiva a cursor (`uMouse`), scroll (`uScroll`, `uVelocity`), tema (`uTheme`)
-  y a la "mood" de cada sección (`[data-field]` + IntersectionObserver).
-- Degradación por tiers (`src/lib/webgl/capability.ts`): tier 0 usa un fallback
-  CSS estático (sin WebGL, `prefers-reduced-motion` o baja capacidad); tier 1
-  baja resolución/30fps; tier 2 resolución y 60fps.
-- Se pausa con `document.hidden` y ante pérdida de contexto.
+- `src/components/layout/Cosmos.tsx` — fondo cósmico del sitio, 100% CSS.
+- Heroes de partículas en `src/components/hero/*` y `src/components/lab/*`,
+  registrados en `src/lib/lab/heroes.ts`. El activo se elige con
+  `ACTIVE_HERO_SLUG` / `NEXT_PUBLIC_HERO` (por defecto `07-espiral` →
+  `CoilParticleHero`).
+- Degradación por tiers (`src/lib/webgl/capability.ts`): tier 0 (sin WebGL,
+  `prefers-reduced-motion` o baja capacidad) muestra el monograma estático
+  `.l07-fallback`; tier 1 baja resolución/30fps; tier 2 resolución y 60fps.
+- Se pausa con `document.hidden` y ante pérdida de contexto; hace `dispose()`
+  de geometrías, materiales y renderer en el cleanup del efecto.
 
 ## Hero — L07 de partículas
 
@@ -121,8 +123,7 @@ hero) y el campo de partículas de la página de OpenAI.
   llena todo el espacio, con deriva muy lenta y twinkle.
 - **Interacción:** el cursor repele las partículas (fuerza en espacio mundo),
   inclina el bloque y el clic aumenta la fuerza.
-- **Escenario negro absoluto** en ambos temas; el header se invierte mientras el
-  Hero está activo (`[data-hero="active"] .site-header`).
+- **Escenario negro absoluto** en ambos temas.
 - **Render:** `three` (additive glow sprites: núcleo + halo), y en tier 2
   `postprocessing` con Bloom + viñeta + grano. Tone mapping ACES. Escala por
   aspecto (`fit`) para que el encuadre nunca se rompa.
@@ -131,8 +132,6 @@ hero) y el campo de partículas de la página de OpenAI.
 - **Degradación:** reusa `detectCapability`. Tier 1 con menos partículas y sin
   postproceso; tier 0 / `prefers-reduced-motion` muestran el monograma en HTML
   (`.l07-fallback`) sin WebGL.
-- **Handoff:** el `MaterialField` global se pausa mientras el Hero está activo
-  (`src/lib/hero-state.ts`) y se reanuda al entrar en Work.
 
 ## Contacto
 
