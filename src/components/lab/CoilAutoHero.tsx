@@ -161,6 +161,7 @@ export function CoilAutoHero({ dict }: LabHeroProps) {
       uIntro: new Uniform(0),
       uForm: new Uniform(0),
       uMorph: new Uniform(0),
+      uDir: new Uniform(1),
       uArms: new Uniform(GALAXY.arms),
       uCoreRadius: new Uniform(GALAXY.coreRadius),
       uOuterRadius: new Uniform(GALAXY.outerRadius),
@@ -355,8 +356,12 @@ export function CoilAutoHero({ dict }: LabHeroProps) {
     let last = performance.now();
 
     // Linear 0..1 timeline clock; the eased value is what the shader sees.
+    // uDir feeds the forward-only vortex gate: it holds the last motion
+    // direction and eases through 0 on changes, which happens while the
+    // timeline is parked at an end, so the flip never pops.
     let morphLinear = 0;
     let morphTarget = 0;
+    let dirTarget = 1;
 
     const tick = (now: number) => {
       raf = requestAnimationFrame(tick);
@@ -397,6 +402,11 @@ export function CoilAutoHero({ dict }: LabHeroProps) {
 
       const eased = easeInOutCubic(morphLinear);
       uniforms.uMorph.value = eased;
+
+      const moving = morphTarget - morphLinear;
+      if (Math.abs(moving) > 1e-4) dirTarget = Math.sign(moving);
+      uniforms.uDir.value +=
+        (dirTarget - uniforms.uDir.value) * Math.min(1, dt * 4);
 
       // Camera punch-in synced with the vortex beat (0 at both ends).
       const burst = reduced ? 0 : Math.sin(clamp(morphLinear) * Math.PI);

@@ -4,13 +4,13 @@ const PI = "3.141592653589793";
 /* ------------------------------------------------------------------ *
  * L07 coil auto — same galaxy and same coiled "07" as the home hero,
  * but scroll does not scrub the formation: the first scroll gesture
- * fires a fixed timeline. The galaxy shears into a differential
- * vortex (inner matter orbits faster than the rim) and implodes;
- * particles leave it in waves ordered along the stroke, glowing as
- * they fly, and snap into the coil with a small overshoot. The swirl
- * only acts on particles still galaxy-side and decays while they
- * fly, so nothing pivots as a rigid body — not the settled mark and
- * not the galaxy that reassembles on the rewind.
+ * fires a fixed timeline. Forward, the galaxy shears into a
+ * differential vortex (inner matter orbits faster than the rim) and
+ * implodes; particles leave it in waves ordered along the stroke,
+ * glowing as they fly, and snap into the coil with a small overshoot.
+ * The vortex is forward-only (uDir gates it): the rewind dissolves
+ * the mark while the disc stays put, each particle arcing and
+ * corkscrewing home on its own — the galaxy never pivots.
  * ------------------------------------------------------------------ */
 
 export const COIL_AUTO_VERT = /* glsl */ `
@@ -34,6 +34,7 @@ export const COIL_AUTO_VERT = /* glsl */ `
   uniform float uIntro;
   uniform float uForm;
   uniform float uMorph;
+  uniform float uDir;
   uniform float uArms;
   uniform float uCoreRadius;
   uniform float uOuterRadius;
@@ -142,18 +143,20 @@ export const COIL_AUTO_VERT = /* glsl */ `
     vec3 riverPos = vec3(riverXY, aZ + rad * sin(phase) * uCoilDepth);
 
     // ---- automatic timeline (uMorph is eased progress, not scroll) ----
-    // 1) wind-up: the galaxy shears into a differential vortex and
-    //    implodes toward its core,
-    // 2) transit: each particle leaves the vortex in its own window,
-    //    windows ordered along the stroke so the mark writes itself,
+    // 1) wind-up (forward only): the galaxy shears into a differential
+    //    vortex and implodes toward its core,
+    // 2) transit: each particle leaves in its own window, windows ordered
+    //    along the stroke so the mark writes itself,
     // 3) settle: overshoot past the coil and spring back (easeOutBack).
-    // The vortex acts only while the particle is galaxy-side and its angle
-    // decays during the flight, so the reassembled galaxy never swings as
-    // one rigid body.
+    // uDir gates the vortex to the forward direction and eases through 0
+    // while the timeline is parked at either end, so direction changes never
+    // pop. On the rewind wind is 0: the disc stays put and every particle
+    // just flies home along its own arced, corkscrewing path.
     float stagger = clamp(t * 0.5 + fract(aSeed * 3.71) * 0.18, 0.0, 0.6);
     float lr = clamp((uMorph - 0.18 - stagger) / 0.22, 0.0, 1.0);
 
-    float wind = smoothstep(0.02, 0.3, uMorph)
+    float wind = max(uDir, 0.0)
+      * smoothstep(0.02, 0.3, uMorph)
       * (1.0 - smoothstep(0.35, 0.6, uMorph));
     float galaxySide = 1.0 - lr;
     float rn = clamp((r - uCoreRadius) / (uOuterRadius - uCoreRadius), 0.0, 1.0);
