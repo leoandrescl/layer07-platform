@@ -60,7 +60,9 @@ const VIEW_FILL = 0.92;
 // Same slow coil as the home hero, but the morph is not scrubbed by scroll:
 // a scroll gesture downward fires the fixed timeline toward the 07, upward
 // rewinds it toward the galaxy — from any position. The transition speed is
-// constant no matter how the user scrolls.
+// constant no matter how the user scrolls, and the page is held at the hero
+// boundary until the mark has fully settled, so nobody lands in the content
+// while the 07 is still forming.
 const MORPH_DURATION = 3.6;
 
 const ZERO_SHIFT = 0.3;
@@ -283,6 +285,10 @@ export function CoilAutoHero({ dict }: LabHeroProps) {
     // Base distance from the resize fit; the morph punches the camera in from
     // here, so it must stay a separate variable the tick never overwrites.
     let cameraBaseZ = BASE_Z;
+    // Scroll offset where the sticky hero stops being pinned (section height
+    // minus viewport). Going past it is allowed only once the mark is fully
+    // formed.
+    let runwayEnd = 0;
 
     const resize = () => {
       const w = Math.max(1, stage.clientWidth);
@@ -300,6 +306,7 @@ export function CoilAutoHero({ dict }: LabHeroProps) {
       const needed = GALAXY_DIAMETER / (visibleWidth * VIEW_FILL);
       cameraBaseZ = BASE_Z * Math.max(1, needed);
       camera.position.z = cameraBaseZ;
+      runwayEnd = Math.max(0, root.offsetHeight - window.innerHeight);
 
       uniforms.uFovScale.value =
         (h * dpr) / (2 * Math.tan((camera.fov * Math.PI) / 360));
@@ -384,7 +391,6 @@ export function CoilAutoHero({ dict }: LabHeroProps) {
       // the timeline mid-flight.
       const scrollY = window.scrollY;
       scrollVel = scrollVel * 0.75 + (scrollY - lastScrollY) * 0.25;
-      lastScrollY = scrollY;
       if (scrollVel > 0.6) {
         morphTarget = 1;
       } else if (scrollVel < -0.6) {
@@ -403,6 +409,19 @@ export function CoilAutoHero({ dict }: LabHeroProps) {
       const eased = easeInOutCubic(morphLinear);
       uniforms.uMorph.value = eased;
 
+      // Hold visitors inside the hero until the mark completes: the first
+      // downward crossing of the runway is clamped back while the timeline is
+      // still running. The clamp feeds the scroll baseline so it never reads
+      // as an upward scroll (which would fire the rewind), and once the mark
+      // has settled the page lets go for good.
+      if (morphLinear < 1 && lastScrollY <= runwayEnd && scrollY > runwayEnd) {
+        window.scrollTo({ top: runwayEnd, behavior: "instant" });
+        lastScrollY = runwayEnd;
+        scrollVel = 0;
+      } else {
+        lastScrollY = scrollY;
+      }
+
       // Camera punch-in synced with the vortex beat (0 at both ends).
       const burst = reduced ? 0 : Math.sin(clamp(morphLinear) * Math.PI);
       camera.position.z = cameraBaseZ * (1 - 0.055 * burst);
@@ -417,6 +436,11 @@ export function CoilAutoHero({ dict }: LabHeroProps) {
       uniforms.uForm.value = 1;
       uniforms.uMorph.value = 1;
       starUniforms.uReveal.value = 1;
+      // The static frame shows the finished mark, so the scroll gate must
+      // treat the timeline as complete too — otherwise software-rendered
+      // visitors could never scroll past the hero.
+      morphLinear = 1;
+      morphTarget = 1;
       renderer.render(scene, camera);
     } else {
       raf = requestAnimationFrame(tick);

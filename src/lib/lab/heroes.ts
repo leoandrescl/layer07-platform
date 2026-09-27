@@ -39,7 +39,7 @@ export const LAB_HEROES: LabHero[] = [
     name: "07 cinético (auto)",
     tagline: "Un gesto de scroll y la galaxia se escribe sola en 07",
     description:
-      "Misma galaxia y mismo coil que el hero del home, pero el scroll no gradúa la formación: la dispara. Un gesto hacia abajo y las partículas salen en tandas ordenadas a lo largo del trazo, destellan en vuelo y se asientan en el 07 con un pequeño rebote; un gesto hacia arriba las devuelve a la galaxia por el mismo camino, desde cualquier posición y sin que el disco gire jamás como un cuerpo rígido.",
+      "Misma galaxia y mismo coil que el hero del home, pero el scroll no gradúa la formación: la dispara. Un gesto hacia abajo y las partículas salen en tandas ordenadas a lo largo del trazo, destellan en vuelo y se asientan en el 07 con un pequeño rebote; un gesto hacia arriba las devuelve a la galaxia por el mismo camino, desde cualquier posición y sin que el disco gire jamás como un cuerpo rígido. El hero no se suelta hasta que el 07 está completo.",
     tags: ["galaxia", "coil", "auto-morph", "trigger"],
     accent: "#9fe3ff",
     preview: "particles",
