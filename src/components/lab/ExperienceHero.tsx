@@ -40,6 +40,7 @@ import {
   streakFragment,
 } from "@/components/hero/hero-shaders";
 import { COIL_EXPERIENCE_VERT } from "./experience-shaders";
+import { Button } from "@/components/ui/Button";
 import { defaultLocale } from "@/lib/i18n/config";
 import type { LabHeroProps } from "@/lib/lab/heroes";
 
@@ -137,7 +138,7 @@ export function ExperienceHero({ dict, locale }: LabHeroProps) {
   const buildPanelRef = useRef<HTMLDivElement | null>(null);
   const buildFrameRef = useRef<SVGRectElement | null>(null);
   const buildTextRef = useRef<HTMLParagraphElement | null>(null);
-  const buildCtaRef = useRef<HTMLAnchorElement | null>(null);
+  const buildCtaRef = useRef<HTMLSpanElement | null>(null);
 
   const uniformsRef = useRef<HeroUniforms | null>(null);
   const cameraExtraRef = useRef({ x: 0, y: 0, z: 0 });
@@ -1146,16 +1147,18 @@ export function ExperienceHero({ dict, locale }: LabHeroProps) {
                   {capabilityItems[activeIndex]?.body}
                 </p>
                 <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
-                  <a
-                    href={
-                      EXPLORE_FILTERS[activeIndex]
-                        ? `/${activeLocale}/work?filter=${EXPLORE_FILTERS[activeIndex]}`
-                        : `/${activeLocale}/work`
-                    }
-                    className="pointer-events-auto inline-flex min-h-11 items-center rounded-full bg-[var(--accent)] px-7 text-sm font-semibold text-[var(--bg)] transition-transform hover:scale-[1.03] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
-                  >
-                    {copy?.secondary} →
-                  </a>
+                  <span className="pointer-events-auto inline-flex">
+                    <Button
+                      href={
+                        EXPLORE_FILTERS[activeIndex]
+                          ? `/${activeLocale}/work?filter=${EXPLORE_FILTERS[activeIndex]}`
+                          : `/${activeLocale}/work`
+                      }
+                      variant="solid"
+                    >
+                      {copy?.secondary}
+                    </Button>
+                  </span>
                   <button
                     type="button"
                     onClick={exitLanding}
@@ -1208,13 +1211,14 @@ export function ExperienceHero({ dict, locale }: LabHeroProps) {
                     {copy?.buildQuestion}
                   </p>
                   <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
-                    <a
-                      ref={buildCtaRef}
-                      href={`/${activeLocale}/contact`}
-                      className="pointer-events-auto inline-flex min-h-11 items-center rounded-full bg-[var(--accent)] px-7 text-sm font-semibold text-[var(--bg)] transition-transform hover:scale-[1.03] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
-                    >
-                      {copy?.buildCta} →
-                    </a>
+                    <span ref={buildCtaRef} className="pointer-events-auto inline-flex">
+                      <Button
+                        href={`/${activeLocale}/contact`}
+                        variant="solid"
+                      >
+                        {copy?.buildCta}
+                      </Button>
+                    </span>
                     <button
                       type="button"
                       onClick={exitBuild}

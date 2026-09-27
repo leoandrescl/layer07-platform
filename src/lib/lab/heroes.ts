@@ -44,7 +44,7 @@ export const LAB_HEROES: LabHero[] = [
     tags: ["galaxia", "coil", "auto-morph", "trigger"],
     accent: "#9fe3ff",
     preview: "particles",
-    status: "active",
+    status: "candidate",
     component: CoilAutoHero,
   },
   {
@@ -56,7 +56,7 @@ export const LAB_HEROES: LabHero[] = [
     tags: ["gsap", "secuencias", "verbos", "cámara"],
     accent: "#c9b8ff",
     preview: "particles",
-    status: "prototype",
+    status: "active",
     component: ExperienceHero,
   },
 ];
@@ -75,7 +75,7 @@ export function isLabHeroSlug(slug: string): boolean {
  * The hero the official home renders. Swap it in one line here, or set
  * `NEXT_PUBLIC_HERO` in the environment (no deploy of code needed).
  */
-export const ACTIVE_HERO_SLUG = process.env.NEXT_PUBLIC_HERO ?? "07-cinetico";
+export const ACTIVE_HERO_SLUG = process.env.NEXT_PUBLIC_HERO ?? "07-experience";
 
 export function getActiveHero(): LabHero {
   return BY_SLUG.get(ACTIVE_HERO_SLUG) ?? LAB_HEROES[0];

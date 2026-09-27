@@ -48,8 +48,8 @@ export const es = {
         "Integraciones API",
         "Experiencias WebGL",
       ],
-      studio: "Estudio de producto digital",
-      available: "Disponible para proyectos",
+      studio: "Estudio digital",
+      available: "Agenda abierta",
       build: "Desliza para construir",
       actions: {
         enter: { label: "ENTER", hint: "Entrar en profundidad" },

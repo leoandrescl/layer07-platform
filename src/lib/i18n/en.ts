@@ -50,8 +50,8 @@ export const en: Dictionary = {
         "API integrations",
         "WebGL experiences",
       ],
-      studio: "Digital product studio",
-      available: "Available for projects",
+      studio: "Digital studio",
+      available: "Open for projects",
       build: "Scroll to build",
       actions: {
         enter: { label: "ENTER", hint: "Dive into depth" },

@@ -635,8 +635,10 @@ html.lenis body {
   top: 50%;
   transform: translateY(-50%);
   font-family: var(--font-mono);
-  font-size: 0.625rem;
-  letter-spacing: 0.28em;
+  /* the vertical label must never outgrow short viewports: both the size
+   * and the tracking shrink with the stage height */
+  font-size: clamp(0.5rem, 1.7svh, 0.625rem);
+  letter-spacing: clamp(0.16em, 0.55svh, 0.28em);
   text-transform: uppercase;
   color: color-mix(in srgb, var(--ink) 42%, transparent);
   writing-mode: vertical-rl;
