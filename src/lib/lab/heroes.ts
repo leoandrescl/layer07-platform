@@ -1,6 +1,7 @@
 import type { ComponentType } from "react";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
 import { CoilParticleHero } from "@/components/lab/CoilParticleHero";
+import { CoilAutoHero } from "@/components/lab/CoilAutoHero";
 
 export type LabHeroProps = { dict: Dictionary };
 
@@ -32,6 +33,18 @@ export const LAB_HEROES: LabHero[] = [
     preview: "particles",
     status: "active",
     component: CoilParticleHero,
+  },
+  {
+    slug: "07-cinetico",
+    name: "07 cinético (auto)",
+    tagline: "Un gesto de scroll y la galaxia se escribe sola en 07",
+    description:
+      "Misma galaxia y mismo coil que el hero del home, pero el scroll no gradúa la formación: lo dispara. La nube gira sobre sí misma y se contrae en un vórtice; las partículas salen en tandas ordenadas a lo largo del trazo, destellan en vuelo y se asientan en el 07 con un pequeño rebote. Volver arriba la disuelve de nuevo en galaxia.",
+    tags: ["galaxia", "coil", "auto-morph", "trigger"],
+    accent: "#9fe3ff",
+    preview: "particles",
+    status: "prototype",
+    component: CoilAutoHero,
   },
 ];
 
