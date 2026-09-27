@@ -57,6 +57,7 @@ export const es = {
         build: { label: "BUILD", hint: "Construir juntos" },
       },
       exploreBack: "Volver al hero",
+      exploreHint: "Elige una capacidad — verás solo esos proyectos",
       buildQuestion: "¿Construimos algo juntos?",
       buildCta: "Hablemos",
     },

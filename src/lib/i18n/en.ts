@@ -59,6 +59,7 @@ export const en: Dictionary = {
         build: { label: "BUILD", hint: "Build together" },
       },
       exploreBack: "Back to the hero",
+      exploreHint: "Pick a capability — you'll see only those projects",
       buildQuestion: "Shall we build something together?",
       buildCta: "Let's talk",
     },

@@ -19,13 +19,16 @@ export function WorkGrid({
   projects,
   locale,
   dict,
+  initialFilter,
 }: {
   projects: Project[];
   locale: Locale;
   dict: Dictionary;
+  /** Pre-selected category (deep links like /work?filter=ecommerce). */
+  initialFilter?: ProjectCategory;
 }) {
   const categories = getCategories();
-  const [active, setActive] = useState<Filter>("all");
+  const [active, setActive] = useState<Filter>(initialFilter ?? "all");
 
   const filtered = useMemo(
     () =>

@@ -79,14 +79,26 @@ const SLOW_SPIN = -0.005;
 const SLOW_FLOW = 0.016;
 const SLOW_COIL_SPIN = 0.1;
 
-// Ring layout for the EXPLORE capability labels (percent of the stage).
+// Ring layout for the EXPLORE capability labels (percent of the stage),
+// tightened so labels never clip at 360px.
 const EXPLORE_POS = [
-  { x: "20%", y: "26%" },
-  { x: "70%", y: "18%" },
-  { x: "82%", y: "50%" },
-  { x: "64%", y: "74%" },
-  { x: "30%", y: "72%" },
-  { x: "12%", y: "48%" },
+  { x: "22%", y: "24%" },
+  { x: "68%", y: "16%" },
+  { x: "78%", y: "48%" },
+  { x: "62%", y: "72%" },
+  { x: "30%", y: "70%" },
+  { x: "16%", y: "46%" },
+];
+
+// Aligned by index with dict.home.hero.capabilities. The last capability
+// (Experiencias WebGL) has no project category, so it opens the full grid.
+const EXPLORE_FILTERS: (string | null)[] = [
+  "websites",
+  "ecommerce",
+  "apps",
+  "systems",
+  "integrations",
+  null,
 ];
 
 class StreakEffect extends Effect {
@@ -115,6 +127,7 @@ export function ExperienceHero({ dict, locale }: LabHeroProps) {
   const chromeRef = useRef<HTMLDivElement | null>(null);
   const actionsRef = useRef<HTMLDivElement | null>(null);
   const exploreRef = useRef<HTMLDivElement | null>(null);
+  const buildPanelRef = useRef<HTMLDivElement | null>(null);
   const buildFrameRef = useRef<SVGRectElement | null>(null);
   const buildTextRef = useRef<HTMLParagraphElement | null>(null);
   const buildCtaRef = useRef<HTMLAnchorElement | null>(null);
@@ -171,14 +184,18 @@ export function ExperienceHero({ dict, locale }: LabHeroProps) {
     }
     modeRef.current = "enter";
     setMode("enter");
+    // Two acts instead of one hard push: a gentle dive-in, then the
+    // acceleration — and the hero fades into the site cosmos before the
+    // navigation, so the page change lands on a quiet frame instead of
+    // cutting from mid-flight.
     const tl = gsap.timeline({
       onComplete: () => router.push(`/${activeLocale}/work`),
     });
     track(tl);
-    tl.to(uniforms.uEnter, { value: 1, duration: 1.05, ease: "power2.in" }, 0)
+    tl.to(uniforms.uEnter, { value: 0.5, duration: 0.85, ease: "power2.out" }, 0)
       .to(
         cameraExtraRef.current,
-        { z: -2.5, duration: 1.1, ease: "power2.in" },
+        { z: -1.4, duration: 0.85, ease: "power2.out" },
         0,
       )
       .to(
@@ -186,7 +203,18 @@ export function ExperienceHero({ dict, locale }: LabHeroProps) {
         { opacity: 0, y: -24, duration: 0.55, ease: "power2.in" },
         0,
       )
-      .to(actionsRef.current, { opacity: 0, y: 18, duration: 0.4 }, 0);
+      .to(actionsRef.current, { opacity: 0, y: 18, duration: 0.4 }, 0)
+      .to(uniforms.uEnter, { value: 1, duration: 0.75, ease: "power3.in" }, 0.8)
+      .to(
+        cameraExtraRef.current,
+        { z: -2.6, duration: 0.75, ease: "power3.in" },
+        0.8,
+      )
+      .to(
+        stageRef.current,
+        { opacity: 0, duration: 0.5, ease: "power1.in" },
+        1.05,
+      );
   };
 
   const handleExplore = () => {
@@ -233,7 +261,8 @@ export function ExperienceHero({ dict, locale }: LabHeroProps) {
     fadeChrome(false, 0.1);
   };
 
-  // BUILD: draw the wireframe, then assemble the copy and the CTA.
+  // BUILD: the panel appears, the wireframe draws around it, then the copy
+  // and the CTA assemble.
   useEffect(() => {
     if (mode !== "build") return;
     const frame = buildFrameRef.current;
@@ -241,7 +270,12 @@ export function ExperienceHero({ dict, locale }: LabHeroProps) {
     const len = frame.getTotalLength();
     const tl = gsap.timeline();
     track(tl);
-    tl.set(frame, { strokeDasharray: len, strokeDashoffset: len })
+    tl.fromTo(
+      buildPanelRef.current,
+      { opacity: 0 },
+      { opacity: 1, duration: 0.25, ease: "power1.out" },
+    )
+      .set(frame, { strokeDasharray: len, strokeDashoffset: len })
       .to(frame, { strokeDashoffset: 0, duration: 0.9, ease: "power2.inOut" })
       .fromTo(
         buildTextRef.current,
@@ -808,10 +842,15 @@ export function ExperienceHero({ dict, locale }: LabHeroProps) {
             >
               {capabilities.map((label, index) => {
                 const pos = EXPLORE_POS[index % EXPLORE_POS.length];
+                const filter = EXPLORE_FILTERS[index] ?? null;
                 return (
                   <Link
                     key={label}
-                    href={`/${activeLocale}/work`}
+                    href={
+                      filter
+                        ? `/${activeLocale}/work?filter=${filter}`
+                        : `/${activeLocale}/work`
+                    }
                     data-explore-label
                     className="pointer-events-auto absolute -translate-x-1/2 -translate-y-1/2 border border-line bg-surface/60 px-3 py-2 font-mono text-[0.65rem] uppercase tracking-[0.18em] text-ink backdrop-blur-sm transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
                     style={{ left: pos.x, top: pos.y }}
@@ -820,6 +859,9 @@ export function ExperienceHero({ dict, locale }: LabHeroProps) {
                   </Link>
                 );
               })}
+              <p className="absolute inset-x-4 bottom-24 mx-auto max-w-sm text-center font-mono text-[0.65rem] lowercase tracking-normal text-ink/60">
+                {copy?.exploreHint}
+              </p>
               <button
                 type="button"
                 onClick={exitExplore}
@@ -832,11 +874,14 @@ export function ExperienceHero({ dict, locale }: LabHeroProps) {
 
           {mode === "build" && (
             <div className="absolute inset-0 z-20 grid place-items-center px-4">
-              <div className="pointer-events-none relative w-[min(86vw,520px)]">
+              <div
+                ref={buildPanelRef}
+                className="pointer-events-none relative w-[min(86vw,540px)] border border-line bg-surface/90 shadow-[0_18px_70px_rgba(0,0,0,0.6)] backdrop-blur-md"
+              >
                 <svg
                   viewBox="0 0 520 190"
                   preserveAspectRatio="none"
-                  className="absolute inset-0 h-full w-full"
+                  className="absolute -inset-3 h-[calc(100%+24px)] w-[calc(100%+24px)]"
                   aria-hidden
                 >
                   <rect
@@ -847,30 +892,30 @@ export function ExperienceHero({ dict, locale }: LabHeroProps) {
                     height="178"
                     fill="none"
                     stroke="var(--accent)"
-                    strokeOpacity="0.55"
+                    strokeOpacity="0.7"
                     strokeWidth="1"
                     vectorEffect="non-scaling-stroke"
                   />
-                  <circle cx="6" cy="6" r="3" fill="var(--accent)" fillOpacity="0.7" />
-                  <circle cx="514" cy="6" r="3" fill="var(--accent)" fillOpacity="0.7" />
-                  <circle cx="6" cy="184" r="3" fill="var(--accent)" fillOpacity="0.7" />
-                  <circle cx="514" cy="184" r="3" fill="var(--accent)" fillOpacity="0.7" />
+                  <circle cx="6" cy="6" r="3" fill="var(--accent)" fillOpacity="0.85" />
+                  <circle cx="514" cy="6" r="3" fill="var(--accent)" fillOpacity="0.85" />
+                  <circle cx="6" cy="184" r="3" fill="var(--accent)" fillOpacity="0.85" />
+                  <circle cx="514" cy="184" r="3" fill="var(--accent)" fillOpacity="0.85" />
                 </svg>
-                <div className="relative px-6 py-10 text-center">
-                  <p className="font-mono text-[0.6rem] uppercase tracking-[0.3em] text-ink/60">
+                <div className="relative px-6 py-10 text-center sm:px-10">
+                  <p className="font-mono text-[0.6rem] uppercase tracking-[0.3em] text-ink-muted">
                     {copy?.studio}
                   </p>
                   <p
                     ref={buildTextRef}
-                    className="mt-4 font-display text-2xl leading-tight text-ink sm:text-3xl"
+                    className="mt-4 font-display text-3xl leading-tight tracking-[-0.02em] text-ink sm:text-4xl"
                   >
                     {copy?.buildQuestion}
                   </p>
-                  <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+                  <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
                     <a
                       ref={buildCtaRef}
                       href={`/${activeLocale}/contact`}
-                      className="pointer-events-auto inline-flex min-h-11 items-center rounded-full bg-[var(--accent)] px-6 text-sm font-semibold text-[var(--bg)] transition-transform hover:scale-[1.03] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+                      className="pointer-events-auto inline-flex min-h-11 items-center rounded-full bg-[var(--accent)] px-7 text-sm font-semibold text-[var(--bg)] transition-transform hover:scale-[1.03] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
                     >
                       {copy?.buildCta} →
                     </a>

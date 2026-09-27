@@ -52,7 +52,7 @@ export const LAB_HEROES: LabHero[] = [
     name: "07 experience (verbos)",
     tagline: "ENTER, EXPLORE, BUILD: el hero como experiencia, no navegación",
     description:
-      "Tres verbos cinematográficos sobre el hero. ENTER separa el 07 en capas de profundidad y la cámara empuja antes de llevarte al trabajo; EXPLORE dispersa la escena en una nube orbital de capacidades que sigue al cursor; BUILD construye el 07 a doble velocidad y arma el marco con el llamado a la acción. Cada botón adelanta su reacción en el hover.",
+      "Tres verbos cinematográficos sobre el hero. ENTER bucea en dos actos — inmersión suave y aceleración final que se desvanece en el cosmos antes de llevarte al trabajo; EXPLORE dispersa la escena en una nube orbital de capacidades que sigue al cursor, y cada una lleva a trabajo con su filtro activo; BUILD construye el 07 a doble velocidad y arma un panel con el llamado a la acción. Cada botón adelanta su reacción en el hover.",
     tags: ["gsap", "secuencias", "verbos", "cámara"],
     accent: "#c9b8ff",
     preview: "particles",

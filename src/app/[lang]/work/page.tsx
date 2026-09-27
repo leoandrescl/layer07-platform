@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PageIntro } from "@/components/ui/PageIntro";
 import { WorkGrid } from "@/components/work/WorkGrid";
-import { getProjects } from "@/lib/content/projects";
+import { CATEGORY_LABELS, getProjects } from "@/lib/content/projects";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 import { hasLocale } from "@/lib/i18n/config";
 
@@ -23,12 +23,19 @@ export async function generateMetadata({
 
 export default async function WorkPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ lang: string }>;
+  searchParams: Promise<{ filter?: string }>;
 }) {
   const { lang } = await params;
   if (!hasLocale(lang)) notFound();
   const dict = getDictionary(lang);
+  const { filter } = await searchParams;
+  const initialFilter =
+    filter && filter in CATEGORY_LABELS
+      ? (filter as keyof typeof CATEGORY_LABELS)
+      : undefined;
 
   return (
     <>
@@ -38,7 +45,12 @@ export default async function WorkPage({
         intro={dict.work.intro}
       />
       <section className="shell pb-28 md:pb-36">
-        <WorkGrid projects={getProjects()} locale={lang} dict={dict} />
+        <WorkGrid
+          projects={getProjects()}
+          locale={lang}
+          dict={dict}
+          initialFilter={initialFilter}
+        />
       </section>
     </>
   );
