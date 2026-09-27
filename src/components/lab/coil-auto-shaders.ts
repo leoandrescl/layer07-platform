@@ -4,10 +4,13 @@ const PI = "3.141592653589793";
 /* ------------------------------------------------------------------ *
  * L07 coil auto — same galaxy and same coiled "07" as the home hero,
  * but scroll does not scrub the formation: the first scroll gesture
- * fires a fixed timeline. The galaxy whirls and implodes into a
- * vortex, then the particles leave it in waves ordered along the
- * stroke, glowing as they fly, and snap into the coil with a small
- * overshoot. Scrolling back near the top rewinds the whole thing.
+ * fires a fixed timeline. The galaxy shears into a differential
+ * vortex (inner matter orbits faster than the rim) and implodes;
+ * particles leave it in waves ordered along the stroke, glowing as
+ * they fly, and snap into the coil with a small overshoot. The swirl
+ * only acts on particles still galaxy-side and decays while they
+ * fly, so nothing pivots as a rigid body — not the settled mark and
+ * not the galaxy that reassembles on the rewind.
  * ------------------------------------------------------------------ */
 
 export const COIL_AUTO_VERT = /* glsl */ `
@@ -139,17 +142,28 @@ export const COIL_AUTO_VERT = /* glsl */ `
     vec3 riverPos = vec3(riverXY, aZ + rad * sin(phase) * uCoilDepth);
 
     // ---- automatic timeline (uMorph is eased progress, not scroll) ----
-    // 1) wind-up: the galaxy spins up and implodes toward its core,
+    // 1) wind-up: the galaxy shears into a differential vortex and
+    //    implodes toward its core,
     // 2) transit: each particle leaves the vortex in its own window,
     //    windows ordered along the stroke so the mark writes itself,
     // 3) settle: overshoot past the coil and spring back (easeOutBack).
-    float wind = smoothstep(0.02, 0.4, uMorph)
-      * (1.0 - smoothstep(0.5, 0.9, uMorph));
-    vec3 from = galaxyPos;
-    from.xz = rot2(from.xz, wind * 2.8) * (1.0 - 0.42 * wind);
-
+    // The vortex acts only while the particle is galaxy-side and its angle
+    // decays during the flight, so the reassembled galaxy never swings as
+    // one rigid body.
     float stagger = clamp(t * 0.5 + fract(aSeed * 3.71) * 0.18, 0.0, 0.6);
     float lr = clamp((uMorph - 0.18 - stagger) / 0.22, 0.0, 1.0);
+
+    float wind = smoothstep(0.02, 0.3, uMorph)
+      * (1.0 - smoothstep(0.35, 0.6, uMorph));
+    float galaxySide = 1.0 - lr;
+    float rn = clamp((r - uCoreRadius) / (uOuterRadius - uCoreRadius), 0.0, 1.0);
+    float swirl = wind
+      * (2.2 - 1.4 * rn + (fract(aSeed * 4.93) - 0.5) * 0.4)
+      * galaxySide;
+    vec3 from = galaxyPos;
+    from.xz = rot2(from.xz, swirl);
+    from.xz *= 1.0 - 0.34 * wind * galaxySide;
+
     float backM = 1.0 - lr;
     float backC = 1.3;
     float l = 1.0 - (backC + 1.0) * backM * backM * backM + backC * backM * backM;
