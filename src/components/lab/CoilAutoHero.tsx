@@ -38,7 +38,6 @@ import {
   streakFragment,
 } from "@/components/hero/hero-shaders";
 import { COIL_AUTO_VERT } from "./coil-auto-shaders";
-import { createBackgroundNebulae } from "./nebula-sprites";
 import type { LabHeroProps } from "@/lib/lab/heroes";
 
 function clamp(value: number, min = 0, max = 1) {
@@ -198,10 +197,6 @@ export function CoilAutoHero({ dict }: LabHeroProps) {
 
     const points = new Points(geometry, material);
     points.frustumCulled = false;
-
-    // Blue/red nebula backdrop behind the galaxy, sharing the scene clock.
-    const nebulae = createBackgroundNebulae(uniforms.uTime, cap.tier);
-    scene.add(nebulae.group);
 
     const tiltGroup = new Group();
     tiltGroup.rotation.x = 0.5;
@@ -467,7 +462,6 @@ export function CoilAutoHero({ dict }: LabHeroProps) {
       starGeometry.dispose();
       material.dispose();
       starMaterial.dispose();
-      nebulae.dispose();
       composer.dispose();
       renderer.dispose();
     };
