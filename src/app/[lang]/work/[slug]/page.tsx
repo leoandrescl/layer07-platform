@@ -88,7 +88,11 @@ export default async function CaseStudyPage({
 
       <section className="shell">
         <Reveal>
-          <ProjectVisual project={project} locale={lang} />
+          <ProjectVisual
+            project={project}
+            locale={lang}
+            sizes="(min-width: 768px) 90vw, 92vw"
+          />
         </Reveal>
       </section>
 

@@ -30,4 +30,18 @@ describe("projects", () => {
     expect(prev?.slug).toBe(last.slug);
     expect(next?.slug).toBe(list[1].slug);
   });
+
+  it("keeps the portfolio sorted by title and slugs unique", () => {
+    const list = getProjects();
+    const collator = new Intl.Collator("es");
+    for (let i = 1; i < list.length; i++) {
+      const previous = list[i - 1];
+      const current = list[i];
+      expect(previous).toBeDefined();
+      expect(current).toBeDefined();
+      if (!previous || !current) continue;
+      expect(collator.compare(previous.title.es, current.title.es)).toBeLessThanOrEqual(0);
+    }
+    expect(new Set(list.map((p) => p.slug)).size).toBe(list.length);
+  });
 });

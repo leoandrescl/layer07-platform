@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { cn } from "@/lib/cn";
 import type { Project, ProjectCategory } from "@/lib/content/projects";
 import type { Locale } from "@/lib/i18n/config";
@@ -110,10 +111,12 @@ export function ProjectVisual({
   project,
   locale,
   className,
+  sizes = "(min-width: 768px) 50vw, 92vw",
 }: {
   project: Project;
   locale: Locale;
   className?: string;
+  sizes?: string;
 }) {
   const Mock = MOCKS[project.category];
   const host = (project.liveUrl ?? "layer07.cl")
@@ -136,9 +139,21 @@ export function ProjectVisual({
           {host}
         </span>
       </div>
-      <div className="aspect-[16/10] p-4">
-        <Mock />
-      </div>
+      {project.image ? (
+        <div className="relative aspect-[16/10] w-full overflow-hidden bg-surface">
+          <Image
+            src={project.image}
+            alt=""
+            fill
+            sizes={sizes}
+            className="object-cover object-top"
+          />
+        </div>
+      ) : (
+        <div className="aspect-[16/10] p-4">
+          <Mock />
+        </div>
+      )}
       <span
         data-locale={locale}
         className="pointer-events-none absolute -right-6 -bottom-10 font-display text-[6rem] leading-none text-ink/[0.04] select-none"
