@@ -2,12 +2,19 @@ const TAU = "6.28318530718";
 const PI = "3.141592653589793";
 
 /* ------------------------------------------------------------------ *
- * L07 experience — the coil auto hero plus two scene actions driven
- * by the hero verb buttons:
+ * L07 experience — the coil auto hero plus scene actions driven by
+ * the hero verb buttons:
  *   uEnter  — ENTER: the mark splits into depth layers that fly past
  *             the camera while it pushes in.
  *   uOrbit  — EXPLORE: whatever is on stage disperses into a slow
- *             orbital cloud the labels float over.
+ *             orbital cloud the capability nodes float over.
+ *   In EXPLORE the system is alive:
+ *     uPointer/uPointerActive — the cursor bends the field (radial push
+ *     plus a tangential swirl, screen-space so it tracks the mouse).
+ *     uFocus/uNodePos — a hovered node pulls nearby matter in and
+ *     lights it up before the click.
+ *     uCompress/uShock — hold to compress the system toward the core;
+ *     release past the threshold to detonate a radial shockwave.
  * BUILD reuses uMorph (forced to 1 on a faster clock) — the mark
  * "constructs itself" with the same staggered particle logic.
  * ------------------------------------------------------------------ */
@@ -35,6 +42,12 @@ export const COIL_EXPERIENCE_VERT = /* glsl */ `
   uniform float uMorph;
   uniform float uEnter;
   uniform float uOrbit;
+  uniform vec2 uPointer;
+  uniform float uPointerActive;
+  uniform vec2 uNodePos;
+  uniform float uFocus;
+  uniform float uCompress;
+  uniform float uShock;
   uniform float uArms;
   uniform float uCoreRadius;
   uniform float uOuterRadius;
@@ -168,7 +181,38 @@ export const COIL_EXPERIENCE_VERT = /* glsl */ `
       p.y += uOrbit * (fract(aSeed * 9.13) - 0.5) * 1.8;
     }
 
+    // easter egg: holding compresses the system toward the core; releasing
+    // past the threshold detonates a radial shockwave
+    p *= 1.0 - 0.42 * uCompress * (0.8 + fract(aSeed * 5.7) * 0.4);
+    p += normalize(p + vec3(0.0001)) * uShock * (1.6 + fract(aSeed * 9.7) * 3.2);
+
     vec4 mv = modelViewMatrix * vec4(p, 1.0);
+
+    // the living field: cursor and focused node react in view space so they
+    // track what the user actually sees on screen
+    float focusGlow = 0.0;
+    float exploreField = max(uPointerActive, uFocus);
+    if (exploreField > 0.001) {
+      vec4 probe = projectionMatrix * mv;
+      vec2 ndc = probe.xy / max(probe.w, 0.0001);
+      if (uPointerActive > 0.001) {
+        vec2 toP = ndc - uPointer;
+        float d2 = dot(toP, toP);
+        float field = uPointerActive * exp(-d2 * 5.0);
+        vec2 dir = toP / max(sqrt(d2), 0.0001);
+        float jitter = 0.7 + fract(aSeed * 3.3) * 0.6;
+        // radial push away from the cursor plus a tangential swirl
+        mv.x += (dir.x * 0.5 - dir.y * 0.38) * field * jitter;
+        mv.y += (dir.y * 0.5 + dir.x * 0.38) * field * jitter;
+      }
+      if (uFocus > 0.001) {
+        vec2 toN = uNodePos - ndc;
+        float pull = uFocus * exp(-dot(toN, toN) * 3.0);
+        mv.xy += toN * pull * 0.4;
+        focusGlow = pull;
+      }
+    }
+
     gl_Position = projectionMatrix * mv;
     gl_PointSize = clamp(
       max(aSize, 0.006) * uSizeScale * uFovScale / max(-mv.z, 0.001),
@@ -187,10 +231,13 @@ export const COIL_EXPERIENCE_VERT = /* glsl */ `
     vColor = mix(aColor, uCoreColor, coreMix * 0.75 * (1.0 - uMorph));
     vBright = aBright * uIntro * fade * twinkle * mix(1.0, wave, uMorph);
 
-    // particles flare white-warm while in transit or during the actions
+    // particles flare white-warm while in transit, during the actions, near
+    // the cursor field, or while a focused node pulls them in
     float glow = arc * (0.5 + 0.5 * fract(aSeed * 9.71));
     vColor = mix(vColor, vec3(1.0, 0.93, 0.78), glow * 0.6);
-    vBright *= (1.0 + 1.6 * glow) * (1.0 + 0.4 * max(uEnter, uOrbit));
+    vBright *= (1.0 + 1.6 * glow)
+      * (1.0 + 0.4 * max(uEnter, uOrbit))
+      * (1.0 + 1.3 * focusGlow);
 
     vSeed = aSeed;
   }

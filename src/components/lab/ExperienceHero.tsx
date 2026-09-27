@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import gsap from "gsap";
 import {
   AdditiveBlending,
@@ -44,11 +43,17 @@ import { COIL_EXPERIENCE_VERT } from "./experience-shaders";
 import { defaultLocale } from "@/lib/i18n/config";
 import type { LabHeroProps } from "@/lib/lab/heroes";
 
-type ExperienceMode = "idle" | "enter" | "explore" | "build";
+type ExperienceMode = "idle" | "enter" | "explore" | "landing" | "build";
 
 type HeroUniforms = {
   uEnter: Uniform<number>;
   uOrbit: Uniform<number>;
+  uPointer: Uniform<Vector2>;
+  uPointerActive: Uniform<number>;
+  uNodePos: Uniform<Vector2>;
+  uFocus: Uniform<number>;
+  uCompress: Uniform<number>;
+  uShock: Uniform<number>;
 };
 
 function clamp(value: number, min = 0, max = 1) {
@@ -127,22 +132,30 @@ export function ExperienceHero({ dict, locale }: LabHeroProps) {
   const chromeRef = useRef<HTMLDivElement | null>(null);
   const actionsRef = useRef<HTMLDivElement | null>(null);
   const exploreRef = useRef<HTMLDivElement | null>(null);
+  const cursorRef = useRef<HTMLDivElement | null>(null);
+  const landingPanelRef = useRef<HTMLDivElement | null>(null);
   const buildPanelRef = useRef<HTMLDivElement | null>(null);
   const buildFrameRef = useRef<SVGRectElement | null>(null);
   const buildTextRef = useRef<HTMLParagraphElement | null>(null);
   const buildCtaRef = useRef<HTMLAnchorElement | null>(null);
 
   const uniformsRef = useRef<HeroUniforms | null>(null);
-  const cameraExtraRef = useRef({ z: 0 });
+  const cameraExtraRef = useRef({ x: 0, y: 0, z: 0 });
   const hoverRef = useRef<"enter" | "explore" | "build" | null>(null);
   const modeRef = useRef<ExperienceMode>("idle");
   const tweensRef = useRef<gsap.core.Animation[]>([]);
+  const timeScaleRef = useRef({ value: 1 });
+  const holdRef = useRef(0);
+  const holdActiveRef = useRef(false);
+  const pointerRef = useRef({ x: 0, y: 0 });
 
   const [mode, setMode] = useState<ExperienceMode>("idle");
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
   const copy = dict?.home.hero;
   const activeLocale = locale ?? defaultLocale;
   const capabilities = copy?.capabilities ?? [];
+  const capabilityItems = dict?.home.capabilities.items ?? [];
 
   const track = (animation: gsap.core.Animation) => {
     tweensRef.current.push(animation);
@@ -245,6 +258,116 @@ export function ExperienceHero({ dict, locale }: LabHeroProps) {
     fadeChrome(false, 0.15);
   };
 
+  // A hovered node pulls nearby matter in before the click.
+  const focusNode = (index: number, element: HTMLElement) => {
+    const uniforms = uniformsRef.current;
+    if (!uniforms) return;
+    const rect = element.getBoundingClientRect();
+    const nx = ((rect.left + rect.width / 2) / window.innerWidth) * 2 - 1;
+    const ny = -(((rect.top + rect.height / 2) / window.innerHeight) * 2 - 1);
+    uniforms.uNodePos.value.set(nx, ny);
+    track(
+      gsap.to(uniforms.uFocus, {
+        value: 1,
+        duration: 0.45,
+        overwrite: "auto",
+        ease: "power2.out",
+      }),
+    );
+    if (cursorRef.current) {
+      track(
+        gsap.to(cursorRef.current, { scale: 1.7, duration: 0.3, overwrite: "auto" }),
+      );
+    }
+  };
+
+  const blurNode = () => {
+    const uniforms = uniformsRef.current;
+    if (!uniforms) return;
+    track(
+      gsap.to(uniforms.uFocus, {
+        value: 0,
+        duration: 0.5,
+        overwrite: "auto",
+        ease: "power2.out",
+      }),
+    );
+    if (cursorRef.current) {
+      track(
+        gsap.to(cursorRef.current, { scale: 1, duration: 0.3, overwrite: "auto" }),
+      );
+    }
+  };
+
+  // The cinematic moment: slow the system down, travel toward the node, and
+  // land on its panel instead of cutting straight to another page.
+  const selectNode = (index: number) => {
+    if (modeRef.current !== "explore") return;
+    const uniforms = uniformsRef.current;
+    modeRef.current = "landing";
+    setActiveIndex(index);
+    setMode("landing");
+    if (!uniforms) return;
+    const nodePos = uniforms.uNodePos.value;
+    track(
+      gsap.to(timeScaleRef.current, {
+        value: 0.3,
+        duration: 0.5,
+        ease: "power2.out",
+      }),
+    );
+    track(
+      gsap.to(cameraExtraRef.current, {
+        x: nodePos.x * 3.0,
+        y: nodePos.y * 2.0,
+        z: -1.8,
+        duration: 1.2,
+        ease: "power2.inOut",
+      }),
+    );
+    const labels = exploreRef.current?.querySelectorAll("[data-explore-label]");
+    if (labels?.length) {
+      track(
+        gsap.to(labels, {
+          opacity: 0,
+          scale: 0.9,
+          duration: 0.5,
+          stagger: 0.03,
+          ease: "power2.in",
+        }),
+      );
+    }
+  };
+
+  const exitLanding = () => {
+    if (modeRef.current !== "landing") return;
+    modeRef.current = "explore";
+    setActiveIndex(null);
+    setMode("explore");
+    const uniforms = uniformsRef.current;
+    if (!uniforms) return;
+    blurNode();
+    track(
+      gsap.to(timeScaleRef.current, {
+        value: 1,
+        duration: 0.8,
+        ease: "power2.inOut",
+      }),
+    );
+    const labels = exploreRef.current?.querySelectorAll("[data-explore-label]");
+    if (labels?.length) {
+      track(
+        gsap.to(labels, {
+          opacity: 1,
+          scale: 1,
+          duration: 0.5,
+          stagger: 0.04,
+          ease: "power2.out",
+        }),
+      );
+    }
+  };
+
   const handleBuild = () => {
     if (modeRef.current !== "idle") return;
     modeRef.current = "build";
@@ -291,7 +414,8 @@ export function ExperienceHero({ dict, locale }: LabHeroProps) {
       );
   }, [mode]);
 
-  // EXPLORE: stagger the labels in, then let the cursor drag the field.
+  // EXPLORE: stagger the labels in; the cursor bends the field and drags
+  // the label ring while the camera leans into depth parallax.
   useEffect(() => {
     if (mode !== "explore") return;
     const labels = exploreRef.current?.querySelectorAll("[data-explore-label]");
@@ -312,19 +436,46 @@ export function ExperienceHero({ dict, locale }: LabHeroProps) {
         },
       );
     }
-    if (window.matchMedia("(pointer: coarse)").matches) return;
+    const cursor = cursorRef.current;
+    if (cursor) gsap.set(cursor, { xPercent: -50, yPercent: -50, scale: 1 });
     const field = document.getElementById("explore-field");
     if (!field) return;
     const qx = gsap.quickTo(field, "x", { duration: 0.7, ease: "power3" });
     const qy = gsap.quickTo(field, "y", { duration: 0.7, ease: "power3" });
+    const qcx = cursor
+      ? gsap.quickTo(cursor, "x", { duration: 0.16, ease: "power2" })
+      : null;
+    const qcy = cursor
+      ? gsap.quickTo(cursor, "y", { duration: 0.16, ease: "power2" })
+      : null;
     const onMove = (event: PointerEvent) => {
-      const dx = (event.clientX / window.innerWidth - 0.5) * 2;
-      const dy = (event.clientY / window.innerHeight - 0.5) * 2;
-      qx(dx * 30);
-      qy(dy * 20);
+      const nx = (event.clientX / window.innerWidth) * 2 - 1;
+      const ny = -((event.clientY / window.innerHeight) * 2 - 1);
+      pointerRef.current.x = nx;
+      pointerRef.current.y = ny;
+      const uniforms = uniformsRef.current;
+      if (uniforms) uniforms.uPointer.value.set(nx, ny);
+      qcx?.(event.clientX);
+      qcy?.(event.clientY);
+      qx((nx / 2) * 30);
+      qy((-ny / 2) * 20);
     };
     window.addEventListener("pointermove", onMove);
     return () => window.removeEventListener("pointermove", onMove);
+  }, [mode]);
+
+  // LANDING: the node panel materializes once the camera has traveled.
+  useEffect(() => {
+    if (mode !== "landing") return;
+    const panel = landingPanelRef.current;
+    if (!panel) return;
+    const tl = gsap.timeline({ delay: 0.9 });
+    track(tl);
+    tl.fromTo(
+      panel,
+      { opacity: 0, scale: 0.92, y: 20 },
+      { opacity: 1, scale: 1, y: 0, duration: 0.6, ease: "power2.out" },
+    );
   }, [mode]);
 
   // Kill any running sequence tweens on unmount (a pending ENTER navigation
@@ -399,6 +550,12 @@ export function ExperienceHero({ dict, locale }: LabHeroProps) {
       uMorph: new Uniform(0),
       uEnter: new Uniform(0),
       uOrbit: new Uniform(0),
+      uPointer: new Uniform(new Vector2(0, 0)),
+      uPointerActive: new Uniform(0),
+      uNodePos: new Uniform(new Vector2(0, 0)),
+      uFocus: new Uniform(0),
+      uCompress: new Uniform(0),
+      uShock: new Uniform(0),
       uArms: new Uniform(GALAXY.arms),
       uCoreRadius: new Uniform(GALAXY.coreRadius),
       uOuterRadius: new Uniform(GALAXY.outerRadius),
@@ -424,7 +581,16 @@ export function ExperienceHero({ dict, locale }: LabHeroProps) {
       ),
       uZeroR: new Uniform(new Vector2(ZERO.rx, ZERO.ry)),
     };
-    uniformsRef.current = { uEnter: uniforms.uEnter, uOrbit: uniforms.uOrbit };
+    uniformsRef.current = {
+      uEnter: uniforms.uEnter,
+      uOrbit: uniforms.uOrbit,
+      uPointer: uniforms.uPointer,
+      uPointerActive: uniforms.uPointerActive,
+      uNodePos: uniforms.uNodePos,
+      uFocus: uniforms.uFocus,
+      uCompress: uniforms.uCompress,
+      uShock: uniforms.uShock,
+    };
 
     const material = new ShaderMaterial({
       uniforms,
@@ -584,10 +750,23 @@ export function ExperienceHero({ dict, locale }: LabHeroProps) {
       canvas.style.cursor = "";
     };
 
+    // Hold-to-detonate: any press that is not on a control counts while
+    // EXPLORE is running.
+    const onHoldDown = (event: PointerEvent) => {
+      if (modeRef.current !== "explore") return;
+      if (!canStartDrag(event.target)) return;
+      holdActiveRef.current = true;
+    };
+    const onHoldUp = () => {
+      holdActiveRef.current = false;
+    };
+
     let alive = true;
     let raf = 0;
     let elapsed = 0;
-    let last = performance.now();
+    // -1 = "no clock yet"; the first tick adopts the rAF timestamp instead
+    // of calling a wall-clock function here.
+    let last = -1;
 
     // Linear 0..1 timeline clock; the eased value is what the shader sees.
     let morphLinear = 0;
@@ -599,9 +778,12 @@ export function ExperienceHero({ dict, locale }: LabHeroProps) {
       raf = requestAnimationFrame(tick);
       if (!alive) return;
 
-      const dt = Math.min(0.05, (now - last) / 1000);
+      const dt = last < 0 ? 0 : Math.min(0.05, (now - last) / 1000);
       last = now;
-      elapsed += dt;
+      // The system clock can run slow (landing slow-mo) without affecting
+      // the real-time scroll logic.
+      const simDt = dt * timeScaleRef.current.value;
+      elapsed += simDt;
 
       uniforms.uTime.value = elapsed;
       uniforms.uIntro.value = smoothstep(0, 0.25, elapsed);
@@ -644,6 +826,48 @@ export function ExperienceHero({ dict, locale }: LabHeroProps) {
       const eased = easeInOutCubic(morphLinear);
       uniforms.uMorph.value = eased;
 
+      // ---- the living explore field ----
+      const targetPointerActive = experienceMode === "explore" ? 1 : 0;
+      uniforms.uPointerActive.value +=
+        (targetPointerActive - uniforms.uPointerActive.value) * damp;
+      uniforms.uShock.value = Math.max(0, uniforms.uShock.value - dt / 1.1);
+      if (experienceMode === "explore") {
+        // hold anywhere to compress the core; a full hold detonates on
+        // release and the system re-forms on its own
+        holdRef.current = holdActiveRef.current
+          ? Math.min(1.25, holdRef.current + dt)
+          : Math.max(0, holdRef.current - dt * 3);
+        uniforms.uCompress.value = smoothstep(0, 1.1, holdRef.current);
+        if (
+          !holdActiveRef.current &&
+          holdRef.current > 1.05 &&
+          uniforms.uShock.value === 0
+        ) {
+          uniforms.uShock.value = 1;
+          holdRef.current = 0;
+          if (exploreRef.current) {
+            gsap.fromTo(
+              exploreRef.current,
+              { rotation: -1.4 },
+              { rotation: 0, duration: 0.7, ease: "elastic.out(1.2, 0.35)" },
+            );
+          }
+        }
+        // depth parallax: the camera drifts against the pointer so the
+        // cloud reads as volume, not a decal
+        cameraExtraRef.current.x +=
+          (pointerRef.current.x * -0.5 - cameraExtraRef.current.x) * damp;
+        cameraExtraRef.current.y +=
+          (pointerRef.current.y * -0.3 - cameraExtraRef.current.y) * damp;
+        cameraExtraRef.current.z += (0 - cameraExtraRef.current.z) * damp;
+      } else if (experienceMode !== "landing") {
+        holdRef.current = 0;
+        uniforms.uCompress.value = Math.max(
+          0,
+          uniforms.uCompress.value - dt * 2,
+        );
+      }
+
       // ENTER hover preview: the scene leans in before the click. GSAP owns
       // the extra camera offset during sequences, so the hover lerp only
       // runs while idle.
@@ -652,9 +876,12 @@ export function ExperienceHero({ dict, locale }: LabHeroProps) {
         cameraExtraRef.current.z +=
           (targetExtra - cameraExtraRef.current.z) * damp;
       }
-      camera.position.z =
+      camera.position.set(
+        cameraExtraRef.current.x,
+        cameraExtraRef.current.y,
         cameraBaseZ * (1 - 0.055 * Math.sin(clamp(morphLinear) * Math.PI)) +
-        cameraExtraRef.current.z;
+          cameraExtraRef.current.z,
+      );
 
       composer.render(dt);
     };
@@ -677,7 +904,7 @@ export function ExperienceHero({ dict, locale }: LabHeroProps) {
         cancelAnimationFrame(raf);
       } else if (!alive) {
         alive = true;
-        last = performance.now();
+        last = -1;
         raf = requestAnimationFrame(tick);
       }
     };
@@ -692,6 +919,9 @@ export function ExperienceHero({ dict, locale }: LabHeroProps) {
     resizeObserver.observe(stage);
     document.addEventListener("visibilitychange", onVisibility);
     canvas.addEventListener("webglcontextlost", onContextLost);
+    stage.addEventListener("pointerdown", onHoldDown);
+    window.addEventListener("pointerup", onHoldUp);
+    window.addEventListener("pointercancel", onHoldUp);
     window.addEventListener("pointerdown", onDragDown);
     window.addEventListener("pointermove", onDragMove);
     window.addEventListener("pointerup", onDragUp);
@@ -704,6 +934,9 @@ export function ExperienceHero({ dict, locale }: LabHeroProps) {
       resizeObserver.disconnect();
       document.removeEventListener("visibilitychange", onVisibility);
       canvas.removeEventListener("webglcontextlost", onContextLost);
+      stage.removeEventListener("pointerdown", onHoldDown);
+      window.removeEventListener("pointerup", onHoldUp);
+      window.removeEventListener("pointercancel", onHoldUp);
       window.removeEventListener("pointerdown", onDragDown);
       window.removeEventListener("pointermove", onDragMove);
       window.removeEventListener("pointerup", onDragUp);
@@ -834,6 +1067,17 @@ export function ExperienceHero({ dict, locale }: LabHeroProps) {
             </div>
           )}
 
+          {(mode === "explore" || mode === "landing") && (
+            <p
+              className="absolute top-16 left-1/2 z-20 -translate-x-1/2 font-mono text-[0.6rem] tracking-[0.3em] text-ink/50"
+              aria-hidden
+            >
+              {mode === "landing" && activeIndex !== null
+                ? `EXPLORE → ${capabilities[activeIndex]}`
+                : "EXPLORE"}
+            </p>
+          )}
+
           {mode === "explore" && (
             <div
               id="explore-field"
@@ -842,21 +1086,27 @@ export function ExperienceHero({ dict, locale }: LabHeroProps) {
             >
               {capabilities.map((label, index) => {
                 const pos = EXPLORE_POS[index % EXPLORE_POS.length];
-                const filter = EXPLORE_FILTERS[index] ?? null;
                 return (
-                  <Link
+                  <button
                     key={label}
-                    href={
-                      filter
-                        ? `/${activeLocale}/work?filter=${filter}`
-                        : `/${activeLocale}/work`
-                    }
+                    type="button"
                     data-explore-label
-                    className="pointer-events-auto absolute -translate-x-1/2 -translate-y-1/2 border border-line bg-surface/60 px-3 py-2 font-mono text-[0.65rem] uppercase tracking-[0.18em] text-ink backdrop-blur-sm transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+                    onClick={() => selectNode(index)}
+                    onMouseEnter={(event) =>
+                      focusNode(index, event.currentTarget)
+                    }
+                    onMouseLeave={blurNode}
+                    onFocus={(event) => focusNode(index, event.currentTarget)}
+                    onBlur={blurNode}
+                    className="group pointer-events-auto absolute flex min-h-11 -translate-x-1/2 -translate-y-1/2 items-center gap-2.5 border border-line bg-surface/60 px-3 py-2 font-mono text-[0.65rem] uppercase tracking-[0.18em] text-ink backdrop-blur-sm transition-all duration-300 hover:scale-[1.06] hover:border-[var(--accent)] hover:text-[var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
                     style={{ left: pos.x, top: pos.y }}
                   >
+                    <span className="relative inline-block h-2.5 w-2.5" aria-hidden>
+                      <span className="absolute inset-0 rounded-full bg-[var(--accent)] opacity-80 transition-transform duration-300 group-hover:scale-150" />
+                      <span className="absolute -inset-1.5 rounded-full border border-[var(--accent)] opacity-40 transition-opacity duration-300 group-hover:opacity-90" />
+                    </span>
                     {label}
-                  </Link>
+                  </button>
                 );
               })}
               <p className="absolute inset-x-4 bottom-24 mx-auto max-w-sm text-center font-mono text-[0.65rem] lowercase tracking-normal text-ink/60">
@@ -869,6 +1119,52 @@ export function ExperienceHero({ dict, locale }: LabHeroProps) {
               >
                 ← {copy?.exploreBack ?? "Volver al hero"}
               </button>
+              <div
+                ref={cursorRef}
+                className="pointer-events-none absolute left-0 top-0 z-30 hidden [@media(pointer:fine)]:block"
+                aria-hidden
+              >
+                <span className="absolute -left-4 -top-4 h-8 w-8 rounded-full border border-[var(--accent)] opacity-40" />
+                <span className="absolute -left-[3px] -top-[3px] h-1.5 w-1.5 rounded-full bg-[var(--accent)]" />
+              </div>
+            </div>
+          )}
+
+          {mode === "landing" && activeIndex !== null && (
+            <div className="absolute inset-0 z-20 grid place-items-center px-4">
+              <div
+                ref={landingPanelRef}
+                className="pointer-events-none w-[min(88vw,560px)] border border-line bg-surface/90 p-8 text-center shadow-[0_18px_70px_rgba(0,0,0,0.6)] backdrop-blur-md sm:p-10"
+              >
+                <p className="font-mono text-[0.6rem] uppercase tracking-[0.3em] text-ink-muted">
+                  {capabilities[activeIndex]}
+                </p>
+                <h2 className="mt-4 font-display text-2xl leading-tight tracking-[-0.02em] text-ink sm:text-3xl">
+                  {capabilityItems[activeIndex]?.title}
+                </h2>
+                <p className="mx-auto mt-4 max-w-md text-[0.9375rem] leading-relaxed text-ink-soft">
+                  {capabilityItems[activeIndex]?.body}
+                </p>
+                <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
+                  <a
+                    href={
+                      EXPLORE_FILTERS[activeIndex]
+                        ? `/${activeLocale}/work?filter=${EXPLORE_FILTERS[activeIndex]}`
+                        : `/${activeLocale}/work`
+                    }
+                    className="pointer-events-auto inline-flex min-h-11 items-center rounded-full bg-[var(--accent)] px-7 text-sm font-semibold text-[var(--bg)] transition-transform hover:scale-[1.03] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+                  >
+                    {copy?.secondary} →
+                  </a>
+                  <button
+                    type="button"
+                    onClick={exitLanding}
+                    className="pointer-events-auto inline-flex min-h-11 items-center border border-line px-4 font-mono text-xs text-ink/80 transition-colors hover:border-[var(--accent)] hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+                  >
+                    ← {copy?.exploreBack ?? "Volver al hero"}
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 
