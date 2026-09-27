@@ -57,13 +57,11 @@ const BASE_Z = 9;
 const GALAXY_DIAMETER = GALAXY.outerRadius * 2;
 const VIEW_FILL = 0.92;
 
-// Same slow coil as the home hero, but the galaxy → 07 morph is not scrubbed
-// by scroll: crossing the forward threshold fires a fixed timeline, and
-// scrolling back near the top rewinds it. The formation speed is constant no
-// matter how the user scrolls.
+// Same slow coil as the home hero, but the morph is not scrubbed by scroll:
+// a scroll gesture downward fires the fixed timeline toward the 07, upward
+// rewinds it toward the galaxy — from any position. The transition speed is
+// constant no matter how the user scrolls.
 const MORPH_DURATION = 3.6;
-const TRIGGER_FORWARD = 28;
-const TRIGGER_REWIND = 4;
 
 const ZERO_SHIFT = 0.3;
 const SEVEN_SHIFT = -0.3;
@@ -357,6 +355,8 @@ export function CoilAutoHero({ dict }: LabHeroProps) {
     // Linear 0..1 timeline clock; the eased value is what the shader sees.
     let morphLinear = 0;
     let morphTarget = 0;
+    let lastScrollY = window.scrollY;
+    let scrollVel = 0;
 
     const tick = (now: number) => {
       raf = requestAnimationFrame(tick);
@@ -378,11 +378,16 @@ export function CoilAutoHero({ dict }: LabHeroProps) {
       pivot.rotation.y = rot.yaw;
       tiltGroup.rotation.x = 0.5 + rot.tiltOffset;
 
-      // Hysteresis: any real scroll down arms the morph, only returning near
-      // the very top rewinds it — so half-hearted scrolls never stutter it.
-      if (morphTarget === 0 && window.scrollY > TRIGGER_FORWARD) {
+      // Direction trigger: a real scroll down arms the morph toward the 07,
+      // a real scroll up rewinds it toward the galaxy, both from any
+      // position. Velocity is smoothed so single-pixel jitter can't flip
+      // the timeline mid-flight.
+      const scrollY = window.scrollY;
+      scrollVel = scrollVel * 0.75 + (scrollY - lastScrollY) * 0.25;
+      lastScrollY = scrollY;
+      if (scrollVel > 0.6) {
         morphTarget = 1;
-      } else if (morphTarget === 1 && window.scrollY < TRIGGER_REWIND) {
+      } else if (scrollVel < -0.6) {
         morphTarget = 0;
       }
 
