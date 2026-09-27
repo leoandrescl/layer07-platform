@@ -4,13 +4,12 @@ const PI = "3.141592653589793";
 /* ------------------------------------------------------------------ *
  * L07 coil auto — same galaxy and same coiled "07" as the home hero,
  * but scroll does not scrub the formation: the first scroll gesture
- * fires a fixed timeline. Forward, the galaxy shears into a
- * differential vortex (inner matter orbits faster than the rim) and
- * implodes; particles leave it in waves ordered along the stroke,
- * glowing as they fly, and snap into the coil with a small overshoot.
- * The vortex is forward-only (uDir gates it): the rewind dissolves
- * the mark while the disc stays put, each particle arcing and
- * corkscrewing home on its own — the galaxy never pivots.
+ * fires a fixed timeline. Each particle flies in its own window, the
+ * windows ordered along the stroke so the mark writes itself; they
+ * arc, corkscrew and glow mid-flight, then snap into the coil with a
+ * small overshoot. There is no global motion in either direction: the
+ * galaxy the particles leave — or re-form on the rewind — never
+ * rotates or contracts as a whole.
  * ------------------------------------------------------------------ */
 
 export const COIL_AUTO_VERT = /* glsl */ `
@@ -34,7 +33,6 @@ export const COIL_AUTO_VERT = /* glsl */ `
   uniform float uIntro;
   uniform float uForm;
   uniform float uMorph;
-  uniform float uDir;
   uniform float uArms;
   uniform float uCoreRadius;
   uniform float uOuterRadius;
@@ -143,35 +141,18 @@ export const COIL_AUTO_VERT = /* glsl */ `
     vec3 riverPos = vec3(riverXY, aZ + rad * sin(phase) * uCoilDepth);
 
     // ---- automatic timeline (uMorph is eased progress, not scroll) ----
-    // 1) wind-up (forward only): the galaxy shears into a differential
-    //    vortex and implodes toward its core,
-    // 2) transit: each particle leaves in its own window, windows ordered
-    //    along the stroke so the mark writes itself,
-    // 3) settle: overshoot past the coil and spring back (easeOutBack).
-    // uDir gates the vortex to the forward direction and eases through 0
-    // while the timeline is parked at either end, so direction changes never
-    // pop. On the rewind wind is 0: the disc stays put and every particle
-    // just flies home along its own arced, corkscrewing path.
+    // Every particle leaves in its own window, windows ordered along the
+    // stroke so the mark writes itself, arcs and corkscrews on the way,
+    // glows mid-flight and overshoots the coil before springing back
+    // (easeOutBack). No global motion: the galaxy never rotates or
+    // contracts as a whole, in either direction.
     float stagger = clamp(t * 0.5 + fract(aSeed * 3.71) * 0.18, 0.0, 0.6);
     float lr = clamp((uMorph - 0.18 - stagger) / 0.22, 0.0, 1.0);
-
-    float wind = max(uDir, 0.0)
-      * smoothstep(0.02, 0.3, uMorph)
-      * (1.0 - smoothstep(0.35, 0.6, uMorph));
-    float galaxySide = 1.0 - lr;
-    float rn = clamp((r - uCoreRadius) / (uOuterRadius - uCoreRadius), 0.0, 1.0);
-    float swirl = wind
-      * (2.2 - 1.4 * rn + (fract(aSeed * 4.93) - 0.5) * 0.4)
-      * galaxySide;
-    vec3 from = galaxyPos;
-    from.xz = rot2(from.xz, swirl);
-    from.xz *= 1.0 - 0.34 * wind * galaxySide;
-
     float backM = 1.0 - lr;
     float backC = 1.3;
     float l = 1.0 - (backC + 1.0) * backM * backM * backM + backC * backM * backM;
 
-    vec3 p = mix(aScatter, from, uForm);
+    vec3 p = mix(aScatter, galaxyPos, uForm);
     p = mix(p, riverPos, l);
 
     // mid-flight choreography: vertical arc, corkscrew around the axis
@@ -198,10 +179,10 @@ export const COIL_AUTO_VERT = /* glsl */ `
     vColor = mix(aColor, uCoreColor, coreMix * 0.75 * (1.0 - uMorph));
     vBright = aBright * uIntro * fade * twinkle * mix(1.0, wave, uMorph);
 
-    // the imploding vortex heats up; particles flare white-warm in transit
+    // particles flare white-warm while in transit
     float glow = arc * (0.5 + 0.5 * fract(aSeed * 9.71));
     vColor = mix(vColor, vec3(1.0, 0.93, 0.78), glow * 0.6);
-    vBright *= (1.0 + 0.35 * wind) * (1.0 + 1.6 * glow);
+    vBright *= 1.0 + 1.6 * glow;
 
     vSeed = aSeed;
   }
