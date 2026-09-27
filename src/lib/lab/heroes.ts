@@ -27,11 +27,11 @@ export const LAB_HEROES: LabHero[] = [
     name: "07 espiral (coil)",
     tagline: "El 07 como espiral: dos líneas que nacen de la galaxia",
     description:
-      "Hero oficial del home. El trazo del 07 no es una línea simple: cada stroke es un coil (hélice) que envuelve la línea central. De frente se lee como dos líneas con materia suelta dentro, y se forma desde la galaxia. Movimiento y velocidades reducidas.",
+      "El coil original que fue hero del home: el trazo del 07 no es una línea simple, cada stroke es una hélice que envuelve la línea central. De frente se lee como dos líneas con materia suelta dentro, y se forma desde la galaxia a medida que se scrollea. Movimiento y velocidades reducidas.",
     tags: ["galaxia", "coil", "doble línea", "home"],
     accent: "#ffd7a8",
     preview: "particles",
-    status: "active",
+    status: "candidate",
     component: CoilParticleHero,
   },
   {
@@ -43,7 +43,7 @@ export const LAB_HEROES: LabHero[] = [
     tags: ["galaxia", "coil", "auto-morph", "trigger"],
     accent: "#9fe3ff",
     preview: "particles",
-    status: "prototype",
+    status: "active",
     component: CoilAutoHero,
   },
 ];
@@ -62,7 +62,7 @@ export function isLabHeroSlug(slug: string): boolean {
  * The hero the official home renders. Swap it in one line here, or set
  * `NEXT_PUBLIC_HERO` in the environment (no deploy of code needed).
  */
-export const ACTIVE_HERO_SLUG = process.env.NEXT_PUBLIC_HERO ?? "07-espiral";
+export const ACTIVE_HERO_SLUG = process.env.NEXT_PUBLIC_HERO ?? "07-cinetico";
 
 export function getActiveHero(): LabHero {
   return BY_SLUG.get(ACTIVE_HERO_SLUG) ?? LAB_HEROES[0];
