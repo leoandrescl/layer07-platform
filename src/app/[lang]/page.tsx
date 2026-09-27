@@ -22,7 +22,7 @@ export default async function HomePage({
 
   return (
     <>
-      <Hero dict={dict} />
+      <Hero dict={dict} locale={lang} />
       <Marquee items={dict.home.hero.capabilities} />
       <WorkPreview locale={lang} dict={dict} />
       <Capabilities dict={dict} />

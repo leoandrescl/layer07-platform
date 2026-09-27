@@ -2,8 +2,9 @@ import type { ComponentType } from "react";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
 import { CoilParticleHero } from "@/components/lab/CoilParticleHero";
 import { CoilAutoHero } from "@/components/lab/CoilAutoHero";
+import { ExperienceHero } from "@/components/lab/ExperienceHero";
 
-export type LabHeroProps = { dict: Dictionary };
+export type LabHeroProps = { dict: Dictionary; locale?: string };
 
 export type LabHeroStatus = "prototype" | "candidate" | "active";
 export type LabHeroPreview = "particles";
@@ -45,6 +46,18 @@ export const LAB_HEROES: LabHero[] = [
     preview: "particles",
     status: "active",
     component: CoilAutoHero,
+  },
+  {
+    slug: "07-experience",
+    name: "07 experience (verbos)",
+    tagline: "ENTER, EXPLORE, BUILD: el hero como experiencia, no navegación",
+    description:
+      "Tres verbos cinematográficos sobre el hero. ENTER separa el 07 en capas de profundidad y la cámara empuja antes de llevarte al trabajo; EXPLORE dispersa la escena en una nube orbital de capacidades que sigue al cursor; BUILD construye el 07 a doble velocidad y arma el marco con el llamado a la acción. Cada botón adelanta su reacción en el hover.",
+    tags: ["gsap", "secuencias", "verbos", "cámara"],
+    accent: "#c9b8ff",
+    preview: "particles",
+    status: "prototype",
+    component: ExperienceHero,
   },
 ];
 

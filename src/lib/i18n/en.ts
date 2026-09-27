@@ -53,6 +53,14 @@ export const en: Dictionary = {
       studio: "Digital product studio",
       available: "Available for projects",
       build: "Scroll to build",
+      actions: {
+        enter: { label: "ENTER", hint: "Dive into depth" },
+        explore: { label: "EXPLORE", hint: "Explore capabilities" },
+        build: { label: "BUILD", hint: "Build together" },
+      },
+      exploreBack: "Back to the hero",
+      buildQuestion: "Shall we build something together?",
+      buildCta: "Let's talk",
     },
     work: {
       eyebrow: "Selected work",

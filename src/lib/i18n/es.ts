@@ -51,6 +51,14 @@ export const es = {
       studio: "Estudio de producto digital",
       available: "Disponible para proyectos",
       build: "Desliza para construir",
+      actions: {
+        enter: { label: "ENTER", hint: "Entrar en profundidad" },
+        explore: { label: "EXPLORE", hint: "Explorar capacidades" },
+        build: { label: "BUILD", hint: "Construir juntos" },
+      },
+      exploreBack: "Volver al hero",
+      buildQuestion: "¿Construimos algo juntos?",
+      buildCta: "Hablemos",
     },
     work: {
       eyebrow: "Trabajo seleccionado",
