@@ -3,6 +3,9 @@ import type { Dictionary } from "@/lib/i18n/dictionaries";
 import { CoilParticleHero } from "@/components/lab/CoilParticleHero";
 import { CoilAutoHero } from "@/components/lab/CoilAutoHero";
 import { ExperienceHero } from "@/components/lab/ExperienceHero";
+import { MorphosisHero } from "@/components/lab/MorphosisHero";
+import { AstraHero } from "@/components/lab/AstraHero";
+import { AstraSixHero } from "@/components/lab/AstraSixHero";
 
 export type LabHeroProps = { dict: Dictionary; locale?: string };
 
@@ -58,6 +61,42 @@ export const LAB_HEROES: LabHero[] = [
     preview: "particles",
     status: "active",
     component: ExperienceHero,
+  },
+  {
+    slug: "07-morfosis",
+    name: "07 morfosis (figuras)",
+    tagline: "La galaxia estalla en cada sección y renace en otra figura",
+    description:
+      "Un solo field de partículas narra por formas: al llegar a cada sección la escena entera se dispersa en un estallido y las mismas partículas se reensamblan en la siguiente figura — anillo, esfera, doble hélice y el 07 final, donde el giro se detiene. El scroll gradúa cada morph, el cursor dobla la figura formada y sin WebGL queda el fallback estático.",
+    tags: ["galaxia", "morph", "scroll", "figuras"],
+    accent: "#a8ffd7",
+    preview: "particles",
+    status: "candidate",
+    component: MorphosisHero,
+  },
+  {
+    slug: "07-astra",
+    name: "07 astra (estudio)",
+    tagline: "Estudio del cosmos de GPT-6 Astra: galaxia, dispersión, estrella y 07",
+    description:
+      "Réplica del lenguaje visual de la landing de GPT-6 Astra con código y copy propios: cosmos casi monocromático en blancos y ámbar, partículas bokeh desenfocadas conviviendo con estrellas nítidas, galaxia inclinada con núcleo ardiente que se dispersa al llegar a cada sección y se reensambla en un campo estelar, una estrella en cruz y el 07. La cámara participa: cada figura tiene su propio tilt y giro.",
+    tags: ["galaxia", "bokeh", "morph", "estudio"],
+    accent: "#ffc78a",
+    preview: "particles",
+    status: "candidate",
+    component: AstraHero,
+  },
+  {
+    slug: "astra-g6",
+    name: "Astra G6 (secuencia)",
+    tagline: "Dispersas → galaxia en 6: la secuencia automática de Astra",
+    description:
+      "Réplica de la intro de GPT-6 Astra con código propio y sin scroll: un campo estelar con vacío central se ensambla directamente en una galaxia de frente cuyo brazo exterior dominante lee como un 6. Estrellas bien definidas en tonos azul hielo y rojo coral, núcleo que quema y giro eterno al final. Un botón repite la secuencia completa.",
+    tags: ["galaxia", "secuencia", "auto", "réplica"],
+    accent: "#9fc4ff",
+    preview: "particles",
+    status: "candidate",
+    component: AstraSixHero,
   },
 ];
 

@@ -298,6 +298,69 @@ export const es = {
     body: "La página que buscas no existe o cambió de lugar.",
     cta: "Volver al inicio",
   },
+  lab: {
+    astraSix: {
+      brandLeft: "Layer",
+      brandRight: "07",
+      replay: "Repetir secuencia",
+      note: "Este experimento necesita WebGL.",
+    },
+    astra: {
+      hint: "Desliza — la materia se dispersa y vuelve a encenderse",
+      figures: [
+        {
+          label: "Galaxia",
+          title: "Una galaxia suspendida",
+          body: "Miles de partículas girando en un disco tibio, con un núcleo que quema más que los brazos. Todo lo que sigue ya está aquí.",
+        },
+        {
+          label: "Dispersión",
+          title: "La materia se dispersa",
+          body: "Al llegar aquí, la galaxia entera se suelta: cada partícula toma su propio camino y el espacio queda sembrado de estrellas y lumbres fuera de foco.",
+        },
+        {
+          label: "Estrella",
+          title: "Y se enciende como estrella",
+          body: "Dispersas o no, son la misma materia: basta un centro para que todas converjan y ardan juntas en un solo destello.",
+        },
+        {
+          label: "07",
+          title: "Hasta volverse firma",
+          body: "El mismo polvo, la última forma: el 07 se ensambla en silencio y la cámara se aquieta, porque la marca no gira — permanece.",
+        },
+      ],
+    },
+    morphosis: {
+      hint: "Desliza — la galaxia se disuelve y renace en otra figura",
+      figures: [
+        {
+          label: "Galaxia",
+          title: "Todo empieza disperso",
+          body: "Un disco espiral de miles de partículas: la materia prima sin forma fija, girando con toda su energía disponible.",
+        },
+        {
+          label: "Anillo",
+          title: "La primera estructura",
+          body: "Al llegar aquí la galaxia estalla y las mismas partículas se reordenan en un contorno: la forma mínima que sostiene el movimiento.",
+        },
+        {
+          label: "Esfera",
+          title: "Del contorno al volumen",
+          body: "El anillo se dispersa otra vez y vuelve como esfera: el mismo material ocupando ahora todo el espacio disponible.",
+        },
+        {
+          label: "Hélice",
+          title: "Dos flujos, un ritmo",
+          body: "Dos corrientes de partículas entrelazadas que avanzan sin mezclarse, con puentes que las mantienen al mismo compás.",
+        },
+        {
+          label: "07",
+          title: "La firma se ensambla sola",
+          body: "Y al final, la marca: el 07 aparece porque cada figura era siempre el mismo punto recorriendo caminos distintos.",
+        },
+      ],
+    },
+  },
 };
 
 export type Dictionary = typeof es;

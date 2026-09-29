@@ -316,6 +316,371 @@
   color: var(--ink);
 }
 
+/* ---------- Astra G6 (secuencia) ---------- */
+
+.astra6-root {
+  background:
+    radial-gradient(
+      120% 90% at 50% 50%,
+      transparent 40%,
+      rgba(1, 2, 8, 0.55) 100%
+    ),
+    linear-gradient(
+      to top,
+      #0a1626 0%,
+      #050c1c 14%,
+      #02050f 40%,
+      #010208 72%,
+      #010207 100%
+    );
+}
+
+.astra6-canvas {
+  cursor: default;
+}
+
+/* elliptical dim glow standing in for the scene when WebGL is absent */
+.astra6-fallback {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(62vw, 62vh);
+  aspect-ratio: 1.15;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(214, 228, 255, 0.14) 0%,
+    rgba(157, 177, 216, 0.05) 42%,
+    transparent 70%
+  );
+  filter: blur(6px);
+  transform: translate(-50%, -50%);
+  display: none;
+}
+
+[data-tier="0"] .astra6-fallback {
+  display: block;
+}
+
+.astra6-label {
+  position: absolute;
+  top: 50%;
+  z-index: 10;
+  font-family: var(--font-inter);
+  font-weight: 400;
+  font-size: clamp(1.4rem, 2.9vw, 2.45rem);
+  letter-spacing: -0.01em;
+  color: #f5f7fb;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.astra6-label--left {
+  left: clamp(0.75rem, 2.2vw, 2.4rem);
+}
+
+.astra6-label--right {
+  right: clamp(0.75rem, 2.2vw, 2.4rem);
+}
+
+.astra6-replay {
+  position: absolute;
+  bottom: clamp(1rem, 3vh, 1.8rem);
+  right: clamp(0.75rem, 2.2vw, 2.4rem);
+  z-index: 20;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 0.55rem 0.95rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bg) 55%, transparent);
+  backdrop-filter: blur(8px);
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--ink) 72%, transparent);
+  cursor: pointer;
+  transition:
+    border-color 0.3s var(--ease-out),
+    color 0.3s var(--ease-out);
+}
+
+.astra6-replay:hover {
+  border-color: var(--line-strong);
+  color: var(--ink);
+}
+
+.astra6-replay:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.astra6-note {
+  position: absolute;
+  bottom: clamp(1rem, 3vh, 1.8rem);
+  left: 50%;
+  z-index: 20;
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--ink) 55%, transparent);
+  transform: translateX(-50%);
+  display: none;
+}
+
+[data-tier="0"] .astra6-note {
+  display: block;
+}
+
+/* ---------- 07-astra (estudio) ---------- */
+
+.astra-root {
+  background: #010208;
+}
+
+.astra-stage {
+  z-index: 0;
+  background:
+    radial-gradient(140% 90% at 50% -10%, #0a1226 0%, #030510 42%, #010208 78%),
+    #010208;
+}
+
+/* Astra's text floats as plain typography over the void: no card box */
+.astra-copy {
+  max-width: 30rem;
+  /* keeps the words legible when the mark burns behind them */
+  text-shadow: 0 0 18px rgba(1, 2, 8, 0.9), 0 0 46px rgba(1, 2, 8, 0.7);
+}
+
+.astra-eyebrow {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, #ffd9a8 82%, transparent);
+}
+
+.astra-copy h2 {
+  margin-top: 0.7rem;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(1.7rem, 5.5vw, 2.6rem);
+  line-height: 1.06;
+  letter-spacing: -0.02em;
+  color: #f7f3ea;
+  text-wrap: balance;
+}
+
+.astra-copy p {
+  margin-top: 0.75rem;
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: color-mix(in srgb, #f7f3ea 66%, transparent);
+}
+
+/* ---------- 07-morfosis ---------- */
+
+.morph-root {
+  background: var(--bg);
+}
+
+.morph-stage {
+  z-index: 0;
+  background: radial-gradient(
+    120% 95% at 50% 5%,
+    #070a16 0%,
+    #03040b 58%,
+    #010206 100%
+  );
+}
+
+.morph-canvas {
+  cursor: default;
+}
+
+/* hue wash over the opaque canvas so the void keeps some color depth */
+.morph-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+.morph-glow::before,
+.morph-glow::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+}
+
+.morph-glow::before {
+  top: -18%;
+  left: -12%;
+  width: 58vw;
+  height: 58vw;
+  background: radial-gradient(circle, rgba(122, 90, 255, 0.16), transparent 70%);
+}
+
+.morph-glow::after {
+  bottom: -22%;
+  right: -10%;
+  width: 52vw;
+  height: 52vw;
+  background: radial-gradient(circle, rgba(79, 216, 255, 0.1), transparent 72%);
+}
+
+.morph-sections {
+  position: relative;
+  z-index: 1;
+  margin-top: -100svh;
+}
+
+.morph-section {
+  display: flex;
+  min-height: 100svh;
+  align-items: flex-end;
+  padding: clamp(1.25rem, 5vw, 4rem);
+  padding-block-end: clamp(5.5rem, 15vh, 9rem);
+}
+
+.morph-card {
+  max-width: 26rem;
+  padding: clamp(1.15rem, 3vw, 1.6rem) clamp(1.2rem, 3vw, 1.7rem);
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--bg) 62%, transparent);
+  backdrop-filter: blur(10px);
+}
+
+.morph-card-num {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.morph-card h2 {
+  margin-top: 0.7rem;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(1.55rem, 5vw, 2.3rem);
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+.morph-card p {
+  margin-top: 0.65rem;
+  font-size: 0.925rem;
+  line-height: 1.6;
+  color: var(--ink-muted);
+}
+
+@media (min-width: 768px) {
+  .morph-section {
+    align-items: center;
+    padding-block-end: 0;
+  }
+
+  .morph-section--right {
+    justify-content: flex-end;
+  }
+}
+
+.morph-rail {
+  position: fixed;
+  top: 50%;
+  right: clamp(0.9rem, 3vw, 2rem);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  transform: translateY(-50%);
+}
+
+.morph-dot {
+  position: relative;
+  width: 10px;
+  height: 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  transition:
+    background-color 0.4s var(--ease-out),
+    border-color 0.4s var(--ease-out),
+    box-shadow 0.4s var(--ease-out);
+}
+
+.morph-dot.is-active {
+  border-color: var(--accent);
+  background: var(--accent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+.morph-dot-label {
+  position: absolute;
+  top: 50%;
+  right: 1.4rem;
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateY(-50%);
+  transition: opacity 0.35s var(--ease-out);
+}
+
+.morph-dot.is-active .morph-dot-label {
+  opacity: 1;
+}
+
+@media (max-width: 767px) {
+  .morph-dot-label {
+    display: none;
+  }
+}
+
+.morph-hint {
+  position: fixed;
+  bottom: clamp(1.2rem, 4vh, 2.4rem);
+  left: 50%;
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--ink) 55%, transparent);
+  text-align: center;
+  transform: translateX(-50%);
+  transition: opacity 0.5s var(--ease-out);
+}
+
+@media (max-width: 767px) {
+  .morph-hint {
+    width: max-content;
+    max-width: calc(100vw - 2rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .morph-canvas {
+    transition: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .lab-cosmos-wash {
     animation: none !important;

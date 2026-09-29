@@ -300,4 +300,67 @@ export const en: Dictionary = {
     body: "The page you're looking for doesn't exist or has moved.",
     cta: "Back to home",
   },
+  lab: {
+    astraSix: {
+      brandLeft: "Layer",
+      brandRight: "07",
+      replay: "Replay sequence",
+      note: "This experiment needs WebGL.",
+    },
+    astra: {
+      hint: "Scroll — the matter disperses and ignites again",
+      figures: [
+        {
+          label: "Galaxy",
+          title: "A galaxy held in place",
+          body: "Thousands of particles turning in a warm disk, a core burning brighter than its arms. Everything that follows is already here.",
+        },
+        {
+          label: "Dispersal",
+          title: "The matter scatters",
+          body: "Arriving here, the whole galaxy lets go: every particle takes its own path and the space is left seeded with stars and out-of-focus embers.",
+        },
+        {
+          label: "Star",
+          title: "And ignites as a star",
+          body: "Scattered or not, it is the same matter: one center is enough for all of it to converge and burn together in a single flare.",
+        },
+        {
+          label: "07",
+          title: "Until it becomes the mark",
+          body: "The same dust, the last shape: the 07 assembles in silence and the camera settles, because the mark doesn't spin — it remains.",
+        },
+      ],
+    },
+    morphosis: {
+      hint: "Scroll — the galaxy dissolves and is reborn as another figure",
+      figures: [
+        {
+          label: "Galaxy",
+          title: "Everything starts scattered",
+          body: "A spiral disk of thousands of particles: raw matter with no fixed shape, spinning with all its energy available.",
+        },
+        {
+          label: "Ring",
+          title: "The first structure",
+          body: "Arriving here, the galaxy bursts and the same particles reorder into a contour: the minimal shape that holds motion.",
+        },
+        {
+          label: "Sphere",
+          title: "From contour to volume",
+          body: "The ring disperses once more and returns as a sphere: the same material now filling all the space available.",
+        },
+        {
+          label: "Helix",
+          title: "Two flows, one rhythm",
+          body: "Two intertwined particle streams advance without mixing, with bridges keeping them in the same tempo.",
+        },
+        {
+          label: "07",
+          title: "The mark assembles itself",
+          body: "And at the end, the brand: the 07 appears because every figure was always the same point taking different paths.",
+        },
+      ],
+    },
+  },
 };
