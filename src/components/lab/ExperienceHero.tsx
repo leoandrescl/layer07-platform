@@ -394,33 +394,35 @@ export function ExperienceHero({ dict, locale }: LabHeroProps) {
     fadeChrome(false, 0.1);
   };
 
-  // BUILD: the panel appears, the wireframe draws around it, then the copy
-  // and the CTA assemble.
+  // BUILD: the panel, the wireframe and the copy assemble together. Everything
+  // runs concurrently with a short stagger so no element lands well after the
+  // rest.
   useEffect(() => {
     if (mode !== "build") return;
     const frame = buildFrameRef.current;
-    if (!frame) return;
+    const panel = buildPanelRef.current;
+    if (!frame || !panel) return;
     const len = frame.getTotalLength();
     const tl = gsap.timeline();
     track(tl);
     tl.fromTo(
-      buildPanelRef.current,
-      { opacity: 0 },
-      { opacity: 1, duration: 0.25, ease: "power1.out" },
+      panel,
+      { opacity: 0, y: 14 },
+      { opacity: 1, y: 0, duration: 0.32, ease: "power2.out" },
     )
-      .set(frame, { strokeDasharray: len, strokeDashoffset: len })
-      .to(frame, { strokeDashoffset: 0, duration: 0.9, ease: "power2.inOut" })
+      .set(frame, { strokeDasharray: len, strokeDashoffset: len }, 0)
+      .to(frame, { strokeDashoffset: 0, duration: 0.7, ease: "power2.out" }, 0)
       .fromTo(
         buildTextRef.current,
-        { opacity: 0, y: 16 },
-        { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" },
-        "-=0.25",
+        { opacity: 0, y: 14 },
+        { opacity: 1, y: 0, duration: 0.42, ease: "power2.out" },
+        0.12,
       )
       .fromTo(
         buildCtaRef.current,
-        { opacity: 0, y: 12 },
-        { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" },
-        "-=0.2",
+        { opacity: 0, y: 10 },
+        { opacity: 1, y: 0, duration: 0.42, ease: "power2.out" },
+        0.18,
       );
   }, [mode]);
 
