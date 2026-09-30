@@ -24,6 +24,10 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - test: `npm test` (Vitest); tests junto al módulo (`*.test.ts`)
 - format: no configurado
 
+## Git (flujo obligatorio)
+- Tras **cada** cambio: `npm run lint`, `npm run typecheck` y `npm test` en verde y, si todo pasa, **commit y push** sin esperar a que lo pidan.
+- Commitea solo los archivos de la tarea (no arrastres cambios ajenos del working tree). Mensaje en estilo conventional commits.
+
 ## Dónde va cada archivo
 - Ruta/página: `src/app/[lang]/<ruta>/page.tsx` (+ `generateMetadata`). Nada fuera de `[lang]` salvo `lab/` y `api/`.
 - Componente reutilizable: `src/components/ui/`; por dominio: `components/{home,layout,work,contact,theme,hero,lab}/`.
