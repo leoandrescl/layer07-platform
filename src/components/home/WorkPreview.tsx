@@ -1,18 +1,12 @@
 import Link from "next/link";
+import { cn } from "@/lib/cn";
 import { ProjectVisual } from "@/components/ui/ProjectVisual";
 import { Button } from "@/components/ui/Button";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionHeading } from "@/components/ui/SectionHeading";
-import { getFeaturedProjects } from "@/lib/content/projects";
+import { CATEGORY_LABELS, getFeaturedProjects } from "@/lib/content/projects";
 import type { Locale } from "@/lib/i18n/config";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
-
-const SPANS = [
-  "lg:col-span-7",
-  "lg:col-span-5 lg:mt-24",
-  "lg:col-span-5",
-  "lg:col-span-7 lg:mt-24",
-];
 
 export function WorkPreview({
   locale,
@@ -33,44 +27,62 @@ export function WorkPreview({
         />
       </Reveal>
 
-      <div className="mt-16 grid gap-x-8 gap-y-16 lg:grid-cols-12">
-        {projects.map((project, index) => (
-          <Reveal
-            key={project.slug}
-            delay={0.05}
-            className={SPANS[index % SPANS.length]}
-          >
-            <Link
-              href={`/${locale}/work/${project.slug}`}
-              className="group block"
-            >
-              <ProjectVisual project={project} locale={locale} />
-              <div className="mt-6 flex items-start justify-between gap-6">
-                <div>
-                  <h3 className="font-display text-2xl tracking-[-0.02em] text-ink transition-colors group-hover:text-accent">
+      <div className="mt-16 flex flex-col gap-20 md:mt-20 md:gap-28">
+        {projects.map((project, index) => {
+          // Alternate the image side row by row; on mobile the image always
+          // comes first so the list reads top to bottom.
+          const flipped = index % 2 === 1;
+          return (
+            <Reveal key={project.slug} delay={0.05}>
+              <Link
+                href={`/${locale}/work/${project.slug}`}
+                className="group grid items-center gap-8 lg:grid-cols-2 lg:gap-12"
+              >
+                <div className={cn(flipped && "lg:order-2")}>
+                  <ProjectVisual
+                    project={project}
+                    locale={locale}
+                    sizes="(min-width: 1024px) 46vw, 92vw"
+                  />
+                </div>
+
+                <div className={cn(flipped && "lg:order-1")}>
+                  <span className="eyebrow">
+                    {CATEGORY_LABELS[project.category][locale]}
+                  </span>
+                  <h3 className="mt-3 font-display text-3xl tracking-[-0.02em] text-ink transition-colors group-hover:text-accent sm:text-4xl">
                     {project.title[locale]}
                   </h3>
-                  <p className="mt-2 max-w-md text-[0.9375rem] leading-relaxed text-ink-soft">
+                  <p className="mt-4 max-w-md text-base leading-relaxed text-ink-soft">
                     {project.excerpt[locale]}
                   </p>
+                  <div className="mt-5 flex flex-wrap gap-2">
+                    {project.stack.slice(0, 4).map((tech) => (
+                      <span
+                        key={tech}
+                        className="rounded-full border border-line px-2.5 py-1 font-mono text-[0.625rem] tracking-[0.1em] text-ink-muted uppercase"
+                      >
+                        {tech}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="mt-6 flex items-center gap-4 font-mono text-[0.6875rem] tracking-[0.14em] text-ink-muted uppercase">
+                    <span>{project.year}</span>
+                    <span className="inline-flex items-center gap-1.5 text-ink transition-colors group-hover:text-accent">
+                      {dict.common.caseStudy}
+                      <span
+                        aria-hidden
+                        className="transition-transform duration-300 ease-out group-hover:translate-x-1"
+                      >
+                        →
+                      </span>
+                    </span>
+                  </div>
                 </div>
-                <span className="shrink-0 font-mono text-[0.6875rem] tracking-[0.14em] text-ink-muted uppercase">
-                  {project.year}
-                </span>
-              </div>
-              <div className="mt-4 flex flex-wrap gap-2">
-                {project.stack.slice(0, 3).map((tech) => (
-                  <span
-                    key={tech}
-                    className="rounded-full border border-line px-2.5 py-1 font-mono text-[0.625rem] tracking-[0.1em] text-ink-muted uppercase"
-                  >
-                    {tech}
-                  </span>
-                ))}
-              </div>
-            </Link>
-          </Reveal>
-        ))}
+              </Link>
+            </Reveal>
+          );
+        })}
       </div>
 
       <div className="mt-16">
