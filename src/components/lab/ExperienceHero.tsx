@@ -80,12 +80,12 @@ const VIEW_FILL = 0.92;
 const MORPH_DURATION = 3.6;
 const BUILD_MORPH_DURATION = 1.4;
 
-// The idle formation eases toward its scroll-driven target instead of tracking
-// it one-to-one, so the galaxy↔07 morph reads as a smooth transition in both
-// directions. It is fully formed well before the pinned stage unpins, and
-// while it is still building the page is held at the gate so the next section
-// can never be reached half-formed.
-const MORPH_EASE = 0.65;
+// The idle formation follows the pinned stage's scroll position but eases in
+// over a fixed, bounded time, so galaxy↔07 is smooth in both directions. It
+// reaches full at MORPH_GATE, before the stage unpins; while it is still
+// forming the page is held at the gate and released the instant the 07 is
+// complete.
+const MORPH_IDLE_DURATION = 1.2;
 const MORPH_GATE = 0.6;
 
 const ZERO_SHIFT = 0.3;
@@ -812,20 +812,23 @@ export function ExperienceHero({ dict, locale }: LabHeroProps) {
       // faster clock instead.
       const experienceMode = modeRef.current;
       if (experienceMode === "idle") {
-        // The formation eases toward the scroll-driven target instead of
-        // tracking it one-to-one: the galaxy↔07 morph keeps a smooth inertia
-        // in both directions. It reaches full at MORPH_GATE, well before the
-        // pinned stage unpins, and while it is still building the page is
-        // held there so the next section can never be reached half-formed.
+        // The formation follows the pinned stage's scroll position but eases
+        // in over a bounded time, so galaxy↔07 stays smooth in both directions
+        // while still landing exactly on 0 or 1. It reaches full at MORPH_GATE
+        // and, while it is still forming, the page is held at the gate so the
+        // next section can never be reached half-built.
         const scrollable = Math.max(1, root.offsetHeight - window.innerHeight);
         const progress = clamp(window.scrollY / scrollable);
-        const target = smoothstep(0.05, MORPH_GATE, progress);
-        const ease = 1 - Math.exp(-dt / MORPH_EASE);
-        morphLinear += (target - morphLinear) * ease;
-        morphTarget = morphLinear;
+        morphTarget = smoothstep(0.05, MORPH_GATE, progress);
+        const step = dt / MORPH_IDLE_DURATION;
+        const delta = morphTarget - morphLinear;
+        morphLinear =
+          Math.abs(delta) <= step
+            ? morphTarget
+            : morphLinear + Math.sign(delta) * step;
 
         const scroller = getLenis();
-        if (progress > MORPH_GATE && morphLinear < 0.999) {
+        if (progress > MORPH_GATE && morphLinear < 1) {
           if (!gateHeld) {
             gateHeld = true;
             scroller?.stop();
@@ -850,8 +853,7 @@ export function ExperienceHero({ dict, locale }: LabHeroProps) {
             : morphLinear + Math.sign(delta) * step;
       }
 
-      uniforms.uMorph.value =
-        experienceMode === "idle" ? morphLinear : easeInOutCubic(morphLinear);
+      uniforms.uMorph.value = easeInOutCubic(morphLinear);
 
       // ---- the living explore field ----
       const targetPointerActive = experienceMode === "explore" ? 1 : 0;
