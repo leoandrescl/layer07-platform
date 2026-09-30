@@ -772,8 +772,6 @@ export function ExperienceHero({ dict, locale }: LabHeroProps) {
     // Linear 0..1 timeline clock; the eased value is what the shader sees.
     let morphLinear = 0;
     let morphTarget = 0;
-    let lastScrollY = window.scrollY;
-    let scrollVel = 0;
 
     const tick = (now: number) => {
       raf = requestAnimationFrame(tick);
@@ -803,29 +801,27 @@ export function ExperienceHero({ dict, locale }: LabHeroProps) {
       // faster clock instead.
       const experienceMode = modeRef.current;
       if (experienceMode === "idle") {
-        const scrollY = window.scrollY;
-        scrollVel = scrollVel * 0.75 + (scrollY - lastScrollY) * 0.25;
-        lastScrollY = scrollY;
-        if (scrollVel > 0.6) {
-          morphTarget = 1;
-        } else if (scrollVel < -0.6) {
-          morphTarget = 0;
-        }
-      } else if (experienceMode === "build") {
-        morphTarget = 1;
+        // The formation is gated by the scroll position of the pinned stage:
+        // it maps to the stage progress and completes well before the stage
+        // unpins, so the next section can never be reached while the 07 is
+        // still half-built. Scrolling back up dissolves the mark again.
+        const scrollable = Math.max(1, root.offsetHeight - window.innerHeight);
+        const progress = clamp(window.scrollY / scrollable);
+        morphLinear = smoothstep(0.05, 0.6, progress);
+        morphTarget = morphLinear;
+      } else {
+        if (experienceMode === "build") morphTarget = 1;
+        const duration =
+          experienceMode === "build" ? BUILD_MORPH_DURATION : MORPH_DURATION;
+        const step = dt / duration;
+        const delta = morphTarget - morphLinear;
+        morphLinear =
+          Math.abs(delta) <= step
+            ? morphTarget
+            : morphLinear + Math.sign(delta) * step;
       }
 
-      const duration =
-        experienceMode === "build" ? BUILD_MORPH_DURATION : MORPH_DURATION;
-      const step = dt / duration;
-      const delta = morphTarget - morphLinear;
-      morphLinear =
-        Math.abs(delta) <= step
-          ? morphTarget
-          : morphLinear + Math.sign(delta) * step;
-
-      const eased = easeInOutCubic(morphLinear);
-      uniforms.uMorph.value = eased;
+      uniforms.uMorph.value = easeInOutCubic(morphLinear);
 
       // ---- the living explore field ----
       const targetPointerActive = experienceMode === "explore" ? 1 : 0;
