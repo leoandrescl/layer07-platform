@@ -32,6 +32,7 @@ import {
   ToneMappingMode,
 } from "postprocessing";
 import { detectCapability } from "@/lib/webgl/capability";
+import { getLenis } from "@/lib/scroll";
 import { SEVEN_PATH, ZERO } from "@/components/hero/glyphs";
 import { GALAXY, buildGalaxySeven, buildStarfield } from "@/components/hero/particles";
 import {
@@ -78,6 +79,14 @@ const VIEW_FILL = 0.92;
 // the construction sequence feels immediate after the click.
 const MORPH_DURATION = 3.6;
 const BUILD_MORPH_DURATION = 1.4;
+
+// The idle formation eases toward its scroll-driven target instead of tracking
+// it one-to-one, so the galaxy↔07 morph reads as a smooth transition in both
+// directions. It is fully formed well before the pinned stage unpins, and
+// while it is still building the page is held at the gate so the next section
+// can never be reached half-formed.
+const MORPH_EASE = 0.65;
+const MORPH_GATE = 0.6;
 
 const ZERO_SHIFT = 0.3;
 const SEVEN_SHIFT = -0.3;
@@ -772,6 +781,8 @@ export function ExperienceHero({ dict, locale }: LabHeroProps) {
     // Linear 0..1 timeline clock; the eased value is what the shader sees.
     let morphLinear = 0;
     let morphTarget = 0;
+    // true while the page is pinned at the gate waiting for the 07 to finish
+    let gateHeld = false;
 
     const tick = (now: number) => {
       raf = requestAnimationFrame(tick);
@@ -801,15 +812,33 @@ export function ExperienceHero({ dict, locale }: LabHeroProps) {
       // faster clock instead.
       const experienceMode = modeRef.current;
       if (experienceMode === "idle") {
-        // The formation is gated by the scroll position of the pinned stage:
-        // it maps to the stage progress and completes well before the stage
-        // unpins, so the next section can never be reached while the 07 is
-        // still half-built. Scrolling back up dissolves the mark again.
+        // The formation eases toward the scroll-driven target instead of
+        // tracking it one-to-one: the galaxy↔07 morph keeps a smooth inertia
+        // in both directions. It reaches full at MORPH_GATE, well before the
+        // pinned stage unpins, and while it is still building the page is
+        // held there so the next section can never be reached half-formed.
         const scrollable = Math.max(1, root.offsetHeight - window.innerHeight);
         const progress = clamp(window.scrollY / scrollable);
-        morphLinear = smoothstep(0.05, 0.6, progress);
+        const target = smoothstep(0.05, MORPH_GATE, progress);
+        const ease = 1 - Math.exp(-dt / MORPH_EASE);
+        morphLinear += (target - morphLinear) * ease;
         morphTarget = morphLinear;
+
+        const scroller = getLenis();
+        if (progress > MORPH_GATE && morphLinear < 0.999) {
+          if (!gateHeld) {
+            gateHeld = true;
+            scroller?.stop();
+          }
+        } else if (gateHeld) {
+          gateHeld = false;
+          scroller?.start();
+        }
       } else {
+        if (gateHeld) {
+          gateHeld = false;
+          getLenis()?.start();
+        }
         if (experienceMode === "build") morphTarget = 1;
         const duration =
           experienceMode === "build" ? BUILD_MORPH_DURATION : MORPH_DURATION;
@@ -821,7 +850,8 @@ export function ExperienceHero({ dict, locale }: LabHeroProps) {
             : morphLinear + Math.sign(delta) * step;
       }
 
-      uniforms.uMorph.value = easeInOutCubic(morphLinear);
+      uniforms.uMorph.value =
+        experienceMode === "idle" ? morphLinear : easeInOutCubic(morphLinear);
 
       // ---- the living explore field ----
       const targetPointerActive = experienceMode === "explore" ? 1 : 0;
@@ -927,6 +957,11 @@ export function ExperienceHero({ dict, locale }: LabHeroProps) {
     return () => {
       alive = false;
       cancelAnimationFrame(raf);
+      // never leave the page pinned if the hero unmounts mid-formation
+      if (gateHeld) {
+        gateHeld = false;
+        getLenis()?.start();
+      }
       uniformsRef.current = null;
       resizeObserver.disconnect();
       document.removeEventListener("visibilitychange", onVisibility);
