@@ -1011,7 +1011,9 @@ export function ExperienceHero({ dict, locale }: LabHeroProps) {
         />
 
         <div className="pointer-events-none absolute inset-0 z-10">
-          <div ref={chromeRef}>
+          {/* Full-size so the transform fadeChrome applies never turns this
+              into a zero-height containing block for the absolute chrome. */}
+          <div ref={chromeRef} className="absolute inset-0">
             <span className="hero-side hero-side-left">
               {copy?.studio ?? "Estudio de producto digital"}
             </span>
