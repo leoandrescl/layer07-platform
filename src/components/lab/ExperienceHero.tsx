@@ -452,8 +452,15 @@ export function ExperienceHero({ dict, locale }: LabHeroProps) {
     if (cursor) gsap.set(cursor, { xPercent: -50, yPercent: -50, scale: 1 });
     const field = document.getElementById("explore-field");
     if (!field) return;
-    const qx = gsap.quickTo(field, "x", { duration: 0.7, ease: "power3" });
-    const qy = gsap.quickTo(field, "y", { duration: 0.7, ease: "power3" });
+    // Only the desktop ring drifts with the pointer; on touch the labels are a
+    // stacked list and must stay put.
+    const finePointer = window.matchMedia("(pointer: fine)").matches;
+    const qx = finePointer
+      ? gsap.quickTo(field, "x", { duration: 0.7, ease: "power3" })
+      : null;
+    const qy = finePointer
+      ? gsap.quickTo(field, "y", { duration: 0.7, ease: "power3" })
+      : null;
     const qcx = cursor
       ? gsap.quickTo(cursor, "x", { duration: 0.16, ease: "power2" })
       : null;
@@ -469,8 +476,8 @@ export function ExperienceHero({ dict, locale }: LabHeroProps) {
       if (uniforms) uniforms.uPointer.value.set(nx, ny);
       qcx?.(event.clientX);
       qcy?.(event.clientY);
-      qx((nx / 2) * 30);
-      qy((-ny / 2) * 20);
+      qx?.((nx / 2) * 30);
+      qy?.((-ny / 2) * 20);
     };
     window.addEventListener("pointermove", onMove);
     return () => window.removeEventListener("pointermove", onMove);
@@ -1118,7 +1125,7 @@ export function ExperienceHero({ dict, locale }: LabHeroProps) {
             <div
               id="explore-field"
               ref={exploreRef}
-              className="absolute inset-0 z-20"
+              className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 px-6 pt-24 pb-32 lg:block lg:gap-0 lg:px-0 lg:pt-0 lg:pb-0"
             >
               {capabilities.map((label, index) => {
                 const pos = EXPLORE_POS[index % EXPLORE_POS.length];
@@ -1134,8 +1141,11 @@ export function ExperienceHero({ dict, locale }: LabHeroProps) {
                     onMouseLeave={blurNode}
                     onFocus={(event) => focusNode(index, event.currentTarget)}
                     onBlur={blurNode}
-                    className="group pointer-events-auto absolute flex min-h-11 -translate-x-1/2 -translate-y-1/2 items-center gap-2.5 border border-line bg-surface/60 px-3 py-2 font-mono text-[0.65rem] uppercase tracking-[0.18em] text-ink backdrop-blur-sm transition-all duration-300 hover:scale-[1.06] hover:border-[var(--accent)] hover:text-[var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
-                    style={{ left: pos.x, top: pos.y }}
+                    className="group pointer-events-auto flex min-h-11 w-full max-w-xs items-center gap-2.5 border border-line bg-surface/60 px-4 py-2 font-mono text-[0.65rem] uppercase tracking-[0.18em] text-ink backdrop-blur-sm transition-all duration-300 hover:scale-[1.06] hover:border-[var(--accent)] hover:text-[var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] lg:absolute lg:left-[var(--x)] lg:top-[var(--y)] lg:w-auto lg:max-w-none lg:-translate-x-1/2 lg:-translate-y-1/2"
+                    style={
+                      // custom properties consumed by the lg ring classes above
+                      { "--x": pos.x, "--y": pos.y } as React.CSSProperties
+                    }
                   >
                     <span className="relative inline-block h-2.5 w-2.5" aria-hidden>
                       <span className="absolute inset-0 rounded-full bg-[var(--accent)] opacity-80 transition-transform duration-300 group-hover:scale-150" />
