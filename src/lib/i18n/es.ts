@@ -299,6 +299,17 @@ export const es = {
     cta: "Volver al inicio",
   },
   lab: {
+    tintaViva: {
+      eyebrow: "layer07 · estudio de producto digital",
+      mark: "tinta viva",
+      lines: ["Las ideas", "se vuelven", "producto"],
+      lede: "Diseño, ingeniería y una capa de interacción que respira. Construimos productos digitales que se sienten tan bien como funcionan.",
+      workLabel: "Trabajo seleccionado",
+      hint: "Mueve el cursor — la tinta responde",
+      scroll: "Desliza para ver el trabajo",
+      primary: "Iniciar un proyecto",
+      secondary: "Ver trabajo",
+    },
     astraSix: {
       brandLeft: "Layer",
       brandRight: "07",

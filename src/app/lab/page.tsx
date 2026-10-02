@@ -30,9 +30,46 @@ const SPIRAL = Array.from({ length: 320 }, (_, i) => {
   };
 });
 
+function TypeArt({ color }: { color: string }) {
+  return (
+    <svg viewBox="0 0 400 250" preserveAspectRatio="xMidYMid slice" aria-hidden>
+      <rect width="400" height="250" fill="#04050a" />
+      <g stroke="#bcd4ff" strokeOpacity="0.16">
+        <line x1="0" y1="72" x2="400" y2="72" />
+        <line x1="0" y1="184" x2="400" y2="184" />
+      </g>
+      <text
+        x="34"
+        y="70"
+        fontSize="13"
+        letterSpacing="3"
+        fill="#bcd4ff"
+        fillOpacity="0.45"
+        style={{ fontFamily: "var(--font-mono), monospace" }}
+      >
+        TINTA VIVA
+      </text>
+      <text
+        x="30"
+        y="176"
+        fontSize="150"
+        fill={color}
+        fillOpacity="0.92"
+        style={{ fontFamily: "var(--font-display), serif" }}
+      >
+        Aa
+      </text>
+    </svg>
+  );
+}
+
 function HeroArt({ hero }: { hero: LabHero }) {
   const id = hero.slug;
   const color = hero.accent;
+
+  if (hero.tags.includes("tipografía")) {
+    return <TypeArt color={color} />;
+  }
 
   return (
     <svg viewBox="0 0 400 250" preserveAspectRatio="xMidYMid slice" aria-hidden>

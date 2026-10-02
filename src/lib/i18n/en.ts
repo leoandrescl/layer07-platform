@@ -301,6 +301,17 @@ export const en: Dictionary = {
     cta: "Back to home",
   },
   lab: {
+    tintaViva: {
+      eyebrow: "layer07 · digital product studio",
+      mark: "living ink",
+      lines: ["Ideas that", "become", "product"],
+      lede: "Design, engineering and an interaction layer that breathes. We build digital products that feel as good as they work.",
+      workLabel: "Selected work",
+      hint: "Move the cursor — the ink responds",
+      scroll: "Scroll to see the work",
+      primary: "Start a project",
+      secondary: "View work",
+    },
     astraSix: {
       brandLeft: "Layer",
       brandRight: "07",

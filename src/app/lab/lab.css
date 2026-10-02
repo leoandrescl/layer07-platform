@@ -686,3 +686,383 @@
     animation: none !important;
   }
 }
+
+/* ---------- 07-tinta-viva (tipografía editorial) ---------- */
+
+.tinta-root {
+  position: relative;
+  min-height: 100svh;
+  overflow: hidden;
+  background: radial-gradient(
+    130% 85% at 50% 0%,
+    var(--bg-elevated) 0%,
+    var(--bg) 58%
+  );
+}
+
+/* the living drop of ink behind the type, driven by --orb-x/--orb-y */
+.tinta-orb {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  width: min(80vw, 46rem);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--accent) 34%, transparent) 0%,
+    color-mix(in srgb, var(--accent) 10%, transparent) 44%,
+    transparent 70%
+  );
+  filter: blur(72px);
+  transform: translate3d(
+    calc(var(--orb-x, 50vw) - 50%),
+    calc(var(--orb-y, 42svh) - 50%),
+    0
+  );
+  pointer-events: none;
+}
+
+.tinta-inner {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(1.2rem, 3vh, 2.2rem);
+  width: min(100% - 3rem, 78rem);
+  min-height: 100svh;
+  margin-inline: auto;
+  padding-block: clamp(6rem, 15vh, 9rem) clamp(5.5rem, 14vh, 8rem);
+}
+
+.tinta-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+}
+
+.tinta-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.tinta-eyebrow::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+.tinta-mark {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--ink) 45%, transparent);
+}
+
+.tinta-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(3rem, 13.5vw, 10.5rem);
+  line-height: 0.94;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+.tinta-line {
+  display: block;
+  overflow: hidden;
+  padding-block: 0.03em;
+}
+
+.tinta-line-track {
+  display: block;
+  transform: translate3d(
+    calc(var(--px, 0) * var(--d, 0.5) * 12px),
+    calc(var(--py, 0) * var(--d, 0.5) * -8px),
+    0
+  );
+  transition: transform 0.5s var(--ease-out);
+}
+
+.tinta-line-inner {
+  display: block;
+  background: linear-gradient(
+    100deg,
+    var(--ink) 0%,
+    var(--ink) 42%,
+    var(--accent) 50%,
+    var(--ink) 58%,
+    var(--ink) 100%
+  );
+  background-size: 240% 100%;
+  background-position: 120% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation:
+    tinta-reveal 0.95s var(--ease-out) both,
+    tinta-sheen 11s ease-in-out infinite;
+  animation-delay: calc(var(--i, 0) * 95ms + 140ms);
+}
+
+.tinta-line--accent .tinta-line-inner {
+  font-style: italic;
+  background: none;
+  color: var(--accent);
+  -webkit-text-fill-color: var(--accent);
+  animation: tinta-reveal 0.95s var(--ease-out) calc(var(--i, 0) * 95ms + 140ms)
+    both;
+}
+
+@keyframes tinta-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(118%);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes tinta-sheen {
+  0%,
+  100% {
+    background-position: 120% 0;
+  }
+  50% {
+    background-position: -20% 0;
+  }
+}
+
+@supports not (
+  (-webkit-background-clip: text) or (background-clip: text)
+) {
+  .tinta-line-inner {
+    background: none;
+    color: var(--ink);
+    -webkit-text-fill-color: var(--ink);
+  }
+
+  .tinta-line--accent .tinta-line-inner {
+    color: var(--accent);
+    -webkit-text-fill-color: var(--accent);
+  }
+}
+
+.tinta-lede {
+  max-width: 34rem;
+  margin: 0;
+  font-size: clamp(0.95rem, 1.4vw, 1.15rem);
+  line-height: 1.6;
+  color: var(--ink-muted);
+  text-wrap: pretty;
+}
+
+.tinta-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+}
+
+.tinta-cta {
+  display: inline-flex;
+  align-items: center;
+  min-height: 46px;
+  padding-inline: 1.4rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bg) 45%, transparent);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink);
+  text-decoration: none;
+  transition:
+    border-color 0.35s var(--ease-out),
+    background-color 0.35s var(--ease-out),
+    color 0.35s var(--ease-out),
+    transform 0.35s var(--ease-out);
+}
+
+.tinta-cta:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.tinta-cta--solid {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.tinta-cta--solid:hover {
+  color: var(--accent-ink);
+  filter: brightness(1.07);
+}
+
+.tinta-work-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  padding-top: clamp(0.6rem, 2vh, 1.2rem);
+  border-top: 1px solid var(--line);
+}
+
+.tinta-work-label {
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--ink) 50%, transparent);
+}
+
+.tinta-work {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tinta-work a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 44px;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  text-decoration: none;
+  transition: color 0.3s var(--ease-out);
+}
+
+.tinta-work a:hover,
+.tinta-work a:focus-visible {
+  color: var(--ink);
+}
+
+.tinta-work-cat {
+  color: color-mix(in srgb, var(--ink-muted) 60%, transparent);
+}
+
+.tinta-foot {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem 1rem;
+  width: min(100% - 3rem, 78rem);
+  margin-inline: auto;
+  padding-block: clamp(1rem, 3vh, 1.6rem) clamp(1.2rem, 4vh, 2rem);
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--ink) 52%, transparent);
+  pointer-events: none;
+}
+
+.tinta-scroll {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+@media (max-width: 639px) {
+  .tinta-foot > span:first-child {
+    display: none;
+  }
+}
+
+/* project preview that trails the cursor over the work rail */
+.tinta-preview {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 5;
+  display: none;
+  width: clamp(11rem, 24vw, 21rem);
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  border-radius: 1rem;
+  background: var(--surface);
+  box-shadow: 0 30px 80px -40px rgba(0, 0, 0, 0.58);
+  opacity: 0;
+  transform: translate3d(
+      calc(var(--x, 50vw) - 50%),
+      calc(var(--y, 50vh) - 50%),
+      0
+    )
+    scale(0.96);
+  transition:
+    opacity 0.35s var(--ease-out),
+    transform 0.35s var(--ease-out);
+  pointer-events: none;
+}
+
+.tinta-preview.is-active {
+  opacity: 1;
+  transform: translate3d(
+      calc(var(--x, 50vw) - 50%),
+      calc(var(--y, 50vh) - 50%),
+      0
+    )
+    scale(1);
+}
+
+.tinta-preview img {
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.4s var(--ease-out);
+}
+
+.tinta-preview img.is-shown {
+  opacity: 1;
+}
+
+@media (pointer: fine) {
+  .tinta-preview {
+    display: block;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tinta-line-inner {
+    animation: none;
+  }
+
+  .tinta-line-track {
+    transform: none;
+    transition: none;
+  }
+
+  .tinta-preview,
+  .tinta-preview img {
+    transition: none;
+  }
+}

@@ -6,6 +6,7 @@ import { ExperienceHero } from "@/components/lab/ExperienceHero";
 import { MorphosisHero } from "@/components/lab/MorphosisHero";
 import { AstraHero } from "@/components/lab/AstraHero";
 import { AstraSixHero } from "@/components/lab/AstraSixHero";
+import { TintaVivaHero } from "@/components/lab/TintaVivaHero";
 
 export type LabHeroProps = { dict: Dictionary; locale?: string };
 
@@ -26,6 +27,18 @@ export type LabHero = {
 };
 
 export const LAB_HEROES: LabHero[] = [
+  {
+    slug: "tinta-viva",
+    name: "Tinta viva (tipografía)",
+    tagline: "Tipografía editorial que respira: la tinta sigue al cursor",
+    description:
+      "Hero sin galaxia ni partículas: una frase gigante se revela línea a línea como tinta sobre papel, cada línea moviéndose a su propia profundidad con el puntero y una gota de acento viva detrás del texto. Al pasar el cursor por el trabajo seleccionado, cada proyecto se asoma en una vista flotante que sigue al puntero. Si no hay WebGL o el usuario pide menos movimiento, la misma composición queda fija y legible.",
+    tags: ["tipografía", "cinética", "cursor", "editorial"],
+    accent: "#7a88ff",
+    preview: "particles",
+    status: "candidate",
+    component: TintaVivaHero,
+  },
   {
     slug: "07-espiral",
     name: "07 espiral (coil)",
@@ -91,7 +104,7 @@ export const LAB_HEROES: LabHero[] = [
     name: "Astra G6 (secuencia)",
     tagline: "Dispersas → galaxia en 6: la secuencia automática de Astra",
     description:
-      "Réplica de la intro de GPT-6 Astra con código propio y sin scroll: un campo estelar con vacío central se ensambla directamente en una galaxia de frente cuyo brazo exterior dominante lee como un 6. Estrellas bien definidas en tonos azul hielo y rojo coral, núcleo que quema y giro eterno al final. Un botón repite la secuencia completa.",
+      "Réplica de la intro de GPT-6 Astra con código propio y sin scroll: un campo estelar con vacío central se ensambla directamente en una galaxia de frente cuyo brazo exterior dominante lee como un 6. La galaxia no gira: las partículas nacen en las colas de cada brazo y fluyen sin pausa hacia el núcleo, que las absorbe y las devuelve a la cola. Estrellas bien definidas en tonos azul hielo y rojo coral. Un botón repite la secuencia completa.",
     tags: ["galaxia", "secuencia", "auto", "réplica"],
     accent: "#9fc4ff",
     preview: "particles",
